@@ -1,0 +1,14 @@
+.artifacts/
+.dart_tool/
+build/
+**/build/
+**/.dart_tool/
+**/local.properties
+**/key.properties
+*.jks
+*.keystore
+*.p12
+*.mobileprovision
+.env
+.env.*
+!.env.example
