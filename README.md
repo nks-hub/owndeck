@@ -11,7 +11,7 @@ OwnDeck is a Flutter client for Nextcloud Deck on Android and iOS, currently und
 
 - 📋 **Planning** - Product requirements, API findings, and implementation tasks are tracked in this repository.
 - 🔌 **API reference** - An inventory covers 86 versioned routes from Deck 1.19.1.
-- 📱 **Mobile client** - Android and iOS development uses the package identifier `com.nkshub.nextclouddeck`.
+- 📱 **Mobile client** - Initial code supports Nextcloud browser sign-in, secure account storage, and board browsing under `com.nkshub.nextclouddeck`.
 
 Board editing, offline synchronization, and telemetry are implementation work in progress. See [TODO.md](TODO.md) for their status.
 
@@ -27,9 +27,14 @@ Board editing, offline synchronization, and telemetry are implementation work in
 ```sh
 git clone https://github.com/nks-hub/owndeck.git
 cd owndeck
+cd apps/mobile
+flutter pub get
+flutter run
 ```
 
 Repository access is currently restricted while development is in progress.
+
+The commands above start the development client; device acceptance has not been completed.
 
 ## Configuration
 

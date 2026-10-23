@@ -11,7 +11,7 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] A04 Mapa klientských rodin Nextcloud a jejich použití/hranice pro Deck je v `docs/nextcloud-api.md`.
 - [x] A05 Zadání obrazovek, chybových stavů, přístupnosti a designu v `docs/product.md`.
 - [x] A06 Model dat, trvalá fronta, konflikty a bezpečnost v `docs/architecture.md`; limit serverového If-Match výslovně zaznamenán.
-- [ ] D01 Založit Flutter aplikaci Android/iOS jako `com.nkshub.nextclouddeck` podle OwnTalk/OwnNotes a převzít vhodné společné komponenty.
+- [x] D01 Založena Flutter aplikace Android/iOS `com.nkshub.nextclouddeck`, SDK 3.44.4, protokol a přihlášení podle OwnNotes; závislosti vyřešeny, runtime ověření zůstává v T01–T03.
 - [ ] D02 Implementovat přihlášení Nextcloud Login Flow v2, bezpečné ukládání a více účtů.
 - [ ] D03 Implementovat nástěnky, sloupce, oprávnění, archivaci a sdílení.
 - [ ] D04 Implementovat karty, popis, termíny, štítky, přiřazení, dokončení a přesuny.
@@ -25,4 +25,4 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [ ] T02 Ověřit skutečný Nextcloud server, oba buildy a příjem bezpečných telemetrických událostí.
 - [ ] T03 Provést závěrečné fyzické testy S9 a S21 a samostatné ověření iOS; uložit důkazy s revizí.
 
-Aktuální krok: D01, založení aplikace po uzavření zdrojové analýzy. Testovací scénáře jsou připravené v `docs/testing.md`; aplikace ani cílová zařízení zatím nebyly testované.
+Aktuální krok: D02/D03. Kód již obsahuje Login Flow v2, bezpečné uložení více účtů a čtení nástěnek/sloupců/karet. Zbývá úplný životní cyklus účtu včetně odvolání tokenu a napojení na místní databázi; zápisy a synchronizace následují. Jednotkové scénáře protokolu jsou připravené, dosud nespouštěné. Aplikace ani cílová zařízení zatím nebyly testované.

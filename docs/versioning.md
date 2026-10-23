@@ -7,7 +7,7 @@
 - Dart název aplikace: `nextclouddeck`.
 - Výchozí vývojová verze: `0.1.0+1`. Nejde o vydaný build.
 
-Verze má tvar `major.minor.patch+build`. Číslo buildu roste při každém distribučním sestavení a nikdy se znovu nepoužije. Stejný kandidát pro Android a iOS má stejnou verzi a zdrojovou revizi. `VERSION` je zdroj verze; při vytvoření aplikace jej sestavení promítne do Flutter konfigurace a obou platforem. Release tag `v0.1.0+1` smí vzniknout až pro ověřenou revizi, ne při založení projektu.
+Verze má tvar `major.minor.patch+build`. Číslo buildu roste při každém distribučním sestavení a nikdy se znovu nepoužije. Stejný kandidát pro Android a iOS má stejnou verzi a zdrojovou revizi. `VERSION` je zdroj verze; `python tool/sync_version.py` jej před sestavením promítne do Flutter konfigurace, kterou přebírají obě platformy. Release tag `v0.1.0+1` smí vzniknout až pro ověřenou revizi, ne při založení projektu.
 
 Kandidátní aplikace pro souběžné testování může používat příponu `.candidate`, podle vzoru OwnTalk a OwnNotes. Nesmí nahradit distribuční identifikátor ani načíst jeho místní data.
 
