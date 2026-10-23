@@ -116,4 +116,87 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get syncing => 'Refreshing…';
+
+  @override
+  String get addCard => 'Add card';
+
+  @override
+  String get editCard => 'Edit card';
+
+  @override
+  String get cardTitle => 'Card title';
+
+  @override
+  String get description => 'Description';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get savedLocally =>
+      'Saved on this device. The change is awaiting server confirmation.';
+
+  @override
+  String get invalidTitle => 'The title must contain 1 to 255 characters.';
+
+  @override
+  String get dueDate => 'Due date';
+
+  @override
+  String get clearDate => 'Clear due date';
+
+  @override
+  String get completed => 'Completed';
+
+  @override
+  String get pendingChanges => 'Pending changes';
+
+  @override
+  String get noPending => 'All changes have been confirmed.';
+
+  @override
+  String get queued => 'Queued';
+
+  @override
+  String get sending => 'Sending';
+
+  @override
+  String get conflict => 'The same field changed on the server.';
+
+  @override
+  String get uncertain =>
+      'The server may have accepted this change. Check the server before retrying.';
+
+  @override
+  String get blocked => 'This change cannot be sent. Check access and content.';
+
+  @override
+  String get retryWrite => 'Send again';
+
+  @override
+  String get discardWrite => 'Discard local change';
+
+  @override
+  String get localVersion => 'Local version';
+
+  @override
+  String get serverVersion => 'Server version';
+
+  @override
+  String get confirmRetry =>
+      'Retrying may create a duplicate card. Send again?';
+
+  @override
+  String get confirmDiscard =>
+      'Discard this local change? This will not undo any write already applied on the server.';
+
+  @override
+  String get pendingDecision =>
+      'This card has a sending or unresolved change. Open Pending changes first.';
+
+  @override
+  String get unsavedChanges => 'Leave unsaved changes?';
+
+  @override
+  String get leave => 'Leave';
 }

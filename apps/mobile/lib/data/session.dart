@@ -3,10 +3,13 @@ import 'package:deck_store/deck_store.dart';
 import 'package:flutter/foundation.dart';
 
 final class DeckSession extends ChangeNotifier {
-  DeckSession(this.database, this.account, this.client);
+  DeckSession(this.database, this.account, this.client) {
+    sync = CardSync(database, account, client);
+  }
   final DeckDatabase database;
   final StoredAccount account;
   final DeckClient client;
+  late final CardSync sync;
   final _running = <String, Future<void>>{};
   final _errors = <String, Object>{};
   bool _disposed = false;
@@ -19,8 +22,10 @@ final class DeckSession extends ChangeNotifier {
       database.watchStacks(account.id, boardId);
 
   Future<void> refreshBoards() => _refresh('boards', () async {
+    await sync.run();
     capabilities = await client.capabilities();
     final cached = await database.checkpoint(account.id, 'boards');
+    final epoch = (await database.account(account.id))?.contentEpoch;
     final response = await client.rest('GET', ['boards'], etag: cached?.etag);
     if (_disposed || response.notModified) return;
     final boards = objects(response.data).map(DeckBoard.fromJson).toList();
@@ -29,12 +34,15 @@ final class DeckSession extends ChangeNotifier {
       account.generation,
       boards,
       response.etag,
+      contentEpoch: epoch,
     );
   });
 
   Future<void> refreshStacks(int boardId) =>
       _refresh('board:$boardId', () async {
+        await sync.run();
         final cached = await database.checkpoint(account.id, 'board:$boardId');
+        final epoch = (await database.account(account.id))?.contentEpoch;
         final response = await client.rest('GET', [
           'boards',
           '$boardId',
@@ -48,6 +56,7 @@ final class DeckSession extends ChangeNotifier {
           boardId,
           stacks,
           response.etag,
+          contentEpoch: epoch,
         );
       });
 
@@ -77,6 +86,7 @@ final class DeckSession extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    sync.close();
     super.dispose();
   }
 }

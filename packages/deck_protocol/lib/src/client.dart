@@ -137,7 +137,10 @@ final class DeckClient {
               _ => 'request_rejected',
             },
             status: response.statusCode,
-            uncertain: mutation && response.statusCode >= 500,
+            uncertain:
+                mutation &&
+                (response.statusCode >= 500 ||
+                    response.statusCode >= 300 && response.statusCode < 400),
           );
         }
         if (response.headers['content-type']

@@ -15,9 +15,12 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] D02 Implementován Login Flow v2, oddělené reference tokenů, databázové účty, opětovné přihlášení, přepnutí a odebrání s odvoláním tokenu; spuštění testů zůstává v T01–T03.
 - [ ] D03 Implementovat nástěnky, sloupce, oprávnění, archivaci a sdílení.
 - [ ] D04 Implementovat karty, popis, termíny, štítky, přiřazení, dokončení a přesuny.
+- [x] D04a Přidán editor názvu, popisu a termínu, volba dokončení u karet s podporovaným polem a lokálně uložené vytvoření/úprava; ověření běhu čeká na T01.
 - [ ] D05 Implementovat komentáře, přílohy a návazné soubory.
 - [ ] D06 Implementovat místní data, frontu změn, obnovu po restartu a konflikty.
 - [x] D06a Přidána databáze a místní kopie nástěnek/sloupců/karet, ETag a ochrana proti pozdním odpovědím odebraného účtu; připraveno 6 databázových scénářů pro T01.
+- [x] D06b Implementována trvalá fronta vytvoření/úprav karet, zámek účtu, detekce konfliktu a ruční rozhodnutí, obnova přerušeného zápisu a ochrana před starou odpovědí po potvrzeném zápisu; 6 scénářů připraveno pro T01.
+- [ ] D06c Doplnit automatické uložení rozepsaného editoru, závislosti nových entit, ostatní typy zápisů a obnovu při návratu aplikace či sítě.
 - [ ] D07 Implementovat hledání, přehled vlastních úkolů a odkazy do konkrétních karet.
 - [ ] D08 Integrovat volitelné Sentry a Rybbit: konfigurace přes CI v našich buildech, žádné pevné klíče, funkční build i bez služeb, ochrana obsahu a volba uživatele.
 - [ ] D09 Dokončit české a anglické texty, přístupnost a chybové stavy.
@@ -26,4 +29,4 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [ ] T02 Ověřit skutečný Nextcloud server, oba buildy a příjem bezpečných telemetrických událostí.
 - [ ] T03 Provést závěrečné fyzické testy S9 a S21 a samostatné ověření iOS; uložit důkazy s revizí.
 
-Aktuální krok: D03/D04 a zbývající D06. Čtení již používá místní databázi; následují zápisy a trvalá fronta s konflikty. Závislosti a generování databázových typů proběhly. Testy protokolu a databáze jsou připravené, dosud nespouštěné. Zaškrtnutí D bodů znamená dokončenou implementaci, nikoli úspěch testů; ty mají vlastní T body. Aplikace ani cílová zařízení zatím nebyly testované.
+Aktuální krok: zbývající D03/D04/D06. Čtení používá místní databázi; vytvoření a základní úpravy karet mají trvalou frontu s konflikty. Následuje automatické ukládání editoru, další operace s kartami a správa nástěnek/sloupců. Závislosti a generování databázových typů proběhly. Testy protokolu a databáze jsou připravené, dosud nespouštěné. Zaškrtnutí D bodů znamená dokončenou implementaci, nikoli úspěch testů; ty mají vlastní T body. Aplikace ani cílová zařízení zatím nebyly testované.

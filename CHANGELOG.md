@@ -8,5 +8,9 @@
 - Cache boards, stacks, and cards; show cached content when a refresh fails.
 - Reject late cache writes from removed or reauthenticated accounts.
 - Add Czech and English text for the initial account and board screens.
+- Save card creation and edits in a persistent outbox before sending them.
+- Preserve both versions of conflicting edits and require a decision for uncertain writes.
+- Add a card editor for titles, descriptions, due dates, and supported completion fields.
+- Prevent an older refresh response from overwriting a confirmed write.
 
 Automated and device acceptance tests are scheduled after feature development. This version has not been distributed.

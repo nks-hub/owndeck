@@ -117,4 +117,87 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get syncing => 'Aktualizuji…';
+
+  @override
+  String get addCard => 'Přidat kartu';
+
+  @override
+  String get editCard => 'Upravit kartu';
+
+  @override
+  String get cardTitle => 'Název karty';
+
+  @override
+  String get description => 'Popis';
+
+  @override
+  String get save => 'Uložit';
+
+  @override
+  String get savedLocally =>
+      'Uloženo v telefonu. Změna čeká na potvrzení serverem.';
+
+  @override
+  String get invalidTitle => 'Název musí mít 1 až 255 znaků.';
+
+  @override
+  String get dueDate => 'Termín';
+
+  @override
+  String get clearDate => 'Zrušit termín';
+
+  @override
+  String get completed => 'Dokončeno';
+
+  @override
+  String get pendingChanges => 'Neodeslané změny';
+
+  @override
+  String get noPending => 'Všechny změny jsou potvrzené.';
+
+  @override
+  String get queued => 'Čeká na odeslání';
+
+  @override
+  String get sending => 'Odesílá se';
+
+  @override
+  String get conflict => 'Na serveru se změnilo stejné pole.';
+
+  @override
+  String get uncertain =>
+      'Server mohl změnu přijmout. Před opakováním zkontrolujte obsah na serveru.';
+
+  @override
+  String get blocked => 'Změnu nelze odeslat. Zkontrolujte přístup a obsah.';
+
+  @override
+  String get retryWrite => 'Znovu odeslat';
+
+  @override
+  String get discardWrite => 'Zahodit místní změnu';
+
+  @override
+  String get localVersion => 'Místní verze';
+
+  @override
+  String get serverVersion => 'Verze na serveru';
+
+  @override
+  String get confirmRetry =>
+      'Opakování může vytvořit duplicitní kartu. Opravdu odeslat znovu?';
+
+  @override
+  String get confirmDiscard =>
+      'Zahodit tuto místní změnu? Případný již provedený zápis na serveru to nevrátí.';
+
+  @override
+  String get pendingDecision =>
+      'Tato karta má právě odesílanou nebo nevyřešenou změnu. Nejdřív otevřete Neodeslané změny.';
+
+  @override
+  String get unsavedChanges => 'Opustit neuložené úpravy?';
+
+  @override
+  String get leave => 'Opustit';
 }

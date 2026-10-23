@@ -72,6 +72,18 @@ class $StoredAccountsTable extends StoredAccounts
     requiredDuringInsert: false,
     defaultValue: const Constant(1),
   );
+  static const VerificationMeta _contentEpochMeta = const VerificationMeta(
+    'contentEpoch',
+  );
+  @override
+  late final GeneratedColumn<int> contentEpoch = GeneratedColumn<int>(
+    'content_epoch',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   static const VerificationMeta _selectedMeta = const VerificationMeta(
     'selected',
   );
@@ -95,6 +107,7 @@ class $StoredAccountsTable extends StoredAccounts
     credentialRef,
     state,
     generation,
+    contentEpoch,
     selected,
   ];
   @override
@@ -153,6 +166,15 @@ class $StoredAccountsTable extends StoredAccounts
         generation.isAcceptableOrUnknown(data['generation']!, _generationMeta),
       );
     }
+    if (data.containsKey('content_epoch')) {
+      context.handle(
+        _contentEpochMeta,
+        contentEpoch.isAcceptableOrUnknown(
+          data['content_epoch']!,
+          _contentEpochMeta,
+        ),
+      );
+    }
     if (data.containsKey('selected')) {
       context.handle(
         _selectedMeta,
@@ -196,6 +218,10 @@ class $StoredAccountsTable extends StoredAccounts
         DriftSqlType.int,
         data['${effectivePrefix}generation'],
       )!,
+      contentEpoch: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}content_epoch'],
+      )!,
       selected: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}selected'],
@@ -216,6 +242,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
   final String credentialRef;
   final String state;
   final int generation;
+  final int contentEpoch;
   final bool selected;
   const StoredAccount({
     required this.id,
@@ -224,6 +251,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
     required this.credentialRef,
     required this.state,
     required this.generation,
+    required this.contentEpoch,
     required this.selected,
   });
   @override
@@ -235,6 +263,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
     map['credential_ref'] = Variable<String>(credentialRef);
     map['state'] = Variable<String>(state);
     map['generation'] = Variable<int>(generation);
+    map['content_epoch'] = Variable<int>(contentEpoch);
     map['selected'] = Variable<bool>(selected);
     return map;
   }
@@ -247,6 +276,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
       credentialRef: Value(credentialRef),
       state: Value(state),
       generation: Value(generation),
+      contentEpoch: Value(contentEpoch),
       selected: Value(selected),
     );
   }
@@ -263,6 +293,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
       credentialRef: serializer.fromJson<String>(json['credentialRef']),
       state: serializer.fromJson<String>(json['state']),
       generation: serializer.fromJson<int>(json['generation']),
+      contentEpoch: serializer.fromJson<int>(json['contentEpoch']),
       selected: serializer.fromJson<bool>(json['selected']),
     );
   }
@@ -276,6 +307,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
       'credentialRef': serializer.toJson<String>(credentialRef),
       'state': serializer.toJson<String>(state),
       'generation': serializer.toJson<int>(generation),
+      'contentEpoch': serializer.toJson<int>(contentEpoch),
       'selected': serializer.toJson<bool>(selected),
     };
   }
@@ -287,6 +319,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
     String? credentialRef,
     String? state,
     int? generation,
+    int? contentEpoch,
     bool? selected,
   }) => StoredAccount(
     id: id ?? this.id,
@@ -295,6 +328,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
     credentialRef: credentialRef ?? this.credentialRef,
     state: state ?? this.state,
     generation: generation ?? this.generation,
+    contentEpoch: contentEpoch ?? this.contentEpoch,
     selected: selected ?? this.selected,
   );
   StoredAccount copyWithCompanion(StoredAccountsCompanion data) {
@@ -309,6 +343,9 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
       generation: data.generation.present
           ? data.generation.value
           : this.generation,
+      contentEpoch: data.contentEpoch.present
+          ? data.contentEpoch.value
+          : this.contentEpoch,
       selected: data.selected.present ? data.selected.value : this.selected,
     );
   }
@@ -322,6 +359,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
           ..write('credentialRef: $credentialRef, ')
           ..write('state: $state, ')
           ..write('generation: $generation, ')
+          ..write('contentEpoch: $contentEpoch, ')
           ..write('selected: $selected')
           ..write(')'))
         .toString();
@@ -335,6 +373,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
     credentialRef,
     state,
     generation,
+    contentEpoch,
     selected,
   );
   @override
@@ -347,6 +386,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
           other.credentialRef == this.credentialRef &&
           other.state == this.state &&
           other.generation == this.generation &&
+          other.contentEpoch == this.contentEpoch &&
           other.selected == this.selected);
 }
 
@@ -357,6 +397,7 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
   final Value<String> credentialRef;
   final Value<String> state;
   final Value<int> generation;
+  final Value<int> contentEpoch;
   final Value<bool> selected;
   final Value<int> rowid;
   const StoredAccountsCompanion({
@@ -366,6 +407,7 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
     this.credentialRef = const Value.absent(),
     this.state = const Value.absent(),
     this.generation = const Value.absent(),
+    this.contentEpoch = const Value.absent(),
     this.selected = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -376,6 +418,7 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
     required String credentialRef,
     this.state = const Value.absent(),
     this.generation = const Value.absent(),
+    this.contentEpoch = const Value.absent(),
     this.selected = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -389,6 +432,7 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
     Expression<String>? credentialRef,
     Expression<String>? state,
     Expression<int>? generation,
+    Expression<int>? contentEpoch,
     Expression<bool>? selected,
     Expression<int>? rowid,
   }) {
@@ -399,6 +443,7 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
       if (credentialRef != null) 'credential_ref': credentialRef,
       if (state != null) 'state': state,
       if (generation != null) 'generation': generation,
+      if (contentEpoch != null) 'content_epoch': contentEpoch,
       if (selected != null) 'selected': selected,
       if (rowid != null) 'rowid': rowid,
     });
@@ -411,6 +456,7 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
     Value<String>? credentialRef,
     Value<String>? state,
     Value<int>? generation,
+    Value<int>? contentEpoch,
     Value<bool>? selected,
     Value<int>? rowid,
   }) {
@@ -421,6 +467,7 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
       credentialRef: credentialRef ?? this.credentialRef,
       state: state ?? this.state,
       generation: generation ?? this.generation,
+      contentEpoch: contentEpoch ?? this.contentEpoch,
       selected: selected ?? this.selected,
       rowid: rowid ?? this.rowid,
     );
@@ -447,6 +494,9 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
     if (generation.present) {
       map['generation'] = Variable<int>(generation.value);
     }
+    if (contentEpoch.present) {
+      map['content_epoch'] = Variable<int>(contentEpoch.value);
+    }
     if (selected.present) {
       map['selected'] = Variable<bool>(selected.value);
     }
@@ -465,6 +515,7 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
           ..write('credentialRef: $credentialRef, ')
           ..write('state: $state, ')
           ..write('generation: $generation, ')
+          ..write('contentEpoch: $contentEpoch, ')
           ..write('selected: $selected, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -1843,6 +1894,959 @@ class SyncCheckpointsCompanion extends UpdateCompanion<SyncCheckpoint> {
   }
 }
 
+class $PendingWritesTable extends PendingWrites
+    with TableInfo<$PendingWritesTable, PendingWrite> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PendingWritesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _sequenceMeta = const VerificationMeta(
+    'sequence',
+  );
+  @override
+  late final GeneratedColumn<int> sequence = GeneratedColumn<int>(
+    'sequence',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _accountIdMeta = const VerificationMeta(
+    'accountId',
+  );
+  @override
+  late final GeneratedColumn<String> accountId = GeneratedColumn<String>(
+    'account_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES stored_accounts (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _boardIdMeta = const VerificationMeta(
+    'boardId',
+  );
+  @override
+  late final GeneratedColumn<int> boardId = GeneratedColumn<int>(
+    'board_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _stackIdMeta = const VerificationMeta(
+    'stackId',
+  );
+  @override
+  late final GeneratedColumn<int> stackId = GeneratedColumn<int>(
+    'stack_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _cardIdMeta = const VerificationMeta('cardId');
+  @override
+  late final GeneratedColumn<int> cardId = GeneratedColumn<int>(
+    'card_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _proposalMeta = const VerificationMeta(
+    'proposal',
+  );
+  @override
+  late final GeneratedColumn<String> proposal = GeneratedColumn<String>(
+    'proposal',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _baseMeta = const VerificationMeta('base');
+  @override
+  late final GeneratedColumn<String> base = GeneratedColumn<String>(
+    'base',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _remoteMeta = const VerificationMeta('remote');
+  @override
+  late final GeneratedColumn<String> remote = GeneratedColumn<String>(
+    'remote',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _stateMeta = const VerificationMeta('state');
+  @override
+  late final GeneratedColumn<String> state = GeneratedColumn<String>(
+    'state',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('queued'),
+  );
+  static const VerificationMeta _errorMeta = const VerificationMeta('error');
+  @override
+  late final GeneratedColumn<String> error = GeneratedColumn<String>(
+    'error',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    sequence,
+    id,
+    accountId,
+    kind,
+    boardId,
+    stackId,
+    cardId,
+    proposal,
+    base,
+    remote,
+    state,
+    error,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'pending_writes';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PendingWrite> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('sequence')) {
+      context.handle(
+        _sequenceMeta,
+        sequence.isAcceptableOrUnknown(data['sequence']!, _sequenceMeta),
+      );
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('account_id')) {
+      context.handle(
+        _accountIdMeta,
+        accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_accountIdMeta);
+    }
+    if (data.containsKey('kind')) {
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_kindMeta);
+    }
+    if (data.containsKey('board_id')) {
+      context.handle(
+        _boardIdMeta,
+        boardId.isAcceptableOrUnknown(data['board_id']!, _boardIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_boardIdMeta);
+    }
+    if (data.containsKey('stack_id')) {
+      context.handle(
+        _stackIdMeta,
+        stackId.isAcceptableOrUnknown(data['stack_id']!, _stackIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_stackIdMeta);
+    }
+    if (data.containsKey('card_id')) {
+      context.handle(
+        _cardIdMeta,
+        cardId.isAcceptableOrUnknown(data['card_id']!, _cardIdMeta),
+      );
+    }
+    if (data.containsKey('proposal')) {
+      context.handle(
+        _proposalMeta,
+        proposal.isAcceptableOrUnknown(data['proposal']!, _proposalMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_proposalMeta);
+    }
+    if (data.containsKey('base')) {
+      context.handle(
+        _baseMeta,
+        base.isAcceptableOrUnknown(data['base']!, _baseMeta),
+      );
+    }
+    if (data.containsKey('remote')) {
+      context.handle(
+        _remoteMeta,
+        remote.isAcceptableOrUnknown(data['remote']!, _remoteMeta),
+      );
+    }
+    if (data.containsKey('state')) {
+      context.handle(
+        _stateMeta,
+        state.isAcceptableOrUnknown(data['state']!, _stateMeta),
+      );
+    }
+    if (data.containsKey('error')) {
+      context.handle(
+        _errorMeta,
+        error.isAcceptableOrUnknown(data['error']!, _errorMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {sequence};
+  @override
+  PendingWrite map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PendingWrite(
+      sequence: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sequence'],
+      )!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      accountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}account_id'],
+      )!,
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kind'],
+      )!,
+      boardId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}board_id'],
+      )!,
+      stackId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}stack_id'],
+      )!,
+      cardId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}card_id'],
+      ),
+      proposal: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}proposal'],
+      )!,
+      base: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}base'],
+      ),
+      remote: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remote'],
+      ),
+      state: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}state'],
+      )!,
+      error: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}error'],
+      ),
+    );
+  }
+
+  @override
+  $PendingWritesTable createAlias(String alias) {
+    return $PendingWritesTable(attachedDatabase, alias);
+  }
+}
+
+class PendingWrite extends DataClass implements Insertable<PendingWrite> {
+  final int sequence;
+  final String id;
+  final String accountId;
+  final String kind;
+  final int boardId;
+  final int stackId;
+  final int? cardId;
+  final String proposal;
+  final String? base;
+  final String? remote;
+  final String state;
+  final String? error;
+  const PendingWrite({
+    required this.sequence,
+    required this.id,
+    required this.accountId,
+    required this.kind,
+    required this.boardId,
+    required this.stackId,
+    this.cardId,
+    required this.proposal,
+    this.base,
+    this.remote,
+    required this.state,
+    this.error,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['sequence'] = Variable<int>(sequence);
+    map['id'] = Variable<String>(id);
+    map['account_id'] = Variable<String>(accountId);
+    map['kind'] = Variable<String>(kind);
+    map['board_id'] = Variable<int>(boardId);
+    map['stack_id'] = Variable<int>(stackId);
+    if (!nullToAbsent || cardId != null) {
+      map['card_id'] = Variable<int>(cardId);
+    }
+    map['proposal'] = Variable<String>(proposal);
+    if (!nullToAbsent || base != null) {
+      map['base'] = Variable<String>(base);
+    }
+    if (!nullToAbsent || remote != null) {
+      map['remote'] = Variable<String>(remote);
+    }
+    map['state'] = Variable<String>(state);
+    if (!nullToAbsent || error != null) {
+      map['error'] = Variable<String>(error);
+    }
+    return map;
+  }
+
+  PendingWritesCompanion toCompanion(bool nullToAbsent) {
+    return PendingWritesCompanion(
+      sequence: Value(sequence),
+      id: Value(id),
+      accountId: Value(accountId),
+      kind: Value(kind),
+      boardId: Value(boardId),
+      stackId: Value(stackId),
+      cardId: cardId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cardId),
+      proposal: Value(proposal),
+      base: base == null && nullToAbsent ? const Value.absent() : Value(base),
+      remote: remote == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remote),
+      state: Value(state),
+      error: error == null && nullToAbsent
+          ? const Value.absent()
+          : Value(error),
+    );
+  }
+
+  factory PendingWrite.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PendingWrite(
+      sequence: serializer.fromJson<int>(json['sequence']),
+      id: serializer.fromJson<String>(json['id']),
+      accountId: serializer.fromJson<String>(json['accountId']),
+      kind: serializer.fromJson<String>(json['kind']),
+      boardId: serializer.fromJson<int>(json['boardId']),
+      stackId: serializer.fromJson<int>(json['stackId']),
+      cardId: serializer.fromJson<int?>(json['cardId']),
+      proposal: serializer.fromJson<String>(json['proposal']),
+      base: serializer.fromJson<String?>(json['base']),
+      remote: serializer.fromJson<String?>(json['remote']),
+      state: serializer.fromJson<String>(json['state']),
+      error: serializer.fromJson<String?>(json['error']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'sequence': serializer.toJson<int>(sequence),
+      'id': serializer.toJson<String>(id),
+      'accountId': serializer.toJson<String>(accountId),
+      'kind': serializer.toJson<String>(kind),
+      'boardId': serializer.toJson<int>(boardId),
+      'stackId': serializer.toJson<int>(stackId),
+      'cardId': serializer.toJson<int?>(cardId),
+      'proposal': serializer.toJson<String>(proposal),
+      'base': serializer.toJson<String?>(base),
+      'remote': serializer.toJson<String?>(remote),
+      'state': serializer.toJson<String>(state),
+      'error': serializer.toJson<String?>(error),
+    };
+  }
+
+  PendingWrite copyWith({
+    int? sequence,
+    String? id,
+    String? accountId,
+    String? kind,
+    int? boardId,
+    int? stackId,
+    Value<int?> cardId = const Value.absent(),
+    String? proposal,
+    Value<String?> base = const Value.absent(),
+    Value<String?> remote = const Value.absent(),
+    String? state,
+    Value<String?> error = const Value.absent(),
+  }) => PendingWrite(
+    sequence: sequence ?? this.sequence,
+    id: id ?? this.id,
+    accountId: accountId ?? this.accountId,
+    kind: kind ?? this.kind,
+    boardId: boardId ?? this.boardId,
+    stackId: stackId ?? this.stackId,
+    cardId: cardId.present ? cardId.value : this.cardId,
+    proposal: proposal ?? this.proposal,
+    base: base.present ? base.value : this.base,
+    remote: remote.present ? remote.value : this.remote,
+    state: state ?? this.state,
+    error: error.present ? error.value : this.error,
+  );
+  PendingWrite copyWithCompanion(PendingWritesCompanion data) {
+    return PendingWrite(
+      sequence: data.sequence.present ? data.sequence.value : this.sequence,
+      id: data.id.present ? data.id.value : this.id,
+      accountId: data.accountId.present ? data.accountId.value : this.accountId,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      boardId: data.boardId.present ? data.boardId.value : this.boardId,
+      stackId: data.stackId.present ? data.stackId.value : this.stackId,
+      cardId: data.cardId.present ? data.cardId.value : this.cardId,
+      proposal: data.proposal.present ? data.proposal.value : this.proposal,
+      base: data.base.present ? data.base.value : this.base,
+      remote: data.remote.present ? data.remote.value : this.remote,
+      state: data.state.present ? data.state.value : this.state,
+      error: data.error.present ? data.error.value : this.error,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PendingWrite(')
+          ..write('sequence: $sequence, ')
+          ..write('id: $id, ')
+          ..write('accountId: $accountId, ')
+          ..write('kind: $kind, ')
+          ..write('boardId: $boardId, ')
+          ..write('stackId: $stackId, ')
+          ..write('cardId: $cardId, ')
+          ..write('proposal: $proposal, ')
+          ..write('base: $base, ')
+          ..write('remote: $remote, ')
+          ..write('state: $state, ')
+          ..write('error: $error')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    sequence,
+    id,
+    accountId,
+    kind,
+    boardId,
+    stackId,
+    cardId,
+    proposal,
+    base,
+    remote,
+    state,
+    error,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PendingWrite &&
+          other.sequence == this.sequence &&
+          other.id == this.id &&
+          other.accountId == this.accountId &&
+          other.kind == this.kind &&
+          other.boardId == this.boardId &&
+          other.stackId == this.stackId &&
+          other.cardId == this.cardId &&
+          other.proposal == this.proposal &&
+          other.base == this.base &&
+          other.remote == this.remote &&
+          other.state == this.state &&
+          other.error == this.error);
+}
+
+class PendingWritesCompanion extends UpdateCompanion<PendingWrite> {
+  final Value<int> sequence;
+  final Value<String> id;
+  final Value<String> accountId;
+  final Value<String> kind;
+  final Value<int> boardId;
+  final Value<int> stackId;
+  final Value<int?> cardId;
+  final Value<String> proposal;
+  final Value<String?> base;
+  final Value<String?> remote;
+  final Value<String> state;
+  final Value<String?> error;
+  const PendingWritesCompanion({
+    this.sequence = const Value.absent(),
+    this.id = const Value.absent(),
+    this.accountId = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.boardId = const Value.absent(),
+    this.stackId = const Value.absent(),
+    this.cardId = const Value.absent(),
+    this.proposal = const Value.absent(),
+    this.base = const Value.absent(),
+    this.remote = const Value.absent(),
+    this.state = const Value.absent(),
+    this.error = const Value.absent(),
+  });
+  PendingWritesCompanion.insert({
+    this.sequence = const Value.absent(),
+    required String id,
+    required String accountId,
+    required String kind,
+    required int boardId,
+    required int stackId,
+    this.cardId = const Value.absent(),
+    required String proposal,
+    this.base = const Value.absent(),
+    this.remote = const Value.absent(),
+    this.state = const Value.absent(),
+    this.error = const Value.absent(),
+  }) : id = Value(id),
+       accountId = Value(accountId),
+       kind = Value(kind),
+       boardId = Value(boardId),
+       stackId = Value(stackId),
+       proposal = Value(proposal);
+  static Insertable<PendingWrite> custom({
+    Expression<int>? sequence,
+    Expression<String>? id,
+    Expression<String>? accountId,
+    Expression<String>? kind,
+    Expression<int>? boardId,
+    Expression<int>? stackId,
+    Expression<int>? cardId,
+    Expression<String>? proposal,
+    Expression<String>? base,
+    Expression<String>? remote,
+    Expression<String>? state,
+    Expression<String>? error,
+  }) {
+    return RawValuesInsertable({
+      if (sequence != null) 'sequence': sequence,
+      if (id != null) 'id': id,
+      if (accountId != null) 'account_id': accountId,
+      if (kind != null) 'kind': kind,
+      if (boardId != null) 'board_id': boardId,
+      if (stackId != null) 'stack_id': stackId,
+      if (cardId != null) 'card_id': cardId,
+      if (proposal != null) 'proposal': proposal,
+      if (base != null) 'base': base,
+      if (remote != null) 'remote': remote,
+      if (state != null) 'state': state,
+      if (error != null) 'error': error,
+    });
+  }
+
+  PendingWritesCompanion copyWith({
+    Value<int>? sequence,
+    Value<String>? id,
+    Value<String>? accountId,
+    Value<String>? kind,
+    Value<int>? boardId,
+    Value<int>? stackId,
+    Value<int?>? cardId,
+    Value<String>? proposal,
+    Value<String?>? base,
+    Value<String?>? remote,
+    Value<String>? state,
+    Value<String?>? error,
+  }) {
+    return PendingWritesCompanion(
+      sequence: sequence ?? this.sequence,
+      id: id ?? this.id,
+      accountId: accountId ?? this.accountId,
+      kind: kind ?? this.kind,
+      boardId: boardId ?? this.boardId,
+      stackId: stackId ?? this.stackId,
+      cardId: cardId ?? this.cardId,
+      proposal: proposal ?? this.proposal,
+      base: base ?? this.base,
+      remote: remote ?? this.remote,
+      state: state ?? this.state,
+      error: error ?? this.error,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (sequence.present) {
+      map['sequence'] = Variable<int>(sequence.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (accountId.present) {
+      map['account_id'] = Variable<String>(accountId.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (boardId.present) {
+      map['board_id'] = Variable<int>(boardId.value);
+    }
+    if (stackId.present) {
+      map['stack_id'] = Variable<int>(stackId.value);
+    }
+    if (cardId.present) {
+      map['card_id'] = Variable<int>(cardId.value);
+    }
+    if (proposal.present) {
+      map['proposal'] = Variable<String>(proposal.value);
+    }
+    if (base.present) {
+      map['base'] = Variable<String>(base.value);
+    }
+    if (remote.present) {
+      map['remote'] = Variable<String>(remote.value);
+    }
+    if (state.present) {
+      map['state'] = Variable<String>(state.value);
+    }
+    if (error.present) {
+      map['error'] = Variable<String>(error.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PendingWritesCompanion(')
+          ..write('sequence: $sequence, ')
+          ..write('id: $id, ')
+          ..write('accountId: $accountId, ')
+          ..write('kind: $kind, ')
+          ..write('boardId: $boardId, ')
+          ..write('stackId: $stackId, ')
+          ..write('cardId: $cardId, ')
+          ..write('proposal: $proposal, ')
+          ..write('base: $base, ')
+          ..write('remote: $remote, ')
+          ..write('state: $state, ')
+          ..write('error: $error')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SyncLeasesTable extends SyncLeases
+    with TableInfo<$SyncLeasesTable, SyncLease> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SyncLeasesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _accountIdMeta = const VerificationMeta(
+    'accountId',
+  );
+  @override
+  late final GeneratedColumn<String> accountId = GeneratedColumn<String>(
+    'account_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES stored_accounts (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _ownerMeta = const VerificationMeta('owner');
+  @override
+  late final GeneratedColumn<String> owner = GeneratedColumn<String>(
+    'owner',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _expiresMeta = const VerificationMeta(
+    'expires',
+  );
+  @override
+  late final GeneratedColumn<DateTime> expires = GeneratedColumn<DateTime>(
+    'expires',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [accountId, owner, expires];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'sync_leases';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SyncLease> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('account_id')) {
+      context.handle(
+        _accountIdMeta,
+        accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_accountIdMeta);
+    }
+    if (data.containsKey('owner')) {
+      context.handle(
+        _ownerMeta,
+        owner.isAcceptableOrUnknown(data['owner']!, _ownerMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_ownerMeta);
+    }
+    if (data.containsKey('expires')) {
+      context.handle(
+        _expiresMeta,
+        expires.isAcceptableOrUnknown(data['expires']!, _expiresMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_expiresMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {accountId};
+  @override
+  SyncLease map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SyncLease(
+      accountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}account_id'],
+      )!,
+      owner: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner'],
+      )!,
+      expires: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}expires'],
+      )!,
+    );
+  }
+
+  @override
+  $SyncLeasesTable createAlias(String alias) {
+    return $SyncLeasesTable(attachedDatabase, alias);
+  }
+}
+
+class SyncLease extends DataClass implements Insertable<SyncLease> {
+  final String accountId;
+  final String owner;
+  final DateTime expires;
+  const SyncLease({
+    required this.accountId,
+    required this.owner,
+    required this.expires,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['account_id'] = Variable<String>(accountId);
+    map['owner'] = Variable<String>(owner);
+    map['expires'] = Variable<DateTime>(expires);
+    return map;
+  }
+
+  SyncLeasesCompanion toCompanion(bool nullToAbsent) {
+    return SyncLeasesCompanion(
+      accountId: Value(accountId),
+      owner: Value(owner),
+      expires: Value(expires),
+    );
+  }
+
+  factory SyncLease.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SyncLease(
+      accountId: serializer.fromJson<String>(json['accountId']),
+      owner: serializer.fromJson<String>(json['owner']),
+      expires: serializer.fromJson<DateTime>(json['expires']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'accountId': serializer.toJson<String>(accountId),
+      'owner': serializer.toJson<String>(owner),
+      'expires': serializer.toJson<DateTime>(expires),
+    };
+  }
+
+  SyncLease copyWith({String? accountId, String? owner, DateTime? expires}) =>
+      SyncLease(
+        accountId: accountId ?? this.accountId,
+        owner: owner ?? this.owner,
+        expires: expires ?? this.expires,
+      );
+  SyncLease copyWithCompanion(SyncLeasesCompanion data) {
+    return SyncLease(
+      accountId: data.accountId.present ? data.accountId.value : this.accountId,
+      owner: data.owner.present ? data.owner.value : this.owner,
+      expires: data.expires.present ? data.expires.value : this.expires,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SyncLease(')
+          ..write('accountId: $accountId, ')
+          ..write('owner: $owner, ')
+          ..write('expires: $expires')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(accountId, owner, expires);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SyncLease &&
+          other.accountId == this.accountId &&
+          other.owner == this.owner &&
+          other.expires == this.expires);
+}
+
+class SyncLeasesCompanion extends UpdateCompanion<SyncLease> {
+  final Value<String> accountId;
+  final Value<String> owner;
+  final Value<DateTime> expires;
+  final Value<int> rowid;
+  const SyncLeasesCompanion({
+    this.accountId = const Value.absent(),
+    this.owner = const Value.absent(),
+    this.expires = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SyncLeasesCompanion.insert({
+    required String accountId,
+    required String owner,
+    required DateTime expires,
+    this.rowid = const Value.absent(),
+  }) : accountId = Value(accountId),
+       owner = Value(owner),
+       expires = Value(expires);
+  static Insertable<SyncLease> custom({
+    Expression<String>? accountId,
+    Expression<String>? owner,
+    Expression<DateTime>? expires,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (accountId != null) 'account_id': accountId,
+      if (owner != null) 'owner': owner,
+      if (expires != null) 'expires': expires,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SyncLeasesCompanion copyWith({
+    Value<String>? accountId,
+    Value<String>? owner,
+    Value<DateTime>? expires,
+    Value<int>? rowid,
+  }) {
+    return SyncLeasesCompanion(
+      accountId: accountId ?? this.accountId,
+      owner: owner ?? this.owner,
+      expires: expires ?? this.expires,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (accountId.present) {
+      map['account_id'] = Variable<String>(accountId.value);
+    }
+    if (owner.present) {
+      map['owner'] = Variable<String>(owner.value);
+    }
+    if (expires.present) {
+      map['expires'] = Variable<DateTime>(expires.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SyncLeasesCompanion(')
+          ..write('accountId: $accountId, ')
+          ..write('owner: $owner, ')
+          ..write('expires: $expires, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$DeckDatabase extends GeneratedDatabase {
   _$DeckDatabase(QueryExecutor e) : super(e);
   $DeckDatabaseManager get managers => $DeckDatabaseManager(this);
@@ -1853,6 +2857,8 @@ abstract class _$DeckDatabase extends GeneratedDatabase {
   late final $SyncCheckpointsTable syncCheckpoints = $SyncCheckpointsTable(
     this,
   );
+  late final $PendingWritesTable pendingWrites = $PendingWritesTable(this);
+  late final $SyncLeasesTable syncLeases = $SyncLeasesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1863,6 +2869,8 @@ abstract class _$DeckDatabase extends GeneratedDatabase {
     storedStacks,
     storedCards,
     syncCheckpoints,
+    pendingWrites,
+    syncLeases,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -1894,6 +2902,20 @@ abstract class _$DeckDatabase extends GeneratedDatabase {
       ),
       result: [TableUpdate('sync_checkpoints', kind: UpdateKind.delete)],
     ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'stored_accounts',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('pending_writes', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'stored_accounts',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('sync_leases', kind: UpdateKind.delete)],
+    ),
   ]);
 }
 
@@ -1905,6 +2927,7 @@ typedef $$StoredAccountsTableCreateCompanionBuilder =
       required String credentialRef,
       Value<String> state,
       Value<int> generation,
+      Value<int> contentEpoch,
       Value<bool> selected,
       Value<int> rowid,
     });
@@ -1916,6 +2939,7 @@ typedef $$StoredAccountsTableUpdateCompanionBuilder =
       Value<String> credentialRef,
       Value<String> state,
       Value<int> generation,
+      Value<int> contentEpoch,
       Value<bool> selected,
       Value<int> rowid,
     });
@@ -2002,6 +3026,42 @@ final class $$StoredAccountsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$PendingWritesTable, List<PendingWrite>>
+  _pendingWritesRefsTable(_$DeckDatabase db) => MultiTypedResultKey.fromTable(
+    db.pendingWrites,
+    aliasName: 'stored_accounts__id__pending_writes__account_id',
+  );
+
+  $$PendingWritesTableProcessedTableManager get pendingWritesRefs {
+    final manager = $$PendingWritesTableTableManager(
+      $_db,
+      $_db.pendingWrites,
+    ).filter((f) => f.accountId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_pendingWritesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$SyncLeasesTable, List<SyncLease>>
+  _syncLeasesRefsTable(_$DeckDatabase db) => MultiTypedResultKey.fromTable(
+    db.syncLeases,
+    aliasName: 'stored_accounts__id__sync_leases__account_id',
+  );
+
+  $$SyncLeasesTableProcessedTableManager get syncLeasesRefs {
+    final manager = $$SyncLeasesTableTableManager(
+      $_db,
+      $_db.syncLeases,
+    ).filter((f) => f.accountId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_syncLeasesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$StoredAccountsTableFilterComposer
@@ -2040,6 +3100,11 @@ class $$StoredAccountsTableFilterComposer
 
   ColumnFilters<int> get generation => $composableBuilder(
     column: $table.generation,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get contentEpoch => $composableBuilder(
+    column: $table.contentEpoch,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2147,6 +3212,56 @@ class $$StoredAccountsTableFilterComposer
     );
     return f(composer);
   }
+
+  Expression<bool> pendingWritesRefs(
+    Expression<bool> Function($$PendingWritesTableFilterComposer f) f,
+  ) {
+    final $$PendingWritesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.pendingWrites,
+      getReferencedColumn: (t) => t.accountId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PendingWritesTableFilterComposer(
+            $db: $db,
+            $table: $db.pendingWrites,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> syncLeasesRefs(
+    Expression<bool> Function($$SyncLeasesTableFilterComposer f) f,
+  ) {
+    final $$SyncLeasesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.syncLeases,
+      getReferencedColumn: (t) => t.accountId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SyncLeasesTableFilterComposer(
+            $db: $db,
+            $table: $db.syncLeases,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$StoredAccountsTableOrderingComposer
@@ -2188,6 +3303,11 @@ class $$StoredAccountsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get contentEpoch => $composableBuilder(
+    column: $table.contentEpoch,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get selected => $composableBuilder(
     column: $table.selected,
     builder: (column) => ColumnOrderings(column),
@@ -2222,6 +3342,11 @@ class $$StoredAccountsTableAnnotationComposer
 
   GeneratedColumn<int> get generation => $composableBuilder(
     column: $table.generation,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get contentEpoch => $composableBuilder(
+    column: $table.contentEpoch,
     builder: (column) => column,
   );
 
@@ -2327,6 +3452,56 @@ class $$StoredAccountsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> pendingWritesRefs<T extends Object>(
+    Expression<T> Function($$PendingWritesTableAnnotationComposer a) f,
+  ) {
+    final $$PendingWritesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.pendingWrites,
+      getReferencedColumn: (t) => t.accountId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PendingWritesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.pendingWrites,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> syncLeasesRefs<T extends Object>(
+    Expression<T> Function($$SyncLeasesTableAnnotationComposer a) f,
+  ) {
+    final $$SyncLeasesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.syncLeases,
+      getReferencedColumn: (t) => t.accountId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SyncLeasesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.syncLeases,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$StoredAccountsTableTableManager
@@ -2347,6 +3522,8 @@ class $$StoredAccountsTableTableManager
             bool storedStacksRefs,
             bool storedCardsRefs,
             bool syncCheckpointsRefs,
+            bool pendingWritesRefs,
+            bool syncLeasesRefs,
           })
         > {
   $$StoredAccountsTableTableManager(
@@ -2370,6 +3547,7 @@ class $$StoredAccountsTableTableManager
                 Value<String> credentialRef = const Value.absent(),
                 Value<String> state = const Value.absent(),
                 Value<int> generation = const Value.absent(),
+                Value<int> contentEpoch = const Value.absent(),
                 Value<bool> selected = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => StoredAccountsCompanion(
@@ -2379,6 +3557,7 @@ class $$StoredAccountsTableTableManager
                 credentialRef: credentialRef,
                 state: state,
                 generation: generation,
+                contentEpoch: contentEpoch,
                 selected: selected,
                 rowid: rowid,
               ),
@@ -2390,6 +3569,7 @@ class $$StoredAccountsTableTableManager
                 required String credentialRef,
                 Value<String> state = const Value.absent(),
                 Value<int> generation = const Value.absent(),
+                Value<int> contentEpoch = const Value.absent(),
                 Value<bool> selected = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => StoredAccountsCompanion.insert(
@@ -2399,6 +3579,7 @@ class $$StoredAccountsTableTableManager
                 credentialRef: credentialRef,
                 state: state,
                 generation: generation,
+                contentEpoch: contentEpoch,
                 selected: selected,
                 rowid: rowid,
               ),
@@ -2416,6 +3597,8 @@ class $$StoredAccountsTableTableManager
                 storedStacksRefs = false,
                 storedCardsRefs = false,
                 syncCheckpointsRefs = false,
+                pendingWritesRefs = false,
+                syncLeasesRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -2424,6 +3607,8 @@ class $$StoredAccountsTableTableManager
                     if (storedStacksRefs) db.storedStacks,
                     if (storedCardsRefs) db.storedCards,
                     if (syncCheckpointsRefs) db.syncCheckpoints,
+                    if (pendingWritesRefs) db.pendingWrites,
+                    if (syncLeasesRefs) db.syncLeases,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -2508,6 +3693,46 @@ class $$StoredAccountsTableTableManager
                           referencedColumn: 'account_id',
                           typedResults: items,
                         ),
+                      if (pendingWritesRefs)
+                        await $_getPrefetchedDataByColumns<
+                          StoredAccount,
+                          $StoredAccountsTable,
+                          PendingWrite,
+                          $PendingWritesTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$StoredAccountsTableReferences
+                              ._pendingWritesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$StoredAccountsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).pendingWritesRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'account_id',
+                          typedResults: items,
+                        ),
+                      if (syncLeasesRefs)
+                        await $_getPrefetchedDataByColumns<
+                          StoredAccount,
+                          $StoredAccountsTable,
+                          SyncLease,
+                          $SyncLeasesTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$StoredAccountsTableReferences
+                              ._syncLeasesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$StoredAccountsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).syncLeasesRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'account_id',
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -2533,6 +3758,8 @@ typedef $$StoredAccountsTableProcessedTableManager =
         bool storedStacksRefs,
         bool storedCardsRefs,
         bool syncCheckpointsRefs,
+        bool pendingWritesRefs,
+        bool syncLeasesRefs,
       })
     >;
 typedef $$StoredBoardsTableCreateCompanionBuilder =
@@ -3778,6 +5005,735 @@ typedef $$SyncCheckpointsTableProcessedTableManager =
       SyncCheckpoint,
       PrefetchHooks Function({bool accountId})
     >;
+typedef $$PendingWritesTableCreateCompanionBuilder =
+    PendingWritesCompanion Function({
+      Value<int> sequence,
+      required String id,
+      required String accountId,
+      required String kind,
+      required int boardId,
+      required int stackId,
+      Value<int?> cardId,
+      required String proposal,
+      Value<String?> base,
+      Value<String?> remote,
+      Value<String> state,
+      Value<String?> error,
+    });
+typedef $$PendingWritesTableUpdateCompanionBuilder =
+    PendingWritesCompanion Function({
+      Value<int> sequence,
+      Value<String> id,
+      Value<String> accountId,
+      Value<String> kind,
+      Value<int> boardId,
+      Value<int> stackId,
+      Value<int?> cardId,
+      Value<String> proposal,
+      Value<String?> base,
+      Value<String?> remote,
+      Value<String> state,
+      Value<String?> error,
+    });
+
+final class $$PendingWritesTableReferences
+    extends BaseReferences<_$DeckDatabase, $PendingWritesTable, PendingWrite> {
+  $$PendingWritesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $StoredAccountsTable _accountIdTable(_$DeckDatabase db) => db
+      .storedAccounts
+      .createAlias('pending_writes__account_id__stored_accounts__id');
+
+  $$StoredAccountsTableProcessedTableManager get accountId {
+    final $_column = $_itemColumn<String>('account_id')!;
+
+    final manager = $$StoredAccountsTableTableManager(
+      $_db,
+      $_db.storedAccounts,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_accountIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$PendingWritesTableFilterComposer
+    extends Composer<_$DeckDatabase, $PendingWritesTable> {
+  $$PendingWritesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get sequence => $composableBuilder(
+    column: $table.sequence,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get boardId => $composableBuilder(
+    column: $table.boardId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get stackId => $composableBuilder(
+    column: $table.stackId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get cardId => $composableBuilder(
+    column: $table.cardId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get proposal => $composableBuilder(
+    column: $table.proposal,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get base => $composableBuilder(
+    column: $table.base,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get remote => $composableBuilder(
+    column: $table.remote,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get state => $composableBuilder(
+    column: $table.state,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get error => $composableBuilder(
+    column: $table.error,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$StoredAccountsTableFilterComposer get accountId {
+    final $$StoredAccountsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.storedAccounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StoredAccountsTableFilterComposer(
+            $db: $db,
+            $table: $db.storedAccounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PendingWritesTableOrderingComposer
+    extends Composer<_$DeckDatabase, $PendingWritesTable> {
+  $$PendingWritesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get sequence => $composableBuilder(
+    column: $table.sequence,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get boardId => $composableBuilder(
+    column: $table.boardId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get stackId => $composableBuilder(
+    column: $table.stackId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get cardId => $composableBuilder(
+    column: $table.cardId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get proposal => $composableBuilder(
+    column: $table.proposal,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get base => $composableBuilder(
+    column: $table.base,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get remote => $composableBuilder(
+    column: $table.remote,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get state => $composableBuilder(
+    column: $table.state,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get error => $composableBuilder(
+    column: $table.error,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$StoredAccountsTableOrderingComposer get accountId {
+    final $$StoredAccountsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.storedAccounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StoredAccountsTableOrderingComposer(
+            $db: $db,
+            $table: $db.storedAccounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PendingWritesTableAnnotationComposer
+    extends Composer<_$DeckDatabase, $PendingWritesTable> {
+  $$PendingWritesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get sequence =>
+      $composableBuilder(column: $table.sequence, builder: (column) => column);
+
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<int> get boardId =>
+      $composableBuilder(column: $table.boardId, builder: (column) => column);
+
+  GeneratedColumn<int> get stackId =>
+      $composableBuilder(column: $table.stackId, builder: (column) => column);
+
+  GeneratedColumn<int> get cardId =>
+      $composableBuilder(column: $table.cardId, builder: (column) => column);
+
+  GeneratedColumn<String> get proposal =>
+      $composableBuilder(column: $table.proposal, builder: (column) => column);
+
+  GeneratedColumn<String> get base =>
+      $composableBuilder(column: $table.base, builder: (column) => column);
+
+  GeneratedColumn<String> get remote =>
+      $composableBuilder(column: $table.remote, builder: (column) => column);
+
+  GeneratedColumn<String> get state =>
+      $composableBuilder(column: $table.state, builder: (column) => column);
+
+  GeneratedColumn<String> get error =>
+      $composableBuilder(column: $table.error, builder: (column) => column);
+
+  $$StoredAccountsTableAnnotationComposer get accountId {
+    final $$StoredAccountsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.storedAccounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StoredAccountsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.storedAccounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PendingWritesTableTableManager
+    extends
+        RootTableManager<
+          _$DeckDatabase,
+          $PendingWritesTable,
+          PendingWrite,
+          $$PendingWritesTableFilterComposer,
+          $$PendingWritesTableOrderingComposer,
+          $$PendingWritesTableAnnotationComposer,
+          $$PendingWritesTableCreateCompanionBuilder,
+          $$PendingWritesTableUpdateCompanionBuilder,
+          (PendingWrite, $$PendingWritesTableReferences),
+          PendingWrite,
+          PrefetchHooks Function({bool accountId})
+        > {
+  $$PendingWritesTableTableManager(_$DeckDatabase db, $PendingWritesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PendingWritesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PendingWritesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PendingWritesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> sequence = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> accountId = const Value.absent(),
+                Value<String> kind = const Value.absent(),
+                Value<int> boardId = const Value.absent(),
+                Value<int> stackId = const Value.absent(),
+                Value<int?> cardId = const Value.absent(),
+                Value<String> proposal = const Value.absent(),
+                Value<String?> base = const Value.absent(),
+                Value<String?> remote = const Value.absent(),
+                Value<String> state = const Value.absent(),
+                Value<String?> error = const Value.absent(),
+              }) => PendingWritesCompanion(
+                sequence: sequence,
+                id: id,
+                accountId: accountId,
+                kind: kind,
+                boardId: boardId,
+                stackId: stackId,
+                cardId: cardId,
+                proposal: proposal,
+                base: base,
+                remote: remote,
+                state: state,
+                error: error,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> sequence = const Value.absent(),
+                required String id,
+                required String accountId,
+                required String kind,
+                required int boardId,
+                required int stackId,
+                Value<int?> cardId = const Value.absent(),
+                required String proposal,
+                Value<String?> base = const Value.absent(),
+                Value<String?> remote = const Value.absent(),
+                Value<String> state = const Value.absent(),
+                Value<String?> error = const Value.absent(),
+              }) => PendingWritesCompanion.insert(
+                sequence: sequence,
+                id: id,
+                accountId: accountId,
+                kind: kind,
+                boardId: boardId,
+                stackId: stackId,
+                cardId: cardId,
+                proposal: proposal,
+                base: base,
+                remote: remote,
+                state: state,
+                error: error,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$PendingWritesTable, PendingWrite>(table),
+                  $$PendingWritesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({accountId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (accountId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.accountId,
+                                referencedTable: $$PendingWritesTableReferences
+                                    ._accountIdTable(db),
+                                referencedColumn: $$PendingWritesTableReferences
+                                    ._accountIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$PendingWritesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$DeckDatabase,
+      $PendingWritesTable,
+      PendingWrite,
+      $$PendingWritesTableFilterComposer,
+      $$PendingWritesTableOrderingComposer,
+      $$PendingWritesTableAnnotationComposer,
+      $$PendingWritesTableCreateCompanionBuilder,
+      $$PendingWritesTableUpdateCompanionBuilder,
+      (PendingWrite, $$PendingWritesTableReferences),
+      PendingWrite,
+      PrefetchHooks Function({bool accountId})
+    >;
+typedef $$SyncLeasesTableCreateCompanionBuilder =
+    SyncLeasesCompanion Function({
+      required String accountId,
+      required String owner,
+      required DateTime expires,
+      Value<int> rowid,
+    });
+typedef $$SyncLeasesTableUpdateCompanionBuilder =
+    SyncLeasesCompanion Function({
+      Value<String> accountId,
+      Value<String> owner,
+      Value<DateTime> expires,
+      Value<int> rowid,
+    });
+
+final class $$SyncLeasesTableReferences
+    extends BaseReferences<_$DeckDatabase, $SyncLeasesTable, SyncLease> {
+  $$SyncLeasesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $StoredAccountsTable _accountIdTable(_$DeckDatabase db) => db
+      .storedAccounts
+      .createAlias('sync_leases__account_id__stored_accounts__id');
+
+  $$StoredAccountsTableProcessedTableManager get accountId {
+    final $_column = $_itemColumn<String>('account_id')!;
+
+    final manager = $$StoredAccountsTableTableManager(
+      $_db,
+      $_db.storedAccounts,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_accountIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$SyncLeasesTableFilterComposer
+    extends Composer<_$DeckDatabase, $SyncLeasesTable> {
+  $$SyncLeasesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get owner => $composableBuilder(
+    column: $table.owner,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get expires => $composableBuilder(
+    column: $table.expires,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$StoredAccountsTableFilterComposer get accountId {
+    final $$StoredAccountsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.storedAccounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StoredAccountsTableFilterComposer(
+            $db: $db,
+            $table: $db.storedAccounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SyncLeasesTableOrderingComposer
+    extends Composer<_$DeckDatabase, $SyncLeasesTable> {
+  $$SyncLeasesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get owner => $composableBuilder(
+    column: $table.owner,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get expires => $composableBuilder(
+    column: $table.expires,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$StoredAccountsTableOrderingComposer get accountId {
+    final $$StoredAccountsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.storedAccounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StoredAccountsTableOrderingComposer(
+            $db: $db,
+            $table: $db.storedAccounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SyncLeasesTableAnnotationComposer
+    extends Composer<_$DeckDatabase, $SyncLeasesTable> {
+  $$SyncLeasesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get owner =>
+      $composableBuilder(column: $table.owner, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get expires =>
+      $composableBuilder(column: $table.expires, builder: (column) => column);
+
+  $$StoredAccountsTableAnnotationComposer get accountId {
+    final $$StoredAccountsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.storedAccounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StoredAccountsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.storedAccounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SyncLeasesTableTableManager
+    extends
+        RootTableManager<
+          _$DeckDatabase,
+          $SyncLeasesTable,
+          SyncLease,
+          $$SyncLeasesTableFilterComposer,
+          $$SyncLeasesTableOrderingComposer,
+          $$SyncLeasesTableAnnotationComposer,
+          $$SyncLeasesTableCreateCompanionBuilder,
+          $$SyncLeasesTableUpdateCompanionBuilder,
+          (SyncLease, $$SyncLeasesTableReferences),
+          SyncLease,
+          PrefetchHooks Function({bool accountId})
+        > {
+  $$SyncLeasesTableTableManager(_$DeckDatabase db, $SyncLeasesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SyncLeasesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SyncLeasesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SyncLeasesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> accountId = const Value.absent(),
+                Value<String> owner = const Value.absent(),
+                Value<DateTime> expires = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SyncLeasesCompanion(
+                accountId: accountId,
+                owner: owner,
+                expires: expires,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String accountId,
+                required String owner,
+                required DateTime expires,
+                Value<int> rowid = const Value.absent(),
+              }) => SyncLeasesCompanion.insert(
+                accountId: accountId,
+                owner: owner,
+                expires: expires,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$SyncLeasesTable, SyncLease>(table),
+                  $$SyncLeasesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({accountId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (accountId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.accountId,
+                                referencedTable: $$SyncLeasesTableReferences
+                                    ._accountIdTable(db),
+                                referencedColumn: $$SyncLeasesTableReferences
+                                    ._accountIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$SyncLeasesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$DeckDatabase,
+      $SyncLeasesTable,
+      SyncLease,
+      $$SyncLeasesTableFilterComposer,
+      $$SyncLeasesTableOrderingComposer,
+      $$SyncLeasesTableAnnotationComposer,
+      $$SyncLeasesTableCreateCompanionBuilder,
+      $$SyncLeasesTableUpdateCompanionBuilder,
+      (SyncLease, $$SyncLeasesTableReferences),
+      SyncLease,
+      PrefetchHooks Function({bool accountId})
+    >;
 
 class $DeckDatabaseManager {
   final _$DeckDatabase _db;
@@ -3792,4 +5748,8 @@ class $DeckDatabaseManager {
       $$StoredCardsTableTableManager(_db, _db.storedCards);
   $$SyncCheckpointsTableTableManager get syncCheckpoints =>
       $$SyncCheckpointsTableTableManager(_db, _db.syncCheckpoints);
+  $$PendingWritesTableTableManager get pendingWrites =>
+      $$PendingWritesTableTableManager(_db, _db.pendingWrites);
+  $$SyncLeasesTableTableManager get syncLeases =>
+      $$SyncLeasesTableTableManager(_db, _db.syncLeases);
 }

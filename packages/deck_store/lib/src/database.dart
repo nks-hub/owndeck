@@ -2,8 +2,10 @@ import 'dart:convert';
 
 import 'package:deck_protocol/deck_protocol.dart';
 import 'package:drift/drift.dart';
+import 'package:uuid/uuid.dart';
 
 part 'database.g.dart';
+part 'writes.dart';
 
 class StoredAccounts extends Table {
   TextColumn get id => text()();
@@ -12,6 +14,7 @@ class StoredAccounts extends Table {
   TextColumn get credentialRef => text().unique()();
   TextColumn get state => text().withDefault(const Constant('active'))();
   IntColumn get generation => integer().withDefault(const Constant(1))();
+  IntColumn get contentEpoch => integer().withDefault(const Constant(0))();
   BoolColumn get selected => boolean().withDefault(const Constant(false))();
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -63,6 +66,31 @@ class SyncCheckpoints extends Table {
   Set<Column<Object>> get primaryKey => {accountId, scope};
 }
 
+class PendingWrites extends Table {
+  IntColumn get sequence => integer().autoIncrement()();
+  TextColumn get id => text().unique()();
+  TextColumn get accountId =>
+      text().references(StoredAccounts, #id, onDelete: KeyAction.cascade)();
+  TextColumn get kind => text()();
+  IntColumn get boardId => integer()();
+  IntColumn get stackId => integer()();
+  IntColumn get cardId => integer().nullable()();
+  TextColumn get proposal => text()();
+  TextColumn get base => text().nullable()();
+  TextColumn get remote => text().nullable()();
+  TextColumn get state => text().withDefault(const Constant('queued'))();
+  TextColumn get error => text().nullable()();
+}
+
+class SyncLeases extends Table {
+  TextColumn get accountId =>
+      text().references(StoredAccounts, #id, onDelete: KeyAction.cascade)();
+  TextColumn get owner => text()();
+  DateTimeColumn get expires => dateTime()();
+  @override
+  Set<Column<Object>> get primaryKey => {accountId};
+}
+
 @DriftDatabase(
   tables: [
     StoredAccounts,
@@ -70,17 +98,27 @@ class SyncCheckpoints extends Table {
     StoredStacks,
     StoredCards,
     SyncCheckpoints,
+    PendingWrites,
+    SyncLeases,
   ],
 )
 class DeckDatabase extends _$DeckDatabase {
   DeckDatabase(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) => m.createAll(),
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await m.createTable(pendingWrites);
+        await m.createTable(syncLeases);
+      }
+      if (from < 3)
+        await m.addColumn(storedAccounts, storedAccounts.contentEpoch);
+    },
     beforeOpen: (_) => customStatement('PRAGMA foreign_keys = ON'),
   );
 
@@ -110,8 +148,8 @@ class DeckDatabase extends _$DeckDatabase {
        WHERE s.account_id = ? AND s.board_id = ?
        ORDER BY s.position, s.remote_id, c.position, c.remote_id''',
         variables: [Variable(accountId), Variable(boardId)],
-        readsFrom: {storedStacks, storedCards},
-      ).watch().map((rows) {
+        readsFrom: {storedStacks, storedCards, pendingWrites},
+      ).watch().asyncMap((rows) async {
         final stacks = <int, JsonObject>{};
         for (final row in rows) {
           final stack = stacks.putIfAbsent(
@@ -124,6 +162,36 @@ class DeckDatabase extends _$DeckDatabase {
           final card = row.readNullable<String>('card_json');
           if (card != null)
             (stack['cards'] as List<JsonObject>).add(object(jsonDecode(card)));
+        }
+        final pending = await writesFor(accountId, boardId: boardId);
+        for (final write in pending) {
+          final stack = stacks[write.stackId];
+          if (stack == null) continue;
+          final cards = stack['cards'] as List<JsonObject>;
+          final changes = object(jsonDecode(write.proposal));
+          if (write.kind == 'createCard') {
+            cards.add({
+              ...changes,
+              'id': -write.sequence,
+              'stackId': write.stackId,
+              'syncState': write.state,
+            });
+          } else if (write.kind == 'updateCard') {
+            final index = cards.indexWhere((c) => c['id'] == write.cardId);
+            final original = index < 0
+                ? object(jsonDecode(write.base!))
+                : cards[index];
+            final projected = {
+              ...original,
+              ...changes,
+              'syncState': write.state,
+            };
+            if (index < 0) {
+              cards.add(projected);
+            } else {
+              cards[index] = projected;
+            }
+          }
         }
         return stacks.values.map(DeckStack.fromJson).toList();
       });
@@ -138,9 +206,13 @@ class DeckDatabase extends _$DeckDatabase {
     String accountId,
     int generation,
     List<DeckBoard> boards,
-    String? etag,
-  ) => transaction(() async {
+    String? etag, {
+    int? contentEpoch,
+  }) => transaction(() async {
     if (!await accepts(accountId, generation)) return;
+    if (contentEpoch != null &&
+        (await account(accountId))?.contentEpoch != contentEpoch)
+      return;
     final ids = boards.map((b) => b.id).toSet();
     final previous = await (select(
       storedBoards,
@@ -185,9 +257,13 @@ class DeckDatabase extends _$DeckDatabase {
     int generation,
     int boardId,
     List<DeckStack> stacks,
-    String? etag,
-  ) => transaction(() async {
+    String? etag, {
+    int? contentEpoch,
+  }) => transaction(() async {
     if (!await accepts(accountId, generation)) return;
+    if (contentEpoch != null &&
+        (await account(accountId))?.contentEpoch != contentEpoch)
+      return;
     await (delete(storedCards)..where(
           (c) => c.accountId.equals(accountId) & c.boardId.equals(boardId),
         ))

@@ -301,6 +301,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Refreshing…'**
   String get syncing;
+
+  /// No description provided for @addCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Add card'**
+  String get addCard;
+
+  /// No description provided for @editCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit card'**
+  String get editCard;
+
+  /// No description provided for @cardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Card title'**
+  String get cardTitle;
+
+  /// No description provided for @description.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get description;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @savedLocally.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved on this device. The change is awaiting server confirmation.'**
+  String get savedLocally;
+
+  /// No description provided for @invalidTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The title must contain 1 to 255 characters.'**
+  String get invalidTitle;
+
+  /// No description provided for @dueDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Due date'**
+  String get dueDate;
+
+  /// No description provided for @clearDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear due date'**
+  String get clearDate;
+
+  /// No description provided for @completed.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get completed;
+
+  /// No description provided for @pendingChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending changes'**
+  String get pendingChanges;
+
+  /// No description provided for @noPending.
+  ///
+  /// In en, this message translates to:
+  /// **'All changes have been confirmed.'**
+  String get noPending;
+
+  /// No description provided for @queued.
+  ///
+  /// In en, this message translates to:
+  /// **'Queued'**
+  String get queued;
+
+  /// No description provided for @sending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending'**
+  String get sending;
+
+  /// No description provided for @conflict.
+  ///
+  /// In en, this message translates to:
+  /// **'The same field changed on the server.'**
+  String get conflict;
+
+  /// No description provided for @uncertain.
+  ///
+  /// In en, this message translates to:
+  /// **'The server may have accepted this change. Check the server before retrying.'**
+  String get uncertain;
+
+  /// No description provided for @blocked.
+  ///
+  /// In en, this message translates to:
+  /// **'This change cannot be sent. Check access and content.'**
+  String get blocked;
+
+  /// No description provided for @retryWrite.
+  ///
+  /// In en, this message translates to:
+  /// **'Send again'**
+  String get retryWrite;
+
+  /// No description provided for @discardWrite.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard local change'**
+  String get discardWrite;
+
+  /// No description provided for @localVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Local version'**
+  String get localVersion;
+
+  /// No description provided for @serverVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Server version'**
+  String get serverVersion;
+
+  /// No description provided for @confirmRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retrying may create a duplicate card. Send again?'**
+  String get confirmRetry;
+
+  /// No description provided for @confirmDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard this local change? This will not undo any write already applied on the server.'**
+  String get confirmDiscard;
+
+  /// No description provided for @pendingDecision.
+  ///
+  /// In en, this message translates to:
+  /// **'This card has a sending or unresolved change. Open Pending changes first.'**
+  String get pendingDecision;
+
+  /// No description provided for @unsavedChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave unsaved changes?'**
+  String get unsavedChanges;
+
+  /// No description provided for @leave.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get leave;
 }
 
 class _AppLocalizationsDelegate

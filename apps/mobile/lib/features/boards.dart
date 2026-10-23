@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import '../data/session.dart';
 import '../l10n/app_localizations.dart';
 import 'accounts.dart';
+import 'card_editor.dart';
+import 'pending.dart';
 import 'sync_notice.dart';
 
 class BoardsScreen extends StatefulWidget {
@@ -31,6 +33,16 @@ class _BoardsScreenState extends State<BoardsScreen> {
       appBar: AppBar(
         title: Text(text.boards),
         actions: [
+          IconButton(
+            tooltip: text.pendingChanges,
+            icon: const Icon(Icons.sync_problem_outlined),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                settings: const RouteSettings(name: '/sync'),
+                builder: (_) => PendingScreen(session: session),
+              ),
+            ),
+          ),
           IconButton(
             tooltip: text.accounts,
             icon: const Icon(Icons.account_circle_outlined),
@@ -213,22 +225,86 @@ class _BoardScreenState extends State<BoardScreen> {
                                           physics:
                                               const AlwaysScrollableScrollPhysics(),
                                           padding: const EdgeInsets.all(16),
-                                          itemCount: stack.cards.isEmpty
-                                              ? 1
-                                              : stack.cards.length,
+                                          itemCount: stack.cards.length + 1,
                                           itemBuilder: (context, index) {
-                                            if (stack.cards.isEmpty)
-                                              return Padding(
-                                                padding: const EdgeInsets.all(
-                                                  24,
-                                                ),
-                                                child: Text(text.emptyStack),
+                                            if (index == stack.cards.length) {
+                                              return Column(
+                                                children: [
+                                                  if (stack.cards.isEmpty)
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            24,
+                                                          ),
+                                                      child: Text(
+                                                        text.emptyStack,
+                                                      ),
+                                                    ),
+                                                  if (widget
+                                                          .board
+                                                          .permissions
+                                                          .edit &&
+                                                      !widget.board.archived)
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            vertical: 16,
+                                                          ),
+                                                      child: FilledButton.icon(
+                                                        icon: const Icon(
+                                                          Icons.add,
+                                                        ),
+                                                        label: Text(
+                                                          text.addCard,
+                                                        ),
+                                                        onPressed: () =>
+                                                            editCard(
+                                                              context,
+                                                              session,
+                                                              widget.board.id,
+                                                              stack.id,
+                                                            ),
+                                                      ),
+                                                    ),
+                                                ],
                                               );
+                                            }
                                             final card = stack.cards[index];
                                             return Card(
                                               key: ValueKey(card.id),
                                               child: ListTile(
                                                 title: Text(card.title),
+                                                trailing:
+                                                    card.raw['syncState'] ==
+                                                        null
+                                                    ? null
+                                                    : IconButton(
+                                                        tooltip:
+                                                            text.pendingChanges,
+                                                        icon: const Icon(
+                                                          Icons
+                                                              .cloud_upload_outlined,
+                                                        ),
+                                                        onPressed: () =>
+                                                            Navigator.of(
+                                                              context,
+                                                            ).push(
+                                                              MaterialPageRoute<
+                                                                void
+                                                              >(
+                                                                settings:
+                                                                    const RouteSettings(
+                                                                      name:
+                                                                          '/sync',
+                                                                    ),
+                                                                builder: (_) =>
+                                                                    PendingScreen(
+                                                                      session:
+                                                                          session,
+                                                                    ),
+                                                              ),
+                                                            ),
+                                                      ),
                                                 subtitle:
                                                     card.description.isEmpty
                                                     ? null
@@ -247,6 +323,33 @@ class _BoardScreenState extends State<BoardScreen> {
                                                     builder: (_) => Scaffold(
                                                       appBar: AppBar(
                                                         title: Text(card.title),
+                                                        actions: [
+                                                          if (widget
+                                                                  .board
+                                                                  .permissions
+                                                                  .edit &&
+                                                              !widget
+                                                                  .board
+                                                                  .archived)
+                                                            IconButton(
+                                                              tooltip:
+                                                                  text.editCard,
+                                                              icon: const Icon(
+                                                                Icons
+                                                                    .edit_outlined,
+                                                              ),
+                                                              onPressed: () =>
+                                                                  editCard(
+                                                                    context,
+                                                                    session,
+                                                                    widget
+                                                                        .board
+                                                                        .id,
+                                                                    stack.id,
+                                                                    card: card,
+                                                                  ),
+                                                            ),
+                                                        ],
                                                       ),
                                                       body: SingleChildScrollView(
                                                         padding:
