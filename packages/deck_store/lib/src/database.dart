@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 
 part 'database.g.dart';
 part 'writes.dart';
+part 'editor_drafts.dart';
 
 class StoredAccounts extends Table {
   TextColumn get id => text()();
@@ -91,6 +92,20 @@ class SyncLeases extends Table {
   Set<Column<Object>> get primaryKey => {accountId};
 }
 
+class EditorDrafts extends Table {
+  TextColumn get accountId =>
+      text().references(StoredAccounts, #id, onDelete: KeyAction.cascade)();
+  TextColumn get draftKey => text()();
+  IntColumn get boardId => integer()();
+  IntColumn get stackId => integer()();
+  IntColumn get cardId => integer().nullable()();
+  TextColumn get payload => text()();
+  TextColumn get base => text().nullable()();
+  DateTimeColumn get updatedAt => dateTime()();
+  @override
+  Set<Column<Object>> get primaryKey => {accountId, draftKey};
+}
+
 @DriftDatabase(
   tables: [
     StoredAccounts,
@@ -100,13 +115,14 @@ class SyncLeases extends Table {
     SyncCheckpoints,
     PendingWrites,
     SyncLeases,
+    EditorDrafts,
   ],
 )
 class DeckDatabase extends _$DeckDatabase {
   DeckDatabase(super.executor);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -118,6 +134,7 @@ class DeckDatabase extends _$DeckDatabase {
       }
       if (from < 3)
         await m.addColumn(storedAccounts, storedAccounts.contentEpoch);
+      if (from < 4) await m.createTable(editorDrafts);
     },
     beforeOpen: (_) => customStatement('PRAGMA foreign_keys = ON'),
   );

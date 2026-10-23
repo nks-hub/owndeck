@@ -33,6 +33,21 @@ extension DeckWrites on DeckDatabase {
   }) => transaction(() async {
     if (!await accepts(account.id, account.generation))
       throw StateError('account_unavailable');
+    var resolved = original;
+    if (original != null && original.id < 0) {
+      final creation =
+          await (select(pendingWrites)..where(
+                (w) =>
+                    w.accountId.equals(account.id) &
+                    w.sequence.equals(-original.id),
+              ))
+              .getSingleOrNull();
+      if (creation?.state == 'confirmed' && creation?.remote != null) {
+        resolved = DeckCard.fromJson(object(jsonDecode(creation!.remote!)));
+        stackId = resolved.stackId;
+      }
+    }
+    final source = resolved;
     final board =
         await (select(storedBoards)..where(
               (b) =>
@@ -48,10 +63,10 @@ extension DeckWrites on DeckDatabase {
     final existing = (await writesFor(account.id, boardId: boardId))
         .where(
           (w) =>
-              original != null &&
-              (original.id < 0
-                  ? w.sequence == -original.id
-                  : w.cardId == original.id),
+              source != null &&
+              (source.id < 0
+                  ? w.sequence == -source.id
+                  : w.cardId == source.id),
         )
         .firstOrNull;
     if (existing != null) {
@@ -61,10 +76,9 @@ extension DeckWrites on DeckDatabase {
           .write(PendingWritesCompanion(proposal: Value(jsonEncode(merged))));
       return existing.id;
     }
-    if (original != null && original.id < 0)
-      throw StateError('draft_not_found');
+    if (source != null && source.id < 0) throw StateError('draft_not_found');
     final id = const Uuid().v4();
-    final proposal = original == null
+    final proposal = source == null
         ? <String, Object?>{
             'title': '',
             'description': '',
@@ -80,12 +94,12 @@ extension DeckWrites on DeckDatabase {
       PendingWritesCompanion.insert(
         id: id,
         accountId: account.id,
-        kind: original == null ? 'createCard' : 'updateCard',
+        kind: source == null ? 'createCard' : 'updateCard',
         boardId: boardId,
         stackId: stackId,
-        cardId: Value(original?.id),
+        cardId: Value(source?.id),
         proposal: jsonEncode(proposal),
-        base: Value(original == null ? null : jsonEncode(original.raw)),
+        base: Value(source == null ? null : jsonEncode(source.raw)),
       ),
     );
     return id;

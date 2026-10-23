@@ -199,4 +199,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get leave => 'Leave';
+
+  @override
+  String get draftSaved =>
+      'The draft is saved on this device. Tap Save to send it to the server.';
+
+  @override
+  String get savingDraft => 'Saving draft…';
+
+  @override
+  String get drafts => 'Card drafts';
+
+  @override
+  String get noDrafts => 'You have no card drafts.';
+
+  @override
+  String get discardDraft => 'Discard draft';
+
+  @override
+  String get discardDraftQuestion =>
+      'Permanently remove this draft text from this device?';
 }

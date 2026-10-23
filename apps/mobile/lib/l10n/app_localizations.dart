@@ -457,6 +457,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Leave'**
   String get leave;
+
+  /// No description provided for @draftSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'The draft is saved on this device. Tap Save to send it to the server.'**
+  String get draftSaved;
+
+  /// No description provided for @savingDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving draft…'**
+  String get savingDraft;
+
+  /// No description provided for @drafts.
+  ///
+  /// In en, this message translates to:
+  /// **'Card drafts'**
+  String get drafts;
+
+  /// No description provided for @noDrafts.
+  ///
+  /// In en, this message translates to:
+  /// **'You have no card drafts.'**
+  String get noDrafts;
+
+  /// No description provided for @discardDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard draft'**
+  String get discardDraft;
+
+  /// No description provided for @discardDraftQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently remove this draft text from this device?'**
+  String get discardDraftQuestion;
 }
 
 class _AppLocalizationsDelegate

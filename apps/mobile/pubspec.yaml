@@ -18,6 +18,7 @@ dependencies:
   deck_store:
     path: ../../packages/deck_store
   drift_flutter: ^0.3.1
+  connectivity_plus: ^7.3.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 import '../data/session.dart';
 import '../l10n/app_localizations.dart';
+import 'drafts.dart';
 
 class PendingScreen extends StatefulWidget {
   const PendingScreen({super.key, required this.session});
@@ -69,6 +70,17 @@ class _PendingScreenState extends State<PendingScreen> {
       appBar: AppBar(
         title: Text(text.pendingChanges),
         actions: [
+          IconButton(
+            tooltip: text.drafts,
+            icon: const Icon(Icons.drafts_outlined),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                settings: const RouteSettings(name: '/drafts'),
+                builder: (_) => DraftsScreen(session: widget.session),
+              ),
+            ),
+          ),
+
           IconButton(
             tooltip: text.refresh,
             icon: const Icon(Icons.refresh),

@@ -59,5 +59,11 @@
   "confirmDiscard": "Zahodit tuto místní změnu? Případný již provedený zápis na serveru to nevrátí.",
   "pendingDecision": "Tato karta má právě odesílanou nebo nevyřešenou změnu. Nejdřív otevřete Neodeslané změny.",
   "unsavedChanges": "Opustit neuložené úpravy?",
-  "leave": "Opustit"
+  "leave": "Opustit",
+  "draftSaved": "Koncept je uložený v telefonu. Na server se odešle až po stisku Uložit.",
+  "savingDraft": "Ukládám koncept…",
+  "drafts": "Rozepsané karty",
+  "noDrafts": "Nemáte žádné rozepsané karty.",
+  "discardDraft": "Zahodit koncept",
+  "discardDraftQuestion": "Trvale odstranit tento rozepsaný text z telefonu?"
 }

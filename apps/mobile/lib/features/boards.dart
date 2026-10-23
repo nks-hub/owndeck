@@ -162,7 +162,15 @@ class _BoardScreenState extends State<BoardScreen> {
   @override
   void initState() {
     super.initState();
-    scheduleMicrotask(_refresh);
+    scheduleMicrotask(() {
+      if (mounted) widget.session.openBoard(widget.board.id);
+    });
+  }
+
+  @override
+  void dispose() {
+    widget.session.closeBoard(widget.board.id);
+    super.dispose();
   }
 
   @override

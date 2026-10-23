@@ -2847,6 +2847,522 @@ class SyncLeasesCompanion extends UpdateCompanion<SyncLease> {
   }
 }
 
+class $EditorDraftsTable extends EditorDrafts
+    with TableInfo<$EditorDraftsTable, EditorDraft> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $EditorDraftsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _accountIdMeta = const VerificationMeta(
+    'accountId',
+  );
+  @override
+  late final GeneratedColumn<String> accountId = GeneratedColumn<String>(
+    'account_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES stored_accounts (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _draftKeyMeta = const VerificationMeta(
+    'draftKey',
+  );
+  @override
+  late final GeneratedColumn<String> draftKey = GeneratedColumn<String>(
+    'draft_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _boardIdMeta = const VerificationMeta(
+    'boardId',
+  );
+  @override
+  late final GeneratedColumn<int> boardId = GeneratedColumn<int>(
+    'board_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _stackIdMeta = const VerificationMeta(
+    'stackId',
+  );
+  @override
+  late final GeneratedColumn<int> stackId = GeneratedColumn<int>(
+    'stack_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _cardIdMeta = const VerificationMeta('cardId');
+  @override
+  late final GeneratedColumn<int> cardId = GeneratedColumn<int>(
+    'card_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _payloadMeta = const VerificationMeta(
+    'payload',
+  );
+  @override
+  late final GeneratedColumn<String> payload = GeneratedColumn<String>(
+    'payload',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _baseMeta = const VerificationMeta('base');
+  @override
+  late final GeneratedColumn<String> base = GeneratedColumn<String>(
+    'base',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    accountId,
+    draftKey,
+    boardId,
+    stackId,
+    cardId,
+    payload,
+    base,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'editor_drafts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<EditorDraft> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('account_id')) {
+      context.handle(
+        _accountIdMeta,
+        accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_accountIdMeta);
+    }
+    if (data.containsKey('draft_key')) {
+      context.handle(
+        _draftKeyMeta,
+        draftKey.isAcceptableOrUnknown(data['draft_key']!, _draftKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_draftKeyMeta);
+    }
+    if (data.containsKey('board_id')) {
+      context.handle(
+        _boardIdMeta,
+        boardId.isAcceptableOrUnknown(data['board_id']!, _boardIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_boardIdMeta);
+    }
+    if (data.containsKey('stack_id')) {
+      context.handle(
+        _stackIdMeta,
+        stackId.isAcceptableOrUnknown(data['stack_id']!, _stackIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_stackIdMeta);
+    }
+    if (data.containsKey('card_id')) {
+      context.handle(
+        _cardIdMeta,
+        cardId.isAcceptableOrUnknown(data['card_id']!, _cardIdMeta),
+      );
+    }
+    if (data.containsKey('payload')) {
+      context.handle(
+        _payloadMeta,
+        payload.isAcceptableOrUnknown(data['payload']!, _payloadMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_payloadMeta);
+    }
+    if (data.containsKey('base')) {
+      context.handle(
+        _baseMeta,
+        base.isAcceptableOrUnknown(data['base']!, _baseMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {accountId, draftKey};
+  @override
+  EditorDraft map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return EditorDraft(
+      accountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}account_id'],
+      )!,
+      draftKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}draft_key'],
+      )!,
+      boardId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}board_id'],
+      )!,
+      stackId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}stack_id'],
+      )!,
+      cardId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}card_id'],
+      ),
+      payload: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payload'],
+      )!,
+      base: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}base'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $EditorDraftsTable createAlias(String alias) {
+    return $EditorDraftsTable(attachedDatabase, alias);
+  }
+}
+
+class EditorDraft extends DataClass implements Insertable<EditorDraft> {
+  final String accountId;
+  final String draftKey;
+  final int boardId;
+  final int stackId;
+  final int? cardId;
+  final String payload;
+  final String? base;
+  final DateTime updatedAt;
+  const EditorDraft({
+    required this.accountId,
+    required this.draftKey,
+    required this.boardId,
+    required this.stackId,
+    this.cardId,
+    required this.payload,
+    this.base,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['account_id'] = Variable<String>(accountId);
+    map['draft_key'] = Variable<String>(draftKey);
+    map['board_id'] = Variable<int>(boardId);
+    map['stack_id'] = Variable<int>(stackId);
+    if (!nullToAbsent || cardId != null) {
+      map['card_id'] = Variable<int>(cardId);
+    }
+    map['payload'] = Variable<String>(payload);
+    if (!nullToAbsent || base != null) {
+      map['base'] = Variable<String>(base);
+    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  EditorDraftsCompanion toCompanion(bool nullToAbsent) {
+    return EditorDraftsCompanion(
+      accountId: Value(accountId),
+      draftKey: Value(draftKey),
+      boardId: Value(boardId),
+      stackId: Value(stackId),
+      cardId: cardId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cardId),
+      payload: Value(payload),
+      base: base == null && nullToAbsent ? const Value.absent() : Value(base),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory EditorDraft.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return EditorDraft(
+      accountId: serializer.fromJson<String>(json['accountId']),
+      draftKey: serializer.fromJson<String>(json['draftKey']),
+      boardId: serializer.fromJson<int>(json['boardId']),
+      stackId: serializer.fromJson<int>(json['stackId']),
+      cardId: serializer.fromJson<int?>(json['cardId']),
+      payload: serializer.fromJson<String>(json['payload']),
+      base: serializer.fromJson<String?>(json['base']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'accountId': serializer.toJson<String>(accountId),
+      'draftKey': serializer.toJson<String>(draftKey),
+      'boardId': serializer.toJson<int>(boardId),
+      'stackId': serializer.toJson<int>(stackId),
+      'cardId': serializer.toJson<int?>(cardId),
+      'payload': serializer.toJson<String>(payload),
+      'base': serializer.toJson<String?>(base),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  EditorDraft copyWith({
+    String? accountId,
+    String? draftKey,
+    int? boardId,
+    int? stackId,
+    Value<int?> cardId = const Value.absent(),
+    String? payload,
+    Value<String?> base = const Value.absent(),
+    DateTime? updatedAt,
+  }) => EditorDraft(
+    accountId: accountId ?? this.accountId,
+    draftKey: draftKey ?? this.draftKey,
+    boardId: boardId ?? this.boardId,
+    stackId: stackId ?? this.stackId,
+    cardId: cardId.present ? cardId.value : this.cardId,
+    payload: payload ?? this.payload,
+    base: base.present ? base.value : this.base,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  EditorDraft copyWithCompanion(EditorDraftsCompanion data) {
+    return EditorDraft(
+      accountId: data.accountId.present ? data.accountId.value : this.accountId,
+      draftKey: data.draftKey.present ? data.draftKey.value : this.draftKey,
+      boardId: data.boardId.present ? data.boardId.value : this.boardId,
+      stackId: data.stackId.present ? data.stackId.value : this.stackId,
+      cardId: data.cardId.present ? data.cardId.value : this.cardId,
+      payload: data.payload.present ? data.payload.value : this.payload,
+      base: data.base.present ? data.base.value : this.base,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EditorDraft(')
+          ..write('accountId: $accountId, ')
+          ..write('draftKey: $draftKey, ')
+          ..write('boardId: $boardId, ')
+          ..write('stackId: $stackId, ')
+          ..write('cardId: $cardId, ')
+          ..write('payload: $payload, ')
+          ..write('base: $base, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    accountId,
+    draftKey,
+    boardId,
+    stackId,
+    cardId,
+    payload,
+    base,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is EditorDraft &&
+          other.accountId == this.accountId &&
+          other.draftKey == this.draftKey &&
+          other.boardId == this.boardId &&
+          other.stackId == this.stackId &&
+          other.cardId == this.cardId &&
+          other.payload == this.payload &&
+          other.base == this.base &&
+          other.updatedAt == this.updatedAt);
+}
+
+class EditorDraftsCompanion extends UpdateCompanion<EditorDraft> {
+  final Value<String> accountId;
+  final Value<String> draftKey;
+  final Value<int> boardId;
+  final Value<int> stackId;
+  final Value<int?> cardId;
+  final Value<String> payload;
+  final Value<String?> base;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const EditorDraftsCompanion({
+    this.accountId = const Value.absent(),
+    this.draftKey = const Value.absent(),
+    this.boardId = const Value.absent(),
+    this.stackId = const Value.absent(),
+    this.cardId = const Value.absent(),
+    this.payload = const Value.absent(),
+    this.base = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  EditorDraftsCompanion.insert({
+    required String accountId,
+    required String draftKey,
+    required int boardId,
+    required int stackId,
+    this.cardId = const Value.absent(),
+    required String payload,
+    this.base = const Value.absent(),
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : accountId = Value(accountId),
+       draftKey = Value(draftKey),
+       boardId = Value(boardId),
+       stackId = Value(stackId),
+       payload = Value(payload),
+       updatedAt = Value(updatedAt);
+  static Insertable<EditorDraft> custom({
+    Expression<String>? accountId,
+    Expression<String>? draftKey,
+    Expression<int>? boardId,
+    Expression<int>? stackId,
+    Expression<int>? cardId,
+    Expression<String>? payload,
+    Expression<String>? base,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (accountId != null) 'account_id': accountId,
+      if (draftKey != null) 'draft_key': draftKey,
+      if (boardId != null) 'board_id': boardId,
+      if (stackId != null) 'stack_id': stackId,
+      if (cardId != null) 'card_id': cardId,
+      if (payload != null) 'payload': payload,
+      if (base != null) 'base': base,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  EditorDraftsCompanion copyWith({
+    Value<String>? accountId,
+    Value<String>? draftKey,
+    Value<int>? boardId,
+    Value<int>? stackId,
+    Value<int?>? cardId,
+    Value<String>? payload,
+    Value<String?>? base,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return EditorDraftsCompanion(
+      accountId: accountId ?? this.accountId,
+      draftKey: draftKey ?? this.draftKey,
+      boardId: boardId ?? this.boardId,
+      stackId: stackId ?? this.stackId,
+      cardId: cardId ?? this.cardId,
+      payload: payload ?? this.payload,
+      base: base ?? this.base,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (accountId.present) {
+      map['account_id'] = Variable<String>(accountId.value);
+    }
+    if (draftKey.present) {
+      map['draft_key'] = Variable<String>(draftKey.value);
+    }
+    if (boardId.present) {
+      map['board_id'] = Variable<int>(boardId.value);
+    }
+    if (stackId.present) {
+      map['stack_id'] = Variable<int>(stackId.value);
+    }
+    if (cardId.present) {
+      map['card_id'] = Variable<int>(cardId.value);
+    }
+    if (payload.present) {
+      map['payload'] = Variable<String>(payload.value);
+    }
+    if (base.present) {
+      map['base'] = Variable<String>(base.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EditorDraftsCompanion(')
+          ..write('accountId: $accountId, ')
+          ..write('draftKey: $draftKey, ')
+          ..write('boardId: $boardId, ')
+          ..write('stackId: $stackId, ')
+          ..write('cardId: $cardId, ')
+          ..write('payload: $payload, ')
+          ..write('base: $base, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$DeckDatabase extends GeneratedDatabase {
   _$DeckDatabase(QueryExecutor e) : super(e);
   $DeckDatabaseManager get managers => $DeckDatabaseManager(this);
@@ -2859,6 +3375,7 @@ abstract class _$DeckDatabase extends GeneratedDatabase {
   );
   late final $PendingWritesTable pendingWrites = $PendingWritesTable(this);
   late final $SyncLeasesTable syncLeases = $SyncLeasesTable(this);
+  late final $EditorDraftsTable editorDrafts = $EditorDraftsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2871,6 +3388,7 @@ abstract class _$DeckDatabase extends GeneratedDatabase {
     syncCheckpoints,
     pendingWrites,
     syncLeases,
+    editorDrafts,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -2915,6 +3433,13 @@ abstract class _$DeckDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('sync_leases', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'stored_accounts',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('editor_drafts', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -3058,6 +3583,24 @@ final class $$StoredAccountsTableReferences
     ).filter((f) => f.accountId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_syncLeasesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$EditorDraftsTable, List<EditorDraft>>
+  _editorDraftsRefsTable(_$DeckDatabase db) => MultiTypedResultKey.fromTable(
+    db.editorDrafts,
+    aliasName: 'stored_accounts__id__editor_drafts__account_id',
+  );
+
+  $$EditorDraftsTableProcessedTableManager get editorDraftsRefs {
+    final manager = $$EditorDraftsTableTableManager(
+      $_db,
+      $_db.editorDrafts,
+    ).filter((f) => f.accountId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_editorDraftsRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -3254,6 +3797,31 @@ class $$StoredAccountsTableFilterComposer
           }) => $$SyncLeasesTableFilterComposer(
             $db: $db,
             $table: $db.syncLeases,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> editorDraftsRefs(
+    Expression<bool> Function($$EditorDraftsTableFilterComposer f) f,
+  ) {
+    final $$EditorDraftsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.editorDrafts,
+      getReferencedColumn: (t) => t.accountId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EditorDraftsTableFilterComposer(
+            $db: $db,
+            $table: $db.editorDrafts,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -3502,6 +4070,31 @@ class $$StoredAccountsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> editorDraftsRefs<T extends Object>(
+    Expression<T> Function($$EditorDraftsTableAnnotationComposer a) f,
+  ) {
+    final $$EditorDraftsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.editorDrafts,
+      getReferencedColumn: (t) => t.accountId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EditorDraftsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.editorDrafts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$StoredAccountsTableTableManager
@@ -3524,6 +4117,7 @@ class $$StoredAccountsTableTableManager
             bool syncCheckpointsRefs,
             bool pendingWritesRefs,
             bool syncLeasesRefs,
+            bool editorDraftsRefs,
           })
         > {
   $$StoredAccountsTableTableManager(
@@ -3599,6 +4193,7 @@ class $$StoredAccountsTableTableManager
                 syncCheckpointsRefs = false,
                 pendingWritesRefs = false,
                 syncLeasesRefs = false,
+                editorDraftsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -3609,6 +4204,7 @@ class $$StoredAccountsTableTableManager
                     if (syncCheckpointsRefs) db.syncCheckpoints,
                     if (pendingWritesRefs) db.pendingWrites,
                     if (syncLeasesRefs) db.syncLeases,
+                    if (editorDraftsRefs) db.editorDrafts,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -3733,6 +4329,26 @@ class $$StoredAccountsTableTableManager
                           referencedColumn: 'account_id',
                           typedResults: items,
                         ),
+                      if (editorDraftsRefs)
+                        await $_getPrefetchedDataByColumns<
+                          StoredAccount,
+                          $StoredAccountsTable,
+                          EditorDraft,
+                          $EditorDraftsTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$StoredAccountsTableReferences
+                              ._editorDraftsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$StoredAccountsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).editorDraftsRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'account_id',
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -3760,6 +4376,7 @@ typedef $$StoredAccountsTableProcessedTableManager =
         bool syncCheckpointsRefs,
         bool pendingWritesRefs,
         bool syncLeasesRefs,
+        bool editorDraftsRefs,
       })
     >;
 typedef $$StoredBoardsTableCreateCompanionBuilder =
@@ -5734,6 +6351,381 @@ typedef $$SyncLeasesTableProcessedTableManager =
       SyncLease,
       PrefetchHooks Function({bool accountId})
     >;
+typedef $$EditorDraftsTableCreateCompanionBuilder =
+    EditorDraftsCompanion Function({
+      required String accountId,
+      required String draftKey,
+      required int boardId,
+      required int stackId,
+      Value<int?> cardId,
+      required String payload,
+      Value<String?> base,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$EditorDraftsTableUpdateCompanionBuilder =
+    EditorDraftsCompanion Function({
+      Value<String> accountId,
+      Value<String> draftKey,
+      Value<int> boardId,
+      Value<int> stackId,
+      Value<int?> cardId,
+      Value<String> payload,
+      Value<String?> base,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$EditorDraftsTableReferences
+    extends BaseReferences<_$DeckDatabase, $EditorDraftsTable, EditorDraft> {
+  $$EditorDraftsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $StoredAccountsTable _accountIdTable(_$DeckDatabase db) => db
+      .storedAccounts
+      .createAlias('editor_drafts__account_id__stored_accounts__id');
+
+  $$StoredAccountsTableProcessedTableManager get accountId {
+    final $_column = $_itemColumn<String>('account_id')!;
+
+    final manager = $$StoredAccountsTableTableManager(
+      $_db,
+      $_db.storedAccounts,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_accountIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$EditorDraftsTableFilterComposer
+    extends Composer<_$DeckDatabase, $EditorDraftsTable> {
+  $$EditorDraftsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get draftKey => $composableBuilder(
+    column: $table.draftKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get boardId => $composableBuilder(
+    column: $table.boardId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get stackId => $composableBuilder(
+    column: $table.stackId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get cardId => $composableBuilder(
+    column: $table.cardId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get base => $composableBuilder(
+    column: $table.base,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$StoredAccountsTableFilterComposer get accountId {
+    final $$StoredAccountsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.storedAccounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StoredAccountsTableFilterComposer(
+            $db: $db,
+            $table: $db.storedAccounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EditorDraftsTableOrderingComposer
+    extends Composer<_$DeckDatabase, $EditorDraftsTable> {
+  $$EditorDraftsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get draftKey => $composableBuilder(
+    column: $table.draftKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get boardId => $composableBuilder(
+    column: $table.boardId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get stackId => $composableBuilder(
+    column: $table.stackId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get cardId => $composableBuilder(
+    column: $table.cardId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get base => $composableBuilder(
+    column: $table.base,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$StoredAccountsTableOrderingComposer get accountId {
+    final $$StoredAccountsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.storedAccounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StoredAccountsTableOrderingComposer(
+            $db: $db,
+            $table: $db.storedAccounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EditorDraftsTableAnnotationComposer
+    extends Composer<_$DeckDatabase, $EditorDraftsTable> {
+  $$EditorDraftsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get draftKey =>
+      $composableBuilder(column: $table.draftKey, builder: (column) => column);
+
+  GeneratedColumn<int> get boardId =>
+      $composableBuilder(column: $table.boardId, builder: (column) => column);
+
+  GeneratedColumn<int> get stackId =>
+      $composableBuilder(column: $table.stackId, builder: (column) => column);
+
+  GeneratedColumn<int> get cardId =>
+      $composableBuilder(column: $table.cardId, builder: (column) => column);
+
+  GeneratedColumn<String> get payload =>
+      $composableBuilder(column: $table.payload, builder: (column) => column);
+
+  GeneratedColumn<String> get base =>
+      $composableBuilder(column: $table.base, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$StoredAccountsTableAnnotationComposer get accountId {
+    final $$StoredAccountsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.storedAccounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StoredAccountsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.storedAccounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EditorDraftsTableTableManager
+    extends
+        RootTableManager<
+          _$DeckDatabase,
+          $EditorDraftsTable,
+          EditorDraft,
+          $$EditorDraftsTableFilterComposer,
+          $$EditorDraftsTableOrderingComposer,
+          $$EditorDraftsTableAnnotationComposer,
+          $$EditorDraftsTableCreateCompanionBuilder,
+          $$EditorDraftsTableUpdateCompanionBuilder,
+          (EditorDraft, $$EditorDraftsTableReferences),
+          EditorDraft,
+          PrefetchHooks Function({bool accountId})
+        > {
+  $$EditorDraftsTableTableManager(_$DeckDatabase db, $EditorDraftsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$EditorDraftsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$EditorDraftsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$EditorDraftsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> accountId = const Value.absent(),
+                Value<String> draftKey = const Value.absent(),
+                Value<int> boardId = const Value.absent(),
+                Value<int> stackId = const Value.absent(),
+                Value<int?> cardId = const Value.absent(),
+                Value<String> payload = const Value.absent(),
+                Value<String?> base = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => EditorDraftsCompanion(
+                accountId: accountId,
+                draftKey: draftKey,
+                boardId: boardId,
+                stackId: stackId,
+                cardId: cardId,
+                payload: payload,
+                base: base,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String accountId,
+                required String draftKey,
+                required int boardId,
+                required int stackId,
+                Value<int?> cardId = const Value.absent(),
+                required String payload,
+                Value<String?> base = const Value.absent(),
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => EditorDraftsCompanion.insert(
+                accountId: accountId,
+                draftKey: draftKey,
+                boardId: boardId,
+                stackId: stackId,
+                cardId: cardId,
+                payload: payload,
+                base: base,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$EditorDraftsTable, EditorDraft>(table),
+                  $$EditorDraftsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({accountId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (accountId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.accountId,
+                                referencedTable: $$EditorDraftsTableReferences
+                                    ._accountIdTable(db),
+                                referencedColumn: $$EditorDraftsTableReferences
+                                    ._accountIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$EditorDraftsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$DeckDatabase,
+      $EditorDraftsTable,
+      EditorDraft,
+      $$EditorDraftsTableFilterComposer,
+      $$EditorDraftsTableOrderingComposer,
+      $$EditorDraftsTableAnnotationComposer,
+      $$EditorDraftsTableCreateCompanionBuilder,
+      $$EditorDraftsTableUpdateCompanionBuilder,
+      (EditorDraft, $$EditorDraftsTableReferences),
+      EditorDraft,
+      PrefetchHooks Function({bool accountId})
+    >;
 
 class $DeckDatabaseManager {
   final _$DeckDatabase _db;
@@ -5752,4 +6744,6 @@ class $DeckDatabaseManager {
       $$PendingWritesTableTableManager(_db, _db.pendingWrites);
   $$SyncLeasesTableTableManager get syncLeases =>
       $$SyncLeasesTableTableManager(_db, _db.syncLeases);
+  $$EditorDraftsTableTableManager get editorDrafts =>
+      $$EditorDraftsTableTableManager(_db, _db.editorDrafts);
 }

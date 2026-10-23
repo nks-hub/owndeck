@@ -200,4 +200,24 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get leave => 'Opustit';
+
+  @override
+  String get draftSaved =>
+      'Koncept je uložený v telefonu. Na server se odešle až po stisku Uložit.';
+
+  @override
+  String get savingDraft => 'Ukládám koncept…';
+
+  @override
+  String get drafts => 'Rozepsané karty';
+
+  @override
+  String get noDrafts => 'Nemáte žádné rozepsané karty.';
+
+  @override
+  String get discardDraft => 'Zahodit koncept';
+
+  @override
+  String get discardDraftQuestion =>
+      'Trvale odstranit tento rozepsaný text z telefonu?';
 }

@@ -12,5 +12,7 @@
 - Preserve both versions of conflicting edits and require a decision for uncertain writes.
 - Add a card editor for titles, descriptions, due dates, and supported completion fields.
 - Prevent an older refresh response from overwriting a confirmed write.
+- Autosave card editor drafts separately from the server outbox and restore them after restart.
+- Refresh after resuming or changing networks; poll opened boards only in the foreground.
 
 Automated and device acceptance tests are scheduled after feature development. This version has not been distributed.

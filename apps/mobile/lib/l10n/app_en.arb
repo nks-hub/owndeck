@@ -59,5 +59,11 @@
   "confirmDiscard": "Discard this local change? This will not undo any write already applied on the server.",
   "pendingDecision": "This card has a sending or unresolved change. Open Pending changes first.",
   "unsavedChanges": "Leave unsaved changes?",
-  "leave": "Leave"
+  "leave": "Leave",
+  "draftSaved": "The draft is saved on this device. Tap Save to send it to the server.",
+  "savingDraft": "Saving draft…",
+  "drafts": "Card drafts",
+  "noDrafts": "You have no card drafts.",
+  "discardDraft": "Discard draft",
+  "discardDraftQuestion": "Permanently remove this draft text from this device?"
 }
