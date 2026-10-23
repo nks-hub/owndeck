@@ -96,4 +96,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loadError => 'The content could not be loaded.';
+
+  @override
+  String get removeAccount => 'Remove account';
+
+  @override
+  String get removeAccountQuestion =>
+      'Remove this account and all its local data from this device? Server data will be preserved.';
+
+  @override
+  String get remove => 'Remove';
+
+  @override
+  String get revocationFailed =>
+      'The account was removed from this device. Server-side revocation could not be confirmed; check connected apps in Nextcloud settings.';
+
+  @override
+  String get cachedData => 'Showing the saved copy.';
+
+  @override
+  String get syncing => 'Refreshing…';
 }

@@ -15,6 +15,9 @@ dependencies:
   url_launcher: ^6.3.2
   deck_protocol:
     path: ../../packages/deck_protocol
+  deck_store:
+    path: ../../packages/deck_store
+  drift_flutter: ^0.3.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

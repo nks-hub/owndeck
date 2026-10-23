@@ -78,9 +78,16 @@ class _AccountGate extends ConsumerWidget {
             ),
           );
         }
-        final client = accounts.client;
-        if (client == null) return const LoginScreen();
-        return BoardsScreen(key: ObjectKey(client), client: client);
+        final session = accounts.session;
+        if (session == null)
+          return LoginScreen(initialServer: accounts.selected?.server);
+        return Navigator(
+          key: ObjectKey(session),
+          onGenerateRoute: (_) => MaterialPageRoute<void>(
+            settings: const RouteSettings(name: '/boards'),
+            builder: (_) => BoardsScreen(session: session),
+          ),
+        );
       },
     );
   }

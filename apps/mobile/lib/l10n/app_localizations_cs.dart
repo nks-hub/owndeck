@@ -97,4 +97,24 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get loadError => 'Obsah se nepodařilo načíst.';
+
+  @override
+  String get removeAccount => 'Odebrat účet';
+
+  @override
+  String get removeAccountQuestion =>
+      'Odstranit účet a všechna jeho místní data z tohoto zařízení? Data na serveru zůstanou zachovaná.';
+
+  @override
+  String get remove => 'Odebrat';
+
+  @override
+  String get revocationFailed =>
+      'Účet byl odebrán z telefonu. Odvolání přístupu na serveru se nepodařilo potvrdit; zkontrolujte aplikace v nastavení Nextcloudu.';
+
+  @override
+  String get cachedData => 'Zobrazuji uloženou kopii.';
+
+  @override
+  String get syncing => 'Aktualizuji…';
 }

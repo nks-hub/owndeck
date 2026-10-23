@@ -1,177 +1,193 @@
+import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:deck_protocol/deck_protocol.dart';
+import 'package:deck_store/deck_store.dart';
+import 'package:drift_flutter/drift_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
+import 'session.dart';
+
 final accountsProvider = ChangeNotifierProvider((ref) => Accounts());
 
-final class SavedAccount {
-  const SavedAccount(this.id, this.credentials);
-  final String id;
-  final LoginCredentials credentials;
+final class SecureVault implements CredentialVault {
+  const SecureVault(this.storage);
+  final FlutterSecureStorage storage;
+  @override
+  Future<String?> read(String reference) => storage.read(key: reference);
+  @override
+  Future<void> write(String reference, String password) =>
+      storage.write(key: reference, value: password);
+  @override
+  Future<void> delete(String reference) => storage.delete(key: reference);
+  @override
+  Future<Set<String>> references() async =>
+      (await storage.readAll()).keys.toSet();
 }
 
 final class Accounts extends ChangeNotifier {
-  Accounts({FlutterSecureStorage? storage})
-    : _storage = storage ?? const FlutterSecureStorage() {
+  Accounts({FlutterSecureStorage? storage, DeckDatabase? database})
+    : _storage = storage ?? const FlutterSecureStorage(),
+      database = database ?? DeckDatabase(driftDatabase(name: 'owndeck')) {
+    vault = SecureVault(_storage);
+    repository = AccountRepository(this.database, vault);
     ready = _load();
   }
 
   final FlutterSecureStorage _storage;
+  final DeckDatabase database;
+  late final CredentialVault vault;
+  late final AccountRepository repository;
   late final Future<void> ready;
-  final List<SavedAccount> _accounts = [];
-  String? _selectedId;
+  List<StoredAccount> _accounts = [];
   String? loadError;
   bool _disposed = false;
   bool busy = false;
   http.Client? _transport;
-  DeckClient? client;
+  DeckSession? session;
+  int _generation = 0;
 
-  List<SavedAccount> get items => List.unmodifiable(_accounts);
-  SavedAccount? get selected =>
-      _accounts.where((a) => a.id == _selectedId).firstOrNull;
+  List<StoredAccount> get items => List.unmodifiable(_accounts);
+  StoredAccount? get selected =>
+      _accounts.where((a) => a.selected).firstOrNull ?? _accounts.firstOrNull;
 
   Future<void> _load() async {
     try {
-      final saved = await _storage.read(key: 'accounts.v1');
-      if (_disposed || saved == null) return;
-      final json = object(jsonDecode(saved));
-      final loaded = objects(json['accounts'])
-          .map(
-            (entry) => SavedAccount(
-              stringField(entry, 'id'),
-              LoginCredentials(
-                server: ServerBase.parse(stringField(entry, 'server')),
-                loginName: stringField(entry, 'loginName'),
-                appPassword: stringField(entry, 'appPassword'),
-              ),
-            ),
-          )
-          .toList(growable: false);
-      _accounts.addAll(loaded);
-      _selectedId = json['selected'] as String?;
-      if (selected == null && _accounts.isNotEmpty)
-        _selectedId = _accounts.first.id;
-      _openClient();
+      await repository.recover();
+      await _migrateLegacy();
+      await _reload();
+      loadError = null;
     } catch (_) {
-      // A locked vault must not be treated as an empty account collection.
-      loadError = 'secure_storage_unavailable';
+      // A locked vault or corrupt database must not become an empty account list.
+      loadError = 'storage_unavailable';
     } finally {
+      if (!_disposed) notifyListeners();
+    }
+  }
+
+  Future<void> _migrateLegacy() async {
+    final legacy = await _storage.read(key: 'accounts.v1');
+    if (legacy == null) return;
+    final json = object(jsonDecode(legacy));
+    String? selectedId;
+    for (final entry in objects(json['accounts'])) {
+      final account = await repository.add(
+        LoginCredentials(
+          server: ServerBase.parse(stringField(entry, 'server')),
+          loginName: stringField(entry, 'loginName'),
+          appPassword: stringField(entry, 'appPassword'),
+        ),
+      );
+      if (entry['id'] == json['selected']) selectedId = account.id;
+    }
+    if (selectedId != null) await repository.select(selectedId);
+    await _storage.delete(key: 'accounts.v1');
+  }
+
+  Future<void> _reload() async {
+    final generation = ++_generation;
+    _transport?.close();
+    session?.dispose();
+    session = null;
+    final values = await database.accounts();
+    if (_disposed || generation != _generation) return;
+    _accounts = values.where((a) => a.state != 'deleting').toList();
+    final account = selected;
+    if (account == null || account.state != 'active') return;
+    final password = await vault.read(account.credentialRef);
+    if (_disposed || generation != _generation) return;
+    if (password == null) return;
+    final transport = http.Client();
+    _transport = transport;
+    session = DeckSession(
+      database,
+      account,
+      DeckClient(
+        base: ServerBase.parse(account.server),
+        loginName: account.loginName,
+        appPassword: password,
+        transport: transport,
+      ),
+    );
+  }
+
+  Future<T> _change<T>(Future<T> Function() operation) async {
+    await ready;
+    if (busy || loadError != null || _disposed)
+      throw StateError('accounts_unavailable');
+    busy = true;
+    notifyListeners();
+    try {
+      return await operation();
+    } finally {
+      busy = false;
       if (!_disposed) notifyListeners();
     }
   }
 
   Future<void> retryLoad() async {
-    _accounts.clear();
-    loadError = null;
-    await _load();
-  }
-
-  Future<void> add(LoginCredentials credentials) async {
-    await ready;
-    if (busy || loadError != null) throw StateError('accounts_unavailable');
-    busy = true;
-    try {
-      final existing = _accounts
-          .where(
-            (a) =>
-                a.credentials.server.uri == credentials.server.uri &&
-                a.credentials.loginName == credentials.loginName,
-          )
-          .firstOrNull;
-      final random = Random.secure();
-      final id =
-          existing?.id ??
-          base64UrlEncode(List.generate(18, (_) => random.nextInt(256)));
-      final next = [
-        ..._accounts.where((a) => a.id != id),
-        SavedAccount(id, credentials),
-      ];
-      await _persist(next, id);
-      if (_disposed) return;
-      _accounts
-        ..clear()
-        ..addAll(next);
-      _selectedId = id;
-      _openClient();
-    } finally {
-      busy = false;
-      if (!_disposed) notifyListeners();
-    }
-  }
-
-  Future<void> select(String id) async {
-    if (busy || !_accounts.any((a) => a.id == id)) return;
-    busy = true;
-    try {
-      await _persist(_accounts, id);
-      if (_disposed) return;
-      _selectedId = id;
-      _openClient();
-    } finally {
-      busy = false;
-      if (!_disposed) notifyListeners();
-    }
-  }
-
-  Future<void> remove(String id) async {
     if (busy) return;
     busy = true;
     try {
-      final next = _accounts.where((a) => a.id != id).toList();
-      final selectedId = _selectedId == id ? next.firstOrNull?.id : _selectedId;
-      await _persist(next, selectedId);
-      if (_disposed) return;
-      _accounts
-        ..clear()
-        ..addAll(next);
-      _selectedId = selectedId;
-      _openClient();
+      await _load();
     } finally {
       busy = false;
       if (!_disposed) notifyListeners();
     }
   }
 
-  Future<void> _persist(List<SavedAccount> values, String? selected) =>
-      _storage.write(
-        key: 'accounts.v1',
-        value: jsonEncode({
-          'selected': selected,
-          'accounts': [
-            for (final account in values)
-              {
-                'id': account.id,
-                'server': account.credentials.server.uri.toString(),
-                'loginName': account.credentials.loginName,
-                'appPassword': account.credentials.appPassword,
-              },
-          ],
-        }),
-      );
+  Future<void> add(LoginCredentials credentials) => _change(() async {
+    await repository.add(credentials);
+    await _reload();
+  });
 
-  void _openClient() {
+  Future<void> select(String id) => _change(() async {
+    await repository.select(id);
+    await _reload();
+  });
+
+  Future<bool> remove(String id) => _change(() async {
+    final account = await database.account(id);
+    if (account == null) return true;
+    final password = await vault.read(account.credentialRef);
+    ++_generation;
     _transport?.close();
-    client = null;
-    final account = selected;
-    if (account == null) return;
-    _transport = http.Client();
-    client = DeckClient(
-      base: account.credentials.server,
-      loginName: account.credentials.loginName,
-      appPassword: account.credentials.appPassword,
-      transport: _transport!,
-    );
-  }
+    session?.dispose();
+    session = null;
+    try {
+      await repository.remove(id);
+    } finally {
+      await _reload();
+    }
+    if (password == null) return false;
+    final transport = http.Client();
+    try {
+      await DeckClient(
+        base: ServerBase.parse(account.server),
+        loginName: account.loginName,
+        appPassword: password,
+        transport: transport,
+        timeout: const Duration(seconds: 15),
+      ).ocs('DELETE', ['core', 'apppassword']);
+      return true;
+    } on DeckException {
+      // Local removal is complete even if server-side revocation cannot be confirmed.
+      return false;
+    } finally {
+      transport.close();
+    }
+  });
 
   @override
   void dispose() {
     _disposed = true;
+    ++_generation;
     _transport?.close();
+    session?.dispose();
+    unawaited(database.close());
     super.dispose();
   }
 }

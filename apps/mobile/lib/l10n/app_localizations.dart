@@ -265,6 +265,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The content could not be loaded.'**
   String get loadError;
+
+  /// No description provided for @removeAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove account'**
+  String get removeAccount;
+
+  /// No description provided for @removeAccountQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this account and all its local data from this device? Server data will be preserved.'**
+  String get removeAccountQuestion;
+
+  /// No description provided for @remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get remove;
+
+  /// No description provided for @revocationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The account was removed from this device. Server-side revocation could not be confirmed; check connected apps in Nextcloud settings.'**
+  String get revocationFailed;
+
+  /// No description provided for @cachedData.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing the saved copy.'**
+  String get cachedData;
+
+  /// No description provided for @syncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Refreshing…'**
+  String get syncing;
 }
 
 class _AppLocalizationsDelegate

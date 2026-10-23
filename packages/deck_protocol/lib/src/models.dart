@@ -93,6 +93,7 @@ final class DeckStack {
       boardId = intField(json, 'boardId'),
       title = stringField(json, 'title'),
       order = intField(json, 'order'),
+      raw = Map.unmodifiable(json),
       cards = objects(
         json['cards'],
       ).map(DeckCard.fromJson).toList(growable: false);
@@ -102,6 +103,7 @@ final class DeckStack {
   final String title;
   final int order;
   final List<DeckCard> cards;
+  final JsonObject raw;
 }
 
 final class DeckCard {

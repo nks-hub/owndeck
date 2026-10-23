@@ -11,8 +11,13 @@ import '../data/accounts.dart';
 import '../l10n/app_localizations.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key, this.closeOnSuccess = false});
+  const LoginScreen({
+    super.key,
+    this.closeOnSuccess = false,
+    this.initialServer,
+  });
   final bool closeOnSuccess;
+  final String? initialServer;
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -26,6 +31,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Object? _error;
   bool _browserFailed = false;
   int _generation = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _server.text = widget.initialServer ?? '';
+  }
 
   Future<void> _connect() async {
     if (_waiting) return;

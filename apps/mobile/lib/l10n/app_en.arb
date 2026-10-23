@@ -27,5 +27,11 @@
   "deckError": "Deck with API 1.1 is not available on this server.",
   "certError": "The server certificate is not trusted. Check the address and server configuration.",
   "browserError": "The browser could not be opened.",
-  "loadError": "The content could not be loaded."
+  "loadError": "The content could not be loaded.",
+  "removeAccount": "Remove account",
+  "removeAccountQuestion": "Remove this account and all its local data from this device? Server data will be preserved.",
+  "remove": "Remove",
+  "revocationFailed": "The account was removed from this device. Server-side revocation could not be confirmed; check connected apps in Nextcloud settings.",
+  "cachedData": "Showing the saved copy.",
+  "syncing": "Refreshing…"
 }

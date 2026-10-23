@@ -1,0 +1,16 @@
+name: deck_store
+description: Account-scoped local data and synchronization for OwnDeck.
+version: 0.1.0
+publish_to: none
+environment:
+  sdk: '>=3.12.2 <4.0.0'
+dependencies:
+  deck_protocol:
+    path: ../deck_protocol
+  drift: ^2.34.3
+  uuid: ^4.5.3
+dev_dependencies:
+  build_runner: ^2.10.0
+  drift_dev: ^2.34.3
+  test: ^1.26.3
+  lints: ^6.0.0

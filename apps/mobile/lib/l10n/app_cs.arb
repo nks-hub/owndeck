@@ -27,5 +27,11 @@
   "deckError": "Na serveru není dostupný Deck s API 1.1.",
   "certError": "Certifikátu serveru nelze důvěřovat. Zkontrolujte adresu a nastavení serveru.",
   "browserError": "Prohlížeč se nepodařilo otevřít.",
-  "loadError": "Obsah se nepodařilo načíst."
+  "loadError": "Obsah se nepodařilo načíst.",
+  "removeAccount": "Odebrat účet",
+  "removeAccountQuestion": "Odstranit účet a všechna jeho místní data z tohoto zařízení? Data na serveru zůstanou zachovaná.",
+  "remove": "Odebrat",
+  "revocationFailed": "Účet byl odebrán z telefonu. Odvolání přístupu na serveru se nepodařilo potvrdit; zkontrolujte aplikace v nastavení Nextcloudu.",
+  "cachedData": "Zobrazuji uloženou kopii.",
+  "syncing": "Aktualizuji…"
 }
