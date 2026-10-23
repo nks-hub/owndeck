@@ -12,3 +12,13 @@ build/
 .env
 .env.*
 !.env.example
+**/telemetry.env
+**/telemetry.json
+**/signing/
+**/credentials/
+.claude/
+.codex/
+AGENTS.md
+AGENTS.override.md
+**/*.iml
+**/.idea/

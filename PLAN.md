@@ -18,8 +18,4 @@ Zadání: mobilní klient Nextcloud Deck pro Android a iOS po vzoru OwnTalk a Ow
 
 Každý test a sestavení musí uvést revizi. Automatické testy, emulátor, simulátor a skutečný telefon jsou odlišné důkazy. Nedostupné zařízení není splněný test. Obdobně konfigurace měření není důkaz doručení do Sentry nebo Rybbit.
 
-Výstupy analýzy budou v `docs/`. Stav jednotlivých kroků je v [TODO.md](TODO.md). Nejasnosti řešit nejprve v existujícím kódu a MCP Memory. Ověřené zdroje uvádět přímo u příslušných závěrů.
-
-## Souběžně zadané OwnNotes
-
-Samostatný agent spravuje pouze repozitář OwnNotes: Sentry, Rybbit, související ověření a vydání aktualizace do Google Play a App Store. Výsledky vydání se musí rozlišit na sestavení, upload, zpracování, schválení a dostupnost v obchodě. Sdílený Mac nesmí současně používat dvě rezervace.
+Výstupy analýzy jsou v `docs/`. Stav jednotlivých kroků je v [TODO.md](TODO.md). Ověřené zdroje uvádět přímo u příslušných závěrů. Repozitář se připravuje pro zveřejnění: přístupy, lokální konfigurace a interní provozní záznamy patří mimo Git.

@@ -1,6 +1,6 @@
 # Co převzít z OwnTalk a OwnNotes
 
-Kontrola zdrojů 24. 10. 2026: OwnTalk `029b6d138533d8c0186193561203d3168a0ea0eb`, OwnNotes `ce67b0a56c00b6436af4458862cf1ff5ad2fe023`. OwnNotes mezitím souběžně upravuje samostatný agent; při převzetí jeho nové telemetrie zaznamenat novou revizi.
+Kontrola zdrojů 24. 10. 2026. Tabulka popisuje vhodné komponenty rodiny Own aplikací. Při převzetí konkrétního souboru zaznamenat jeho původ.
 
 | Potřeba | Existující místo | Rozhodnutí pro OwnDeck |
 |---|---|---|
@@ -26,4 +26,4 @@ Verze Flutteru se před založením ověří proti skutečnému SDK a připne do
 
 Převzít vlastní vhodné komponenty v malém rozsahu a zaznamenat jejich původ. Před převzetím ověřit licenci konkrétního repozitáře. Kód serveru Deck a cizích klientů slouží jako dokumentace chování; nepřebírat AGPL/GPL zdroje do klienta bez rozhodnutí o licenci. Designové vzory lze realizovat samostatně. Názvy produktů a jejich značky nekopírovat.
 
-MCP Memory dodala kontext k Login Flow v2 a oddělení účtů; rozhodnutí výše vycházejí z aktuálně přečteného kódu. Starší výsledky testů OwnTalk/OwnNotes nejsou důkazem správnosti OwnDecku.
+Rozhodnutí výše vycházejí z přečteného kódu. Starší výsledky testů OwnTalk/OwnNotes nejsou důkazem správnosti OwnDecku.

@@ -24,6 +24,5 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [ ] T01 Po vývoji spustit jednotkové, UI a integrační testy a opravit nálezy.
 - [ ] T02 Ověřit skutečný Nextcloud server, oba buildy a příjem bezpečných telemetrických událostí.
 - [ ] T03 Provést závěrečné fyzické testy S9 a S21 a samostatné ověření iOS; uložit důkazy s revizí.
-- [ ] N01 Převzít výsledek paralelní integrace OwnNotes a stav vydání v obou obchodech.
 
 Aktuální krok: D01, založení aplikace po uzavření zdrojové analýzy. Testovací scénáře jsou připravené v `docs/testing.md`; aplikace ani cílová zařízení zatím nebyly testované.

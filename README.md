@@ -1,18 +1,71 @@
 # OwnDeck
 
-OwnDeck je připravovaný klient Nextcloud Deck pro Android a iOS ve Flutteru.
+![Version](https://img.shields.io/badge/version-0.1.0--dev-blue)
+![Flutter](https://img.shields.io/badge/Flutter-3.44.4-blue)
+![Platforms](https://img.shields.io/badge/platforms-Android%20%7C%20iOS-green)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Repozitář je zatím soukromý. Aktuálně obsahuje zadání, porovnání konkurence, analýzu API a návrh implementace. Funkční mobilní aplikace ještě není hotová.
+OwnDeck is a Flutter client for Nextcloud Deck on Android and iOS, currently under development.
 
-Další práci řídí [TODO.md](TODO.md). Celkové pořadí je v [PLAN.md](PLAN.md).
+## Features
 
-- [Zadání a vzhled](docs/product.md)
-- [Konkurence](docs/competition.md)
-- [Co převzít z OwnTalk a OwnNotes](docs/reuse.md)
-- [Nextcloud a Deck API](docs/nextcloud-api.md)
-- [Soupis 86 verzovaných rout](docs/api-inventory.md)
-- [Architektura a synchronizace](docs/architecture.md)
-- [Testovací plán](docs/testing.md)
-- [Identita a verze](docs/versioning.md)
+- 📋 **Planning** - Product requirements, API findings, and implementation tasks are tracked in this repository.
+- 🔌 **API reference** - An inventory covers 86 versioned routes from Deck 1.19.1.
+- 📱 **Mobile client** - Android and iOS development uses the package identifier `com.nkshub.nextclouddeck`.
 
-Package name a bundle ID: `com.nkshub.nextclouddeck`. Verze je v `VERSION`. Naše distribuční buildy dostanou volitelné Sentry a Rybbit z CI; vlastní build může fungovat bez obou služeb.
+Board editing, offline synchronization, and telemetry are implementation work in progress. See [TODO.md](TODO.md) for their status.
+
+## Requirements
+
+- Flutter 3.44.4 with Dart 3.12.2.
+- Android SDK for Android builds; macOS and Xcode for iOS builds.
+- A Nextcloud server with Deck enabled for integration tests.
+- Python 3.10+ to regenerate the API inventory.
+
+## Installation
+
+```sh
+git clone https://github.com/nks-hub/owndeck.git
+cd owndeck
+```
+
+Repository access is currently restricted while development is in progress.
+
+## Configuration
+
+The application version is recorded in `VERSION`. Sentry and Rybbit will be optional build configuration, supplied through CI for publisher builds. Builds without that configuration must operate without either service.
+
+Credentials, signing files, local environments, and runtime logs must stay outside Git. Runtime ingestion configuration is readable from an application binary; administrative service tokens must never be bundled.
+
+The [product specification](docs/product.md), [API analysis](docs/nextcloud-api.md), and [architecture](docs/architecture.md) are written in Czech.
+
+## Development
+
+Use [TODO.md](TODO.md) to select the next task. Application tests and physical-device acceptance are planned in [docs/testing.md](docs/testing.md); no application test results are claimed yet.
+
+To regenerate the source-based API inventory:
+
+```sh
+python tool/inventory_deck_api.py
+```
+
+## Contributing
+
+1. Fork the repository when access is available.
+2. Create a branch for one change.
+3. Commit the change with a message such as `feat: add board filtering`.
+4. Push your branch.
+5. Open a pull request with the behavior and verification results.
+
+## Support
+
+- 📧 **Email:** dev@nks-hub.cz
+- 🐛 **Bug reports:** [GitHub Issues](https://github.com/nks-hub/owndeck/issues)
+
+## License
+
+MIT License — see [LICENSE](LICENSE) for details.
+
+---
+
+<p align="center">Made with ❤️ by <a href="https://github.com/nks-hub">NKS Hub</a></p>
