@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:deck_store/deck_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -95,20 +97,13 @@ class AccountsScreen extends ConsumerWidget {
                   title: Text(text.addAccount),
                   onTap: accounts.busy
                       ? null
-                      : () async {
-                          accounts.beginOnboarding();
-                          try {
-                            await Navigator.of(context).push(
-                              MaterialPageRoute<void>(
-                                settings: const RouteSettings(name: '/login'),
-                                builder: (_) =>
-                                    const LoginScreen(closeOnSuccess: true),
-                              ),
-                            );
-                          } finally {
-                            await accounts.endOnboarding();
-                          }
-                        },
+                      : () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            settings: const RouteSettings(name: '/login'),
+                            builder: (_) =>
+                                AccountLoginScreen(accounts: accounts),
+                          ),
+                        ),
                 ),
               ],
             ),
@@ -117,4 +112,28 @@ class AccountsScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+class AccountLoginScreen extends StatefulWidget {
+  const AccountLoginScreen({super.key, required this.accounts});
+  final Accounts accounts;
+  @override
+  State<AccountLoginScreen> createState() => _AccountLoginScreenState();
+}
+
+class _AccountLoginScreenState extends State<AccountLoginScreen> {
+  @override
+  void initState() {
+    super.initState();
+    widget.accounts.beginOnboarding();
+  }
+
+  @override
+  void dispose() {
+    unawaited(widget.accounts.endOnboarding());
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => const LoginScreen(closeOnSuccess: true);
 }
