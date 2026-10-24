@@ -601,4 +601,75 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get serverAddressLabel => 'Adresa serveru';
+
+  @override
+  String get attachments => 'Přílohy';
+
+  @override
+  String get uploadFile => 'Nahrát soubor';
+
+  @override
+  String get linkCloudFile => 'Připojit z Nextcloudu';
+
+  @override
+  String get noAttachments => 'Zatím žádné přílohy.';
+
+  @override
+  String get openFile => 'Otevřít soubor';
+
+  @override
+  String get saveFile => 'Uložit soubor';
+
+  @override
+  String get removeAttachment => 'Odebrat přílohu';
+
+  @override
+  String get restoreAttachment => 'Obnovit přílohu';
+
+  @override
+  String get removeLinkedFileQuestion =>
+      'Soubor se odpojí od karty. V Nextcloudu zůstane zachovaný.';
+
+  @override
+  String get removeLegacyFileQuestion =>
+      'Odebrat tuto přílohu? Po omezenou dobu ji lze obnovit, než ji server trvale odstraní.';
+
+  @override
+  String get attachmentTooLarge =>
+      'Soubor je větší než 64 MiB. Vyberte menší soubor.';
+
+  @override
+  String get attachmentFailed =>
+      'Soubor se nepodařilo zpracovat. Zkuste to znovu.';
+
+  @override
+  String get unsupportedAttachment => 'Tento typ přílohy zatím nelze otevřít.';
+
+  @override
+  String get offlineAttachment => 'Používá se dříve stažená kopie souboru.';
+
+  @override
+  String get chooseCloudFile => 'Vybrat soubor v Nextcloudu';
+
+  @override
+  String get fileNotShareable => 'Tento soubor nemůžete dále sdílet.';
+
+  @override
+  String get noCloudFiles => 'Tato složka je prázdná.';
+
+  @override
+  String get parentFolder => 'Nadřazená složka';
+
+  @override
+  String get fileSaved => 'Soubor byl uložen.';
+
+  @override
+  String get fileOpenFailed =>
+      'Soubor nelze otevřít. Můžete jej uložit a otevřít v jiné aplikaci.';
+
+  @override
+  String get deletedAttachment => 'Odebraná příloha';
+
+  @override
+  String get fileAttachment => 'Soubor';
 }

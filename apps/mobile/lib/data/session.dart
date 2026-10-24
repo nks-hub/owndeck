@@ -1,14 +1,30 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:deck_protocol/deck_protocol.dart';
 import 'package:deck_store/deck_store.dart';
 import 'package:flutter/widgets.dart';
+import 'attachment_files.dart';
+
+part 'session_attachments.dart';
 
 final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
-  DeckSession(this.database, this.account, this.client) {
-    sync = DeckSync(database, account, client);
+  DeckSession(
+    this.database,
+    this.account,
+    this.client, {
+    Future<AttachmentFiles> Function()? files,
+  }) : _files = files {
+    sync = DeckSync(
+      database,
+      account,
+      client,
+      readUpload: files == null
+          ? null
+          : (id) async => (await files()).readUpload(account.id, id),
+    );
     userId = account.userId;
     if (account.capabilities != null) {
       capabilities = DeckCapabilities.fromJson(
@@ -32,6 +48,7 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
   final DeckDatabase database;
   final StoredAccount account;
   final DeckClient client;
+  final Future<AttachmentFiles> Function()? _files;
   late final DeckSync sync;
   late final StreamSubscription<List<ConnectivityResult>> _connection;
   late final Timer _timer;
@@ -194,6 +211,7 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
     _errors.remove(scope);
     try {
       await operation();
+      if (_files != null && !_disposed) await _cleanAttachmentFiles();
     } catch (error) {
       // The view displays the error beside cached content, never raw exception text.
       _errors[scope] = error;

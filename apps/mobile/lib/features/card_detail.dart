@@ -11,6 +11,7 @@ import '../l10n/app_localizations.dart';
 import 'card_editor.dart';
 import 'pending.dart';
 import 'comments.dart';
+import 'attachments.dart';
 
 part 'card_actions_ui.dart';
 
@@ -286,6 +287,20 @@ class _CardScreenState extends State<CardScreen> {
                         session: widget.session,
                         boardId: board.id,
                         stackId: card.stackId,
+                        cardId: card.id,
+                      ),
+                    ),
+                  ),
+                ),
+                ListTile(
+                  title: Text(text.attachments),
+                  leading: const Icon(Icons.attach_file),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      settings: const RouteSettings(name: '/attachments'),
+                      builder: (_) => AttachmentsScreen(
+                        session: widget.session,
+                        boardId: board.id,
                         cardId: card.id,
                       ),
                     ),

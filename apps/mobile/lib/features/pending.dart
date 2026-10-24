@@ -126,6 +126,7 @@ class _PendingScreenState extends State<PendingScreen> {
                     children: [
                       Text(
                         (changes['displayName'] ??
+                                changes['name'] ??
                                 changes['title'] ??
                                 base['title'] ??
                                 (write.kind.endsWith('Comment')

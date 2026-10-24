@@ -1189,6 +1189,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Server address'**
   String get serverAddressLabel;
+
+  /// No description provided for @attachments.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachments'**
+  String get attachments;
+
+  /// No description provided for @uploadFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload file'**
+  String get uploadFile;
+
+  /// No description provided for @linkCloudFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach from Nextcloud'**
+  String get linkCloudFile;
+
+  /// No description provided for @noAttachments.
+  ///
+  /// In en, this message translates to:
+  /// **'No attachments yet.'**
+  String get noAttachments;
+
+  /// No description provided for @openFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Open file'**
+  String get openFile;
+
+  /// No description provided for @saveFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Save file'**
+  String get saveFile;
+
+  /// No description provided for @removeAttachment.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove attachment'**
+  String get removeAttachment;
+
+  /// No description provided for @restoreAttachment.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore attachment'**
+  String get restoreAttachment;
+
+  /// No description provided for @removeLinkedFileQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'The file will be detached from this card. It will remain in Nextcloud.'**
+  String get removeLinkedFileQuestion;
+
+  /// No description provided for @removeLegacyFileQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this attachment? It can be restored for a limited time before the server permanently deletes it.'**
+  String get removeLegacyFileQuestion;
+
+  /// No description provided for @attachmentTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'The file exceeds 64 MiB. Choose a smaller file.'**
+  String get attachmentTooLarge;
+
+  /// No description provided for @attachmentFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The file could not be processed. Try again.'**
+  String get attachmentFailed;
+
+  /// No description provided for @unsupportedAttachment.
+  ///
+  /// In en, this message translates to:
+  /// **'This attachment type cannot be opened yet.'**
+  String get unsupportedAttachment;
+
+  /// No description provided for @offlineAttachment.
+  ///
+  /// In en, this message translates to:
+  /// **'Using a previously downloaded copy of the file.'**
+  String get offlineAttachment;
+
+  /// No description provided for @chooseCloudFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a Nextcloud file'**
+  String get chooseCloudFile;
+
+  /// No description provided for @fileNotShareable.
+  ///
+  /// In en, this message translates to:
+  /// **'You cannot share this file.'**
+  String get fileNotShareable;
+
+  /// No description provided for @noCloudFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'This folder is empty.'**
+  String get noCloudFiles;
+
+  /// No description provided for @parentFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent folder'**
+  String get parentFolder;
+
+  /// No description provided for @fileSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'File saved.'**
+  String get fileSaved;
+
+  /// No description provided for @fileOpenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The file could not be opened. You can save it and open it in another app.'**
+  String get fileOpenFailed;
+
+  /// No description provided for @deletedAttachment.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed attachment'**
+  String get deletedAttachment;
+
+  /// No description provided for @fileAttachment.
+  ///
+  /// In en, this message translates to:
+  /// **'File'**
+  String get fileAttachment;
 }
 
 class _AppLocalizationsDelegate

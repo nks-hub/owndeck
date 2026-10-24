@@ -12,9 +12,10 @@ abstract interface class CredentialVault {
 }
 
 final class AccountRepository {
-  AccountRepository(this.database, this.vault);
+  AccountRepository(this.database, this.vault, {this.clearFiles});
   final DeckDatabase database;
   final CredentialVault vault;
+  final Future<void> Function(String accountId)? clearFiles;
   Future<void> _tail = Future<void>.value();
 
   Future<T> _serialize<T>(Future<T> Function() action) {
@@ -119,6 +120,7 @@ final class AccountRepository {
         generation: Value(current.generation + 1),
       ),
     );
+    await clearFiles?.call(id);
     await vault.delete(current.credentialRef);
     await (database.delete(
       database.storedAccounts,
@@ -128,6 +130,7 @@ final class AccountRepository {
   Future<void> recover() => _serialize(() async {
     for (final account in await database.accounts()) {
       if (account.state == 'deleting') {
+        await clearFiles?.call(account.id);
         await vault.delete(account.credentialRef);
         await (database.delete(
           database.storedAccounts,

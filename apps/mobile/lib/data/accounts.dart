@@ -10,6 +10,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 import 'session.dart';
+import 'attachment_files.dart';
+import '../platform/attachment_storage.dart';
 
 final accountsProvider = ChangeNotifierProvider((ref) => Accounts());
 
@@ -33,7 +35,11 @@ final class Accounts extends ChangeNotifier {
     : _storage = storage ?? const FlutterSecureStorage(),
       database = database ?? DeckDatabase(driftDatabase(name: 'owndeck')) {
     vault = SecureVault(_storage);
-    repository = AccountRepository(this.database, vault);
+    repository = AccountRepository(
+      this.database,
+      vault,
+      clearFiles: (id) async => (await _files()).removeAccount(id),
+    );
     ready = _load();
   }
 
@@ -49,6 +55,26 @@ final class Accounts extends ChangeNotifier {
   http.Client? _transport;
   DeckSession? session;
   int _generation = 0;
+  Future<AttachmentFiles>? _fileStore;
+
+  Future<AttachmentFiles> _files() async {
+    final existing = _fileStore;
+    if (existing != null) return existing;
+    final opening = () async {
+      final files = await openAttachmentFiles();
+      await files.pruneAccounts(
+        (await database.accounts()).map((a) => a.id).toSet(),
+      );
+      return files;
+    }();
+    _fileStore = opening;
+    try {
+      return await opening;
+    } catch (_) {
+      if (identical(_fileStore, opening)) _fileStore = null;
+      rethrow;
+    }
+  }
 
   List<StoredAccount> get items => List.unmodifiable(_accounts);
   StoredAccount? get selected =>
@@ -114,6 +140,7 @@ final class Accounts extends ChangeNotifier {
         appPassword: password,
         transport: transport,
       ),
+      files: _files,
     );
   }
 

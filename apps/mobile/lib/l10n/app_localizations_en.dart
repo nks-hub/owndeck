@@ -598,4 +598,76 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get serverAddressLabel => 'Server address';
+
+  @override
+  String get attachments => 'Attachments';
+
+  @override
+  String get uploadFile => 'Upload file';
+
+  @override
+  String get linkCloudFile => 'Attach from Nextcloud';
+
+  @override
+  String get noAttachments => 'No attachments yet.';
+
+  @override
+  String get openFile => 'Open file';
+
+  @override
+  String get saveFile => 'Save file';
+
+  @override
+  String get removeAttachment => 'Remove attachment';
+
+  @override
+  String get restoreAttachment => 'Restore attachment';
+
+  @override
+  String get removeLinkedFileQuestion =>
+      'The file will be detached from this card. It will remain in Nextcloud.';
+
+  @override
+  String get removeLegacyFileQuestion =>
+      'Remove this attachment? It can be restored for a limited time before the server permanently deletes it.';
+
+  @override
+  String get attachmentTooLarge =>
+      'The file exceeds 64 MiB. Choose a smaller file.';
+
+  @override
+  String get attachmentFailed => 'The file could not be processed. Try again.';
+
+  @override
+  String get unsupportedAttachment =>
+      'This attachment type cannot be opened yet.';
+
+  @override
+  String get offlineAttachment =>
+      'Using a previously downloaded copy of the file.';
+
+  @override
+  String get chooseCloudFile => 'Choose a Nextcloud file';
+
+  @override
+  String get fileNotShareable => 'You cannot share this file.';
+
+  @override
+  String get noCloudFiles => 'This folder is empty.';
+
+  @override
+  String get parentFolder => 'Parent folder';
+
+  @override
+  String get fileSaved => 'File saved.';
+
+  @override
+  String get fileOpenFailed =>
+      'The file could not be opened. You can save it and open it in another app.';
+
+  @override
+  String get deletedAttachment => 'Removed attachment';
+
+  @override
+  String get fileAttachment => 'File';
 }
