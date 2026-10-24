@@ -182,6 +182,12 @@ extension BoardMetadata on DeckDatabase {
                 c.cardId.isIn(cards.map((c) => c.remoteId)),
           ))
           .go();
+      await (delete(storedAttachments)..where(
+            (a) =>
+                a.accountId.equals(account.id) &
+                a.boardId.equals(write.boardId),
+          ))
+          .go();
       await (delete(storedCards)..where(
             (c) =>
                 c.accountId.equals(account.id) &

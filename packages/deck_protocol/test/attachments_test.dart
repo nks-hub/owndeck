@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:deck_protocol/deck_protocol.dart';
 import 'package:http/http.dart' as http;
@@ -32,6 +33,35 @@ http.Response json(Object? data) => http.Response(
 );
 
 void main() {
+  test(
+    'a local read failure during upload is retained as an uncertain write',
+    () async {
+      final api = client(
+        MockClient.streaming((request, body) async {
+          await body.drain<void>();
+          return http.StreamedResponse(const Stream.empty(), 200);
+        }),
+      );
+      await expectLater(
+        api.uploadAttachment(
+          1,
+          2,
+          3,
+          filename: 'file.txt',
+          mime: 'text/plain',
+          length: 3,
+          bytes: Stream.error(const FileSystemException('source_unavailable')),
+        ),
+        throwsA(
+          isA<DeckException>().having(
+            (error) => error.uncertain,
+            'uncertain',
+            isTrue,
+          ),
+        ),
+      );
+    },
+  );
   test(
     'both attachment kinds can have the same id and omit private file metadata',
     () async {

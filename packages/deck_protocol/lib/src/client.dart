@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show TlsException;
+import 'dart:io' show IOException, TlsException;
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
@@ -231,6 +231,8 @@ final class DeckClient {
     } on http.RequestAbortedException {
       throw DeckException('cancelled', uncertain: mutation);
     } on http.ClientException {
+      throw DeckException('transport_failed', uncertain: mutation);
+    } on IOException {
       throw DeckException('transport_failed', uncertain: mutation);
     } finally {
       if (!abort.isCompleted) abort.complete();

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:deck_protocol/deck_protocol.dart';
@@ -10,18 +11,35 @@ part 'structure_sync.dart';
 part 'card_actions_sync.dart';
 part 'comments_sync.dart';
 part 'board_metadata_sync.dart';
+part 'attachments_sync.dart';
+
+final class AttachmentUploadSource {
+  const AttachmentUploadSource({
+    required this.filename,
+    required this.mime,
+    required this.length,
+    required this.bytes,
+  });
+  final String filename;
+  final String mime;
+  final int length;
+  final Stream<List<int>> bytes;
+}
 
 final class DeckSync {
-  DeckSync(this.database, this.account, this.client);
+  DeckSync(this.database, this.account, this.client, {this.readUpload});
+  final Future<AttachmentUploadSource> Function(String id)? readUpload;
   final DeckDatabase database;
   final StoredAccount account;
   final DeckClient client;
   final String _owner = const Uuid().v4();
   Future<void>? _running;
   bool _closed = false;
+  final _cancelled = Completer<void>();
 
   void close() {
     _closed = true;
+    if (!_cancelled.isCompleted) _cancelled.complete();
   }
 
   Future<void> run() {
@@ -50,7 +68,9 @@ final class DeckSync {
           final resolved = await database.resolveWrite(applied);
           attemptedReadbacks.add(applied.id);
           if (resolved != null) {
-            if (boardMetadataKinds.contains(resolved.kind)) {
+            if (attachmentKinds.contains(resolved.kind)) {
+              await _finishAttachment(resolved);
+            } else if (boardMetadataKinds.contains(resolved.kind)) {
               await _finishBoardMetadata(resolved);
             } else {
               await _finishApplied(resolved);
@@ -123,7 +143,9 @@ final class DeckSync {
           );
           continue;
         }
-        final shouldContinue = queued.kind.endsWith('Comment')
+        final shouldContinue = attachmentKinds.contains(queued.kind)
+            ? await _sendAttachment(queued)
+            : queued.kind.endsWith('Comment')
             ? await _sendComment(queued)
             : {'createCard', 'updateCard'}.contains(queued.kind)
             ? await _send(queued)

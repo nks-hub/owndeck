@@ -12,6 +12,14 @@ part 'structure_writes.dart';
 part 'card_actions.dart';
 part 'comments.dart';
 part 'board_metadata.dart';
+part 'attachments.dart';
+
+const attachmentKinds = {
+  'uploadAttachment',
+  'linkAttachment',
+  'deleteAttachment',
+  'restoreAttachment',
+};
 
 const boardMetadataKinds = {
   'createLabel',
@@ -134,6 +142,18 @@ class StoredComments extends Table {
   Set<Column<Object>> get primaryKey => {accountId, remoteId};
 }
 
+class StoredAttachments extends Table {
+  TextColumn get accountId =>
+      text().references(StoredAccounts, #id, onDelete: KeyAction.cascade)();
+  IntColumn get boardId => integer()();
+  IntColumn get cardId => integer()();
+  TextColumn get type => text()();
+  IntColumn get remoteId => integer()();
+  TextColumn get payload => text()();
+  @override
+  Set<Column<Object>> get primaryKey => {accountId, cardId, type, remoteId};
+}
+
 @DriftDatabase(
   tables: [
     StoredAccounts,
@@ -145,18 +165,20 @@ class StoredComments extends Table {
     SyncLeases,
     EditorDrafts,
     StoredComments,
+    StoredAttachments,
   ],
 )
 class DeckDatabase extends _$DeckDatabase {
   DeckDatabase(super.executor);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) => m.createAll(),
     onUpgrade: (m, from, to) async {
+      if (from < 8) await m.createTable(storedAttachments);
       if (from < 2) {
         await m.createTable(pendingWrites);
         await m.createTable(syncLeases);

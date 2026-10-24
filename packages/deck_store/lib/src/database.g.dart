@@ -3888,6 +3888,421 @@ class StoredCommentsCompanion extends UpdateCompanion<StoredComment> {
   }
 }
 
+class $StoredAttachmentsTable extends StoredAttachments
+    with TableInfo<$StoredAttachmentsTable, StoredAttachment> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StoredAttachmentsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _accountIdMeta = const VerificationMeta(
+    'accountId',
+  );
+  @override
+  late final GeneratedColumn<String> accountId = GeneratedColumn<String>(
+    'account_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES stored_accounts (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _boardIdMeta = const VerificationMeta(
+    'boardId',
+  );
+  @override
+  late final GeneratedColumn<int> boardId = GeneratedColumn<int>(
+    'board_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _cardIdMeta = const VerificationMeta('cardId');
+  @override
+  late final GeneratedColumn<int> cardId = GeneratedColumn<int>(
+    'card_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _remoteIdMeta = const VerificationMeta(
+    'remoteId',
+  );
+  @override
+  late final GeneratedColumn<int> remoteId = GeneratedColumn<int>(
+    'remote_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _payloadMeta = const VerificationMeta(
+    'payload',
+  );
+  @override
+  late final GeneratedColumn<String> payload = GeneratedColumn<String>(
+    'payload',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    accountId,
+    boardId,
+    cardId,
+    type,
+    remoteId,
+    payload,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'stored_attachments';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StoredAttachment> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('account_id')) {
+      context.handle(
+        _accountIdMeta,
+        accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_accountIdMeta);
+    }
+    if (data.containsKey('board_id')) {
+      context.handle(
+        _boardIdMeta,
+        boardId.isAcceptableOrUnknown(data['board_id']!, _boardIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_boardIdMeta);
+    }
+    if (data.containsKey('card_id')) {
+      context.handle(
+        _cardIdMeta,
+        cardId.isAcceptableOrUnknown(data['card_id']!, _cardIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_cardIdMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('remote_id')) {
+      context.handle(
+        _remoteIdMeta,
+        remoteId.isAcceptableOrUnknown(data['remote_id']!, _remoteIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_remoteIdMeta);
+    }
+    if (data.containsKey('payload')) {
+      context.handle(
+        _payloadMeta,
+        payload.isAcceptableOrUnknown(data['payload']!, _payloadMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_payloadMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {accountId, cardId, type, remoteId};
+  @override
+  StoredAttachment map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StoredAttachment(
+      accountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}account_id'],
+      )!,
+      boardId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}board_id'],
+      )!,
+      cardId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}card_id'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
+      remoteId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}remote_id'],
+      )!,
+      payload: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payload'],
+      )!,
+    );
+  }
+
+  @override
+  $StoredAttachmentsTable createAlias(String alias) {
+    return $StoredAttachmentsTable(attachedDatabase, alias);
+  }
+}
+
+class StoredAttachment extends DataClass
+    implements Insertable<StoredAttachment> {
+  final String accountId;
+  final int boardId;
+  final int cardId;
+  final String type;
+  final int remoteId;
+  final String payload;
+  const StoredAttachment({
+    required this.accountId,
+    required this.boardId,
+    required this.cardId,
+    required this.type,
+    required this.remoteId,
+    required this.payload,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['account_id'] = Variable<String>(accountId);
+    map['board_id'] = Variable<int>(boardId);
+    map['card_id'] = Variable<int>(cardId);
+    map['type'] = Variable<String>(type);
+    map['remote_id'] = Variable<int>(remoteId);
+    map['payload'] = Variable<String>(payload);
+    return map;
+  }
+
+  StoredAttachmentsCompanion toCompanion(bool nullToAbsent) {
+    return StoredAttachmentsCompanion(
+      accountId: Value(accountId),
+      boardId: Value(boardId),
+      cardId: Value(cardId),
+      type: Value(type),
+      remoteId: Value(remoteId),
+      payload: Value(payload),
+    );
+  }
+
+  factory StoredAttachment.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StoredAttachment(
+      accountId: serializer.fromJson<String>(json['accountId']),
+      boardId: serializer.fromJson<int>(json['boardId']),
+      cardId: serializer.fromJson<int>(json['cardId']),
+      type: serializer.fromJson<String>(json['type']),
+      remoteId: serializer.fromJson<int>(json['remoteId']),
+      payload: serializer.fromJson<String>(json['payload']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'accountId': serializer.toJson<String>(accountId),
+      'boardId': serializer.toJson<int>(boardId),
+      'cardId': serializer.toJson<int>(cardId),
+      'type': serializer.toJson<String>(type),
+      'remoteId': serializer.toJson<int>(remoteId),
+      'payload': serializer.toJson<String>(payload),
+    };
+  }
+
+  StoredAttachment copyWith({
+    String? accountId,
+    int? boardId,
+    int? cardId,
+    String? type,
+    int? remoteId,
+    String? payload,
+  }) => StoredAttachment(
+    accountId: accountId ?? this.accountId,
+    boardId: boardId ?? this.boardId,
+    cardId: cardId ?? this.cardId,
+    type: type ?? this.type,
+    remoteId: remoteId ?? this.remoteId,
+    payload: payload ?? this.payload,
+  );
+  StoredAttachment copyWithCompanion(StoredAttachmentsCompanion data) {
+    return StoredAttachment(
+      accountId: data.accountId.present ? data.accountId.value : this.accountId,
+      boardId: data.boardId.present ? data.boardId.value : this.boardId,
+      cardId: data.cardId.present ? data.cardId.value : this.cardId,
+      type: data.type.present ? data.type.value : this.type,
+      remoteId: data.remoteId.present ? data.remoteId.value : this.remoteId,
+      payload: data.payload.present ? data.payload.value : this.payload,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoredAttachment(')
+          ..write('accountId: $accountId, ')
+          ..write('boardId: $boardId, ')
+          ..write('cardId: $cardId, ')
+          ..write('type: $type, ')
+          ..write('remoteId: $remoteId, ')
+          ..write('payload: $payload')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(accountId, boardId, cardId, type, remoteId, payload);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StoredAttachment &&
+          other.accountId == this.accountId &&
+          other.boardId == this.boardId &&
+          other.cardId == this.cardId &&
+          other.type == this.type &&
+          other.remoteId == this.remoteId &&
+          other.payload == this.payload);
+}
+
+class StoredAttachmentsCompanion extends UpdateCompanion<StoredAttachment> {
+  final Value<String> accountId;
+  final Value<int> boardId;
+  final Value<int> cardId;
+  final Value<String> type;
+  final Value<int> remoteId;
+  final Value<String> payload;
+  final Value<int> rowid;
+  const StoredAttachmentsCompanion({
+    this.accountId = const Value.absent(),
+    this.boardId = const Value.absent(),
+    this.cardId = const Value.absent(),
+    this.type = const Value.absent(),
+    this.remoteId = const Value.absent(),
+    this.payload = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  StoredAttachmentsCompanion.insert({
+    required String accountId,
+    required int boardId,
+    required int cardId,
+    required String type,
+    required int remoteId,
+    required String payload,
+    this.rowid = const Value.absent(),
+  }) : accountId = Value(accountId),
+       boardId = Value(boardId),
+       cardId = Value(cardId),
+       type = Value(type),
+       remoteId = Value(remoteId),
+       payload = Value(payload);
+  static Insertable<StoredAttachment> custom({
+    Expression<String>? accountId,
+    Expression<int>? boardId,
+    Expression<int>? cardId,
+    Expression<String>? type,
+    Expression<int>? remoteId,
+    Expression<String>? payload,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (accountId != null) 'account_id': accountId,
+      if (boardId != null) 'board_id': boardId,
+      if (cardId != null) 'card_id': cardId,
+      if (type != null) 'type': type,
+      if (remoteId != null) 'remote_id': remoteId,
+      if (payload != null) 'payload': payload,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  StoredAttachmentsCompanion copyWith({
+    Value<String>? accountId,
+    Value<int>? boardId,
+    Value<int>? cardId,
+    Value<String>? type,
+    Value<int>? remoteId,
+    Value<String>? payload,
+    Value<int>? rowid,
+  }) {
+    return StoredAttachmentsCompanion(
+      accountId: accountId ?? this.accountId,
+      boardId: boardId ?? this.boardId,
+      cardId: cardId ?? this.cardId,
+      type: type ?? this.type,
+      remoteId: remoteId ?? this.remoteId,
+      payload: payload ?? this.payload,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (accountId.present) {
+      map['account_id'] = Variable<String>(accountId.value);
+    }
+    if (boardId.present) {
+      map['board_id'] = Variable<int>(boardId.value);
+    }
+    if (cardId.present) {
+      map['card_id'] = Variable<int>(cardId.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (remoteId.present) {
+      map['remote_id'] = Variable<int>(remoteId.value);
+    }
+    if (payload.present) {
+      map['payload'] = Variable<String>(payload.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoredAttachmentsCompanion(')
+          ..write('accountId: $accountId, ')
+          ..write('boardId: $boardId, ')
+          ..write('cardId: $cardId, ')
+          ..write('type: $type, ')
+          ..write('remoteId: $remoteId, ')
+          ..write('payload: $payload, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$DeckDatabase extends GeneratedDatabase {
   _$DeckDatabase(QueryExecutor e) : super(e);
   $DeckDatabaseManager get managers => $DeckDatabaseManager(this);
@@ -3902,6 +4317,8 @@ abstract class _$DeckDatabase extends GeneratedDatabase {
   late final $SyncLeasesTable syncLeases = $SyncLeasesTable(this);
   late final $EditorDraftsTable editorDrafts = $EditorDraftsTable(this);
   late final $StoredCommentsTable storedComments = $StoredCommentsTable(this);
+  late final $StoredAttachmentsTable storedAttachments =
+      $StoredAttachmentsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3916,6 +4333,7 @@ abstract class _$DeckDatabase extends GeneratedDatabase {
     syncLeases,
     editorDrafts,
     storedComments,
+    storedAttachments,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -3974,6 +4392,13 @@ abstract class _$DeckDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('stored_comments', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'stored_accounts',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('stored_attachments', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -4159,6 +4584,27 @@ final class $$StoredAccountsTableReferences
     ).filter((f) => f.accountId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_storedCommentsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$StoredAttachmentsTable, List<StoredAttachment>>
+  _storedAttachmentsRefsTable(_$DeckDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.storedAttachments,
+        aliasName: 'stored_accounts__id__stored_attachments__account_id',
+      );
+
+  $$StoredAttachmentsTableProcessedTableManager get storedAttachmentsRefs {
+    final manager = $$StoredAttachmentsTableTableManager(
+      $_db,
+      $_db.storedAttachments,
+    ).filter((f) => f.accountId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _storedAttachmentsRefsTable($_db),
+    );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -4420,6 +4866,31 @@ class $$StoredAccountsTableFilterComposer
           }) => $$StoredCommentsTableFilterComposer(
             $db: $db,
             $table: $db.storedComments,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> storedAttachmentsRefs(
+    Expression<bool> Function($$StoredAttachmentsTableFilterComposer f) f,
+  ) {
+    final $$StoredAttachmentsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.storedAttachments,
+      getReferencedColumn: (t) => t.accountId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StoredAttachmentsTableFilterComposer(
+            $db: $db,
+            $table: $db.storedAttachments,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -4746,6 +5217,32 @@ class $$StoredAccountsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> storedAttachmentsRefs<T extends Object>(
+    Expression<T> Function($$StoredAttachmentsTableAnnotationComposer a) f,
+  ) {
+    final $$StoredAttachmentsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.storedAttachments,
+          getReferencedColumn: (t) => t.accountId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$StoredAttachmentsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.storedAttachments,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$StoredAccountsTableTableManager
@@ -4770,6 +5267,7 @@ class $$StoredAccountsTableTableManager
             bool syncLeasesRefs,
             bool editorDraftsRefs,
             bool storedCommentsRefs,
+            bool storedAttachmentsRefs,
           })
         > {
   $$StoredAccountsTableTableManager(
@@ -4859,6 +5357,7 @@ class $$StoredAccountsTableTableManager
                 syncLeasesRefs = false,
                 editorDraftsRefs = false,
                 storedCommentsRefs = false,
+                storedAttachmentsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -4871,6 +5370,7 @@ class $$StoredAccountsTableTableManager
                     if (syncLeasesRefs) db.syncLeases,
                     if (editorDraftsRefs) db.editorDrafts,
                     if (storedCommentsRefs) db.storedComments,
+                    if (storedAttachmentsRefs) db.storedAttachments,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -5035,6 +5535,26 @@ class $$StoredAccountsTableTableManager
                           referencedColumn: 'account_id',
                           typedResults: items,
                         ),
+                      if (storedAttachmentsRefs)
+                        await $_getPrefetchedDataByColumns<
+                          StoredAccount,
+                          $StoredAccountsTable,
+                          StoredAttachment,
+                          $StoredAttachmentsTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$StoredAccountsTableReferences
+                              ._storedAttachmentsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$StoredAccountsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).storedAttachmentsRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'account_id',
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -5064,6 +5584,7 @@ typedef $$StoredAccountsTableProcessedTableManager =
         bool syncLeasesRefs,
         bool editorDraftsRefs,
         bool storedCommentsRefs,
+        bool storedAttachmentsRefs,
       })
     >;
 typedef $$StoredBoardsTableCreateCompanionBuilder =
@@ -7739,6 +8260,359 @@ typedef $$StoredCommentsTableProcessedTableManager =
       StoredComment,
       PrefetchHooks Function({bool accountId})
     >;
+typedef $$StoredAttachmentsTableCreateCompanionBuilder =
+    StoredAttachmentsCompanion Function({
+      required String accountId,
+      required int boardId,
+      required int cardId,
+      required String type,
+      required int remoteId,
+      required String payload,
+      Value<int> rowid,
+    });
+typedef $$StoredAttachmentsTableUpdateCompanionBuilder =
+    StoredAttachmentsCompanion Function({
+      Value<String> accountId,
+      Value<int> boardId,
+      Value<int> cardId,
+      Value<String> type,
+      Value<int> remoteId,
+      Value<String> payload,
+      Value<int> rowid,
+    });
+
+final class $$StoredAttachmentsTableReferences
+    extends
+        BaseReferences<
+          _$DeckDatabase,
+          $StoredAttachmentsTable,
+          StoredAttachment
+        > {
+  $$StoredAttachmentsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $StoredAccountsTable _accountIdTable(_$DeckDatabase db) => db
+      .storedAccounts
+      .createAlias('stored_attachments__account_id__stored_accounts__id');
+
+  $$StoredAccountsTableProcessedTableManager get accountId {
+    final $_column = $_itemColumn<String>('account_id')!;
+
+    final manager = $$StoredAccountsTableTableManager(
+      $_db,
+      $_db.storedAccounts,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_accountIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$StoredAttachmentsTableFilterComposer
+    extends Composer<_$DeckDatabase, $StoredAttachmentsTable> {
+  $$StoredAttachmentsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get boardId => $composableBuilder(
+    column: $table.boardId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get cardId => $composableBuilder(
+    column: $table.cardId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get remoteId => $composableBuilder(
+    column: $table.remoteId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$StoredAccountsTableFilterComposer get accountId {
+    final $$StoredAccountsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.storedAccounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StoredAccountsTableFilterComposer(
+            $db: $db,
+            $table: $db.storedAccounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$StoredAttachmentsTableOrderingComposer
+    extends Composer<_$DeckDatabase, $StoredAttachmentsTable> {
+  $$StoredAttachmentsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get boardId => $composableBuilder(
+    column: $table.boardId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get cardId => $composableBuilder(
+    column: $table.cardId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get remoteId => $composableBuilder(
+    column: $table.remoteId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$StoredAccountsTableOrderingComposer get accountId {
+    final $$StoredAccountsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.storedAccounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StoredAccountsTableOrderingComposer(
+            $db: $db,
+            $table: $db.storedAccounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$StoredAttachmentsTableAnnotationComposer
+    extends Composer<_$DeckDatabase, $StoredAttachmentsTable> {
+  $$StoredAttachmentsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get boardId =>
+      $composableBuilder(column: $table.boardId, builder: (column) => column);
+
+  GeneratedColumn<int> get cardId =>
+      $composableBuilder(column: $table.cardId, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<int> get remoteId =>
+      $composableBuilder(column: $table.remoteId, builder: (column) => column);
+
+  GeneratedColumn<String> get payload =>
+      $composableBuilder(column: $table.payload, builder: (column) => column);
+
+  $$StoredAccountsTableAnnotationComposer get accountId {
+    final $$StoredAccountsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.storedAccounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StoredAccountsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.storedAccounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$StoredAttachmentsTableTableManager
+    extends
+        RootTableManager<
+          _$DeckDatabase,
+          $StoredAttachmentsTable,
+          StoredAttachment,
+          $$StoredAttachmentsTableFilterComposer,
+          $$StoredAttachmentsTableOrderingComposer,
+          $$StoredAttachmentsTableAnnotationComposer,
+          $$StoredAttachmentsTableCreateCompanionBuilder,
+          $$StoredAttachmentsTableUpdateCompanionBuilder,
+          (StoredAttachment, $$StoredAttachmentsTableReferences),
+          StoredAttachment,
+          PrefetchHooks Function({bool accountId})
+        > {
+  $$StoredAttachmentsTableTableManager(
+    _$DeckDatabase db,
+    $StoredAttachmentsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$StoredAttachmentsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$StoredAttachmentsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$StoredAttachmentsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> accountId = const Value.absent(),
+                Value<int> boardId = const Value.absent(),
+                Value<int> cardId = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<int> remoteId = const Value.absent(),
+                Value<String> payload = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StoredAttachmentsCompanion(
+                accountId: accountId,
+                boardId: boardId,
+                cardId: cardId,
+                type: type,
+                remoteId: remoteId,
+                payload: payload,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String accountId,
+                required int boardId,
+                required int cardId,
+                required String type,
+                required int remoteId,
+                required String payload,
+                Value<int> rowid = const Value.absent(),
+              }) => StoredAttachmentsCompanion.insert(
+                accountId: accountId,
+                boardId: boardId,
+                cardId: cardId,
+                type: type,
+                remoteId: remoteId,
+                payload: payload,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$StoredAttachmentsTable, StoredAttachment>(table),
+                  $$StoredAttachmentsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({accountId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (accountId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.accountId,
+                                referencedTable:
+                                    $$StoredAttachmentsTableReferences
+                                        ._accountIdTable(db),
+                                referencedColumn:
+                                    $$StoredAttachmentsTableReferences
+                                        ._accountIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$StoredAttachmentsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$DeckDatabase,
+      $StoredAttachmentsTable,
+      StoredAttachment,
+      $$StoredAttachmentsTableFilterComposer,
+      $$StoredAttachmentsTableOrderingComposer,
+      $$StoredAttachmentsTableAnnotationComposer,
+      $$StoredAttachmentsTableCreateCompanionBuilder,
+      $$StoredAttachmentsTableUpdateCompanionBuilder,
+      (StoredAttachment, $$StoredAttachmentsTableReferences),
+      StoredAttachment,
+      PrefetchHooks Function({bool accountId})
+    >;
 
 class $DeckDatabaseManager {
   final _$DeckDatabase _db;
@@ -7761,4 +8635,6 @@ class $DeckDatabaseManager {
       $$EditorDraftsTableTableManager(_db, _db.editorDrafts);
   $$StoredCommentsTableTableManager get storedComments =>
       $$StoredCommentsTableTableManager(_db, _db.storedComments);
+  $$StoredAttachmentsTableTableManager get storedAttachments =>
+      $$StoredAttachmentsTableTableManager(_db, _db.storedAttachments);
 }
