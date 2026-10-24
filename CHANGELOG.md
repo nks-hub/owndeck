@@ -23,5 +23,8 @@
 - Persist accepted card actions before reading their results, so read-back failures do not resend mutations.
 - Add paginated comments, replies, author-only editing and deletion, and recoverable comment drafts.
 - Use the server user ID for comment ownership instead of inferring it from the login name.
+- Search Deck recipients and manage user, group, team, and federated board sharing.
+- Recheck sharing rights before sending; distinguish share permission from management permission.
+- Create, rename, recolor, and delete labels, including dependent offline assignments.
 
 Automated and device acceptance tests are scheduled after feature development. This version has not been distributed.

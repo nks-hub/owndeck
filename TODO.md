@@ -7,18 +7,20 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] P00 Ověřit výchozí stav a vytvořit plán před zahájením vývoje.
 - [x] A01 Projit aktuální kód OwnTalk/OwnNotes i MCP Memory; konkrétní soubory a revize v `docs/reuse.md`.
 - [x] A02 Porovnáno 7 produktů podle primárních zdrojů; závěry a meze ověření v `docs/competition.md`.
-- [x] A03 Zdrojová analýza Deck v1.19.1: 86 verzovaných rout, parametry a 10 nálezů v `docs/nextcloud-api.md` a `docs/api-inventory.md`; runtime důkaz patří do T02.
+- [x] A03 Zdrojová analýza Deck v1.19.1: 86 verzovaných rout, parametry a průběžně doplňované nálezy v `docs/nextcloud-api.md` a `docs/api-inventory.md`; runtime důkaz patří do T02.
 - [x] A04 Mapa klientských rodin Nextcloud a jejich použití/hranice pro Deck je v `docs/nextcloud-api.md`.
 - [x] A05 Zadání obrazovek, chybových stavů, přístupnosti a designu v `docs/product.md`.
 - [x] A06 Model dat, trvalá fronta, konflikty a bezpečnost v `docs/architecture.md`; limit serverového If-Match výslovně zaznamenán.
 - [x] D01 Založena Flutter aplikace Android/iOS `com.nkshub.nextclouddeck`, SDK 3.44.4, protokol a přihlášení podle OwnNotes; závislosti vyřešeny, runtime ověření zůstává v T01–T03.
 - [x] D02 Implementován Login Flow v2, oddělené reference tokenů, databázové účty, opětovné přihlášení, přepnutí a odebrání s odvoláním tokenu; spuštění testů zůstává v T01–T03.
-- [ ] D03 Implementovat nástěnky, sloupce, oprávnění, archivaci a sdílení.
-- [x] D03a Implementováno vytváření a úpravy nástěnek/sloupců, archivace, mazání a obnova nástěnky, oddělená práva edit/manage a řazení sloupců; sdílení zůstává otevřené, runtime ověření čeká na T01–T03.
+- [x] D03 Implementovány nástěnky, sloupce, oprávnění, archivace a sdílení; runtime důkazy zůstávají v T01–T03.
+- [x] D03a Implementováno vytváření a úpravy nástěnek/sloupců, archivace, mazání a obnova nástěnky, oddělená práva edit/manage a řazení sloupců; runtime ověření čeká na T01–T03.
+- [x] D03b Doplněno hledání uživatelů/skupin/týmů a externích příjemců, vytvoření/změna/odebrání ACL, omezení udělovaných práv a vyřazení cache po ztrátě přístupu; 6 metadata scénářů a 1 hledací scénář připraveny pro T01.
 - [ ] D04 Implementovat karty, popis, termíny, štítky, přiřazení, dokončení a přesuny.
 - [x] D04a Přidán editor názvu, popisu a termínu, volba dokončení u karet s podporovaným polem a lokálně uložené vytvoření/úprava; ověření běhu čeká na T01.
 - [x] D04b Implementován přesun přes nabídku a řazení tažením uvnitř sloupce, archiv/obnova/smazání karty, přiřazení existujících štítků a uživatelů, živý detail a Markdown bez automatického stahování externích obrázků; 5 scénářů akcí připraveno pro T01.
-- [ ] D04c Dokončit správu štítků a doplňková pole karty (začátek a barva), ověřit všechny podporované operace v T01/T02.
+- [ ] D04c Dokončit doplňková pole karty (začátek a barva), ověřit všechny podporované operace v T01/T02.
+- [x] D04d Implementováno vytváření, přejmenování, změna barvy a mazání štítků včetně návazné fronty přiřazení a odstranění smazaného štítku z místní kopie karet.
 - [ ] D05 Implementovat komentáře, přílohy a návazné soubory.
 - [x] D05a Implementováno stránkované čtení komentářů, odpovědi, úprava/smazání autorem, serverové UID a průběžně uložené koncepty; 4 protokolové a 6 databázových scénářů připraveno pro T01.
 - [ ] D06 Implementovat místní data, frontu změn, obnovu po restartu a konflikty.
@@ -37,4 +39,4 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [ ] T02 Ověřit skutečný Nextcloud server, oba buildy a příjem bezpečných telemetrických událostí.
 - [ ] T03 Provést závěrečné fyzické testy S9 a S21 a samostatné ověření iOS; uložit důkazy s revizí.
 
-Aktuální krok: sdílení a správa štítků (D03/D04c) a přílohy (D05). Základní správa nástěnek/sloupců, akce karet, komentáře, koncepty a fronta s rodičovskými závislostmi jsou implementované. Statická kontrola aplikace i obou balíků je po doplnění komentářů bez nálezů. Běhové testy protokolu a databáze jsou připravené, dosud nespouštěné. Zaškrtnutí D bodů znamená dokončenou implementaci, nikoli úspěch testů; ty mají vlastní T body. Aplikace ani cílová zařízení zatím nebyly testované.
+Aktuální krok: doplňková pole karty (D04c), přílohy (D05) a další otevřené D body. Nástěnky/sloupce, sdílení, štítky, základní akce karet, komentáře a koncepty jsou implementované. Statická kontrola aplikace i obou balíků je po doplnění sdílení bez nálezů. Běhové testy protokolu a databáze jsou připravené, dosud nespouštěné. Zaškrtnutí D bodů znamená dokončenou implementaci, nikoli úspěch testů; ty mají vlastní T body. Aplikace ani cílová zařízení zatím nebyly testované.

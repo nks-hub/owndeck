@@ -799,6 +799,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reconnect first so the app can verify your user ID. Your draft is preserved.'**
   String get identityUnavailable;
+
+  /// No description provided for @sharing.
+  ///
+  /// In en, this message translates to:
+  /// **'Board sharing'**
+  String get sharing;
+
+  /// No description provided for @findRecipient.
+  ///
+  /// In en, this message translates to:
+  /// **'Find a user, group, or team'**
+  String get findRecipient;
+
+  /// No description provided for @noRecipients.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching recipients.'**
+  String get noRecipients;
+
+  /// No description provided for @addShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Add share'**
+  String get addShare;
+
+  /// No description provided for @editShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit permissions'**
+  String get editShare;
+
+  /// No description provided for @removeShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove share'**
+  String get removeShare;
+
+  /// No description provided for @removeShareQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this recipient’s access to the board?'**
+  String get removeShareQuestion;
+
+  /// No description provided for @permissionRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Read'**
+  String get permissionRead;
+
+  /// No description provided for @permissionEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get permissionEdit;
+
+  /// No description provided for @permissionShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get permissionShare;
+
+  /// No description provided for @permissionManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage'**
+  String get permissionManage;
+
+  /// No description provided for @user.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get user;
+
+  /// No description provided for @group.
+  ///
+  /// In en, this message translates to:
+  /// **'Group'**
+  String get group;
+
+  /// No description provided for @team.
+  ///
+  /// In en, this message translates to:
+  /// **'Team'**
+  String get team;
+
+  /// No description provided for @externalRecipient.
+  ///
+  /// In en, this message translates to:
+  /// **'External recipient'**
+  String get externalRecipient;
+
+  /// No description provided for @noShares.
+  ///
+  /// In en, this message translates to:
+  /// **'This board is not shared yet.'**
+  String get noShares;
+
+  /// No description provided for @manageLabels.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage labels'**
+  String get manageLabels;
+
+  /// No description provided for @addLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Add label'**
+  String get addLabel;
+
+  /// No description provided for @editLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit label'**
+  String get editLabel;
+
+  /// No description provided for @deleteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete label'**
+  String get deleteLabel;
+
+  /// No description provided for @deleteLabelQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this label from the board and all its cards?'**
+  String get deleteLabelQuestion;
+
+  /// No description provided for @alreadyShared.
+  ///
+  /// In en, this message translates to:
+  /// **'This recipient already has access. Refresh the board and edit the existing share.'**
+  String get alreadyShared;
 }
 
 class _AppLocalizationsDelegate

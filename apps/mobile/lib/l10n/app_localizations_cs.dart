@@ -381,4 +381,73 @@ class AppLocalizationsCs extends AppLocalizations {
   @override
   String get identityUnavailable =>
       'Nejdřív obnovte připojení, aby aplikace ověřila vaše uživatelské ID. Koncept zůstává uložený.';
+
+  @override
+  String get sharing => 'Sdílení nástěnky';
+
+  @override
+  String get findRecipient => 'Najít uživatele, skupinu nebo tým';
+
+  @override
+  String get noRecipients => 'Žádní odpovídající příjemci.';
+
+  @override
+  String get addShare => 'Přidat sdílení';
+
+  @override
+  String get editShare => 'Upravit oprávnění';
+
+  @override
+  String get removeShare => 'Odebrat sdílení';
+
+  @override
+  String get removeShareQuestion =>
+      'Odebrat tomuto příjemci přístup k nástěnce?';
+
+  @override
+  String get permissionRead => 'Čtení';
+
+  @override
+  String get permissionEdit => 'Úpravy';
+
+  @override
+  String get permissionShare => 'Sdílení';
+
+  @override
+  String get permissionManage => 'Správa';
+
+  @override
+  String get user => 'Uživatel';
+
+  @override
+  String get group => 'Skupina';
+
+  @override
+  String get team => 'Tým';
+
+  @override
+  String get externalRecipient => 'Externí příjemce';
+
+  @override
+  String get noShares => 'Nástěnka zatím není sdílená.';
+
+  @override
+  String get manageLabels => 'Spravovat štítky';
+
+  @override
+  String get addLabel => 'Přidat štítek';
+
+  @override
+  String get editLabel => 'Upravit štítek';
+
+  @override
+  String get deleteLabel => 'Smazat štítek';
+
+  @override
+  String get deleteLabelQuestion =>
+      'Smazat štítek z nástěnky i ze všech jejích karet?';
+
+  @override
+  String get alreadyShared =>
+      'Příjemce už má přístup. Obnovte nástěnku a upravte existující sdílení.';
 }

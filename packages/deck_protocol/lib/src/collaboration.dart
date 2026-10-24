@@ -4,6 +4,17 @@ import 'models.dart';
 // Nextcloud IComment::MAX_MESSAGE_LENGTH, stable35.
 const deckCommentMaxLength = 1000;
 
+final class DeckShareTarget {
+  const DeckShareTarget({
+    required this.id,
+    required this.label,
+    required this.type,
+  });
+  final String id;
+  final String label;
+  final int type;
+}
+
 final class DeckComment {
   DeckComment.fromJson(JsonObject json)
     : id = intField(json, 'id'),
@@ -27,6 +38,41 @@ final class DeckComment {
 }
 
 extension DeckCollaborationClient on DeckClient {
+  Future<List<DeckShareTarget>> searchDeckRecipients(String term) async {
+    final response = await ocs(
+      'GET',
+      ['core', 'autocomplete', 'get'],
+      query: {
+        'search': term,
+        'itemType': 'deck',
+        'limit': '20',
+        'shareTypes[0]': '0',
+        'shareTypes[1]': '1',
+        'shareTypes[2]': '6',
+        'shareTypes[3]': '7',
+      },
+    );
+    const types = {
+      'users': 0,
+      'groups': 1,
+      'remotes': 6,
+      'circles': 7,
+      'teams': 7,
+    };
+    final result = <String, DeckShareTarget>{};
+    for (final item in objects(response.data)) {
+      final type = types[item['source']];
+      if (type == null) continue;
+      final id = stringField(item, 'id');
+      final label = item['displayname'] ?? item['name'] ?? item['label'] ?? id;
+      if (label is! String || id.isEmpty) {
+        throw const DeckException('invalid_response');
+      }
+      result['$type:$id'] = DeckShareTarget(id: id, label: label, type: type);
+    }
+    return result.values.toList();
+  }
+
   Future<String> currentUserId() async {
     final data = object((await ocs('GET', ['cloud', 'user'])).data);
     final id = stringField(data, 'id');

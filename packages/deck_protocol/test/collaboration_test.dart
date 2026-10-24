@@ -32,6 +32,32 @@ DeckClient client(http.Client transport) => DeckClient(
 
 void main() {
   test(
+    'Deck autocomplete maps users groups teams and federated recipients',
+    () async {
+      late Map<String, String> query;
+      final api = client(
+        MockClient((request) async {
+          query = request.url.queryParameters;
+          return ocsReply([
+            {'id': 'user-a', 'label': 'User A', 'source': 'users'},
+            {'id': 'group-a', 'label': 'Group A', 'source': 'groups'},
+            {'id': 'team-a', 'label': 'Team A', 'source': 'teams'},
+            {
+              'id': 'person@example.com',
+              'label': 'External',
+              'source': 'remotes',
+            },
+            {'id': 'mail@example.com', 'label': 'Email', 'source': 'emails'},
+          ]);
+        }),
+      );
+      final targets = await api.searchDeckRecipients('project');
+      expect(query['itemType'], 'deck');
+      expect(query['shareTypes[2]'], '6');
+      expect(targets.map((t) => t.type).toList(), [0, 1, 7, 6]);
+    },
+  );
+  test(
     'comment pages advance offsets and preserve server author identity',
     () async {
       final offsets = <String?>[];

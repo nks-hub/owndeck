@@ -6,6 +6,10 @@ import 'package:flutter/material.dart';
 
 import '../data/session.dart';
 import '../l10n/app_localizations.dart';
+import 'sharing.dart';
+import 'sync_notice.dart';
+
+part 'board_labels.dart';
 
 class BoardActions extends StatelessWidget {
   const BoardActions({super.key, required this.session, required this.board});
@@ -14,12 +18,35 @@ class BoardActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!board.permissions.manage) return const SizedBox.shrink();
+    if (!board.permissions.manage &&
+        (!board.permissions.share || board.deletedAt != 0)) {
+      return const SizedBox.shrink();
+    }
     final text = AppLocalizations.of(context)!;
     return PopupMenuButton<String>(
       tooltip: text.boardActions,
       onSelected: (action) {
         switch (action) {
+          case 'sharing':
+            unawaited(
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  settings: const RouteSettings(name: '/board/sharing'),
+                  builder: (_) =>
+                      SharingScreen(session: session, boardId: board.id),
+                ),
+              ),
+            );
+          case 'labels':
+            unawaited(
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  settings: const RouteSettings(name: '/board/labels'),
+                  builder: (_) =>
+                      BoardLabelsScreen(session: session, boardId: board.id),
+                ),
+              ),
+            );
           case 'edit':
             unawaited(editStructure(context, session, board: board));
           case 'archive':
@@ -39,16 +66,20 @@ class BoardActions extends StatelessWidget {
         }
       },
       itemBuilder: (_) => [
-        if (board.deletedAt != 0)
-          PopupMenuItem(value: 'restore', child: Text(text.restoreBoard))
-        else ...[
-          PopupMenuItem(value: 'edit', child: Text(text.editBoard)),
-          PopupMenuItem(
-            value: 'archive',
-            child: Text(board.archived ? text.unarchive : text.archive),
-          ),
-          if (!board.archived)
-            PopupMenuItem(value: 'delete', child: Text(text.deleteBoard)),
+        if (board.deletedAt != 0 && board.permissions.manage)
+          PopupMenuItem(value: 'restore', child: Text(text.restoreBoard)),
+        if (board.deletedAt == 0) ...[
+          PopupMenuItem(value: 'sharing', child: Text(text.sharing)),
+          if (board.permissions.manage) ...[
+            PopupMenuItem(value: 'labels', child: Text(text.manageLabels)),
+            PopupMenuItem(value: 'edit', child: Text(text.editBoard)),
+            PopupMenuItem(
+              value: 'archive',
+              child: Text(board.archived ? text.unarchive : text.archive),
+            ),
+            if (!board.archived)
+              PopupMenuItem(value: 'delete', child: Text(text.deleteBoard)),
+          ],
         ],
       ],
     );
@@ -104,14 +135,20 @@ Future<void> editStructure(
   DeckBoard? board,
   DeckStack? stack,
   bool column = false,
+  bool labelItem = false,
+  JsonObject? label,
 }) async {
   final text = AppLocalizations.of(context)!;
-  final name = TextEditingController(
-    text: column ? stack?.title ?? '' : board?.title ?? '',
-  );
-  final value = TextEditingController(
-    text: column ? '${stack?.order ?? 999}' : board?.color ?? '008080',
-  );
+  var initialName = column ? stack?.title ?? '' : board?.title ?? '';
+  var initialValue = column
+      ? '${stack?.order ?? 999}'
+      : board?.color ?? '008080';
+  if (labelItem) {
+    initialName = label == null ? '' : stringField(label, 'title');
+    initialValue = label == null ? '008080' : stringField(label, 'color');
+  }
+  final name = TextEditingController(text: initialName);
+  final value = TextEditingController(text: initialValue);
   var saving = false;
   String? error;
   try {
@@ -121,7 +158,11 @@ Future<void> editStructure(
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           title: Text(
-            column
+            labelItem
+                ? label == null
+                      ? text.addLabel
+                      : text.editLabel
+                : column
                 ? stack == null
                       ? text.addStack
                       : text.editStack
@@ -190,29 +231,48 @@ Future<void> editStructure(
                         error = null;
                       });
                       try {
-                        await session.database.queueStructure(
-                          session.account,
-                          column
-                              ? stack == null
-                                    ? 'createStack'
-                                    : 'updateStack'
-                              : board == null
-                              ? 'createBoard'
-                              : 'updateBoard',
-                          {
-                            'title': title,
-                            if (column)
-                              'order': int.parse(rawValue)
-                            else
+                        if (labelItem) {
+                          final changes = <String, Object?>{
+                            if (label == null || label['title'] != title)
+                              'title': title,
+                            if (label == null ||
+                                label['color'] != rawValue.toLowerCase())
                               'color': rawValue.toLowerCase(),
-                          },
-                          boardId: board?.id ?? 0,
-                          stackId: stack?.id ?? 0,
-                          base: column ? stack?.raw : board?.raw,
-                        );
+                          };
+                          if (changes.isNotEmpty) {
+                            await session.database.queueBoardMetadata(
+                              session.account,
+                              board!.id,
+                              label == null ? 'createLabel' : 'updateLabel',
+                              changes,
+                              original: label,
+                            );
+                          }
+                        } else {
+                          await session.database.queueStructure(
+                            session.account,
+                            column
+                                ? stack == null
+                                      ? 'createStack'
+                                      : 'updateStack'
+                                : board == null
+                                ? 'createBoard'
+                                : 'updateBoard',
+                            {
+                              'title': title,
+                              if (column)
+                                'order': int.parse(rawValue)
+                              else
+                                'color': rawValue.toLowerCase(),
+                            },
+                            boardId: board?.id ?? 0,
+                            stackId: stack?.id ?? 0,
+                            base: column ? stack?.raw : board?.raw,
+                          );
+                        }
                         if (dialogContext.mounted) Navigator.pop(dialogContext);
                         unawaited(
-                          column
+                          column || labelItem
                               ? session.refreshStacks(board!.id)
                               : session.refreshBoards(),
                         );

@@ -379,4 +379,73 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get identityUnavailable =>
       'Reconnect first so the app can verify your user ID. Your draft is preserved.';
+
+  @override
+  String get sharing => 'Board sharing';
+
+  @override
+  String get findRecipient => 'Find a user, group, or team';
+
+  @override
+  String get noRecipients => 'No matching recipients.';
+
+  @override
+  String get addShare => 'Add share';
+
+  @override
+  String get editShare => 'Edit permissions';
+
+  @override
+  String get removeShare => 'Remove share';
+
+  @override
+  String get removeShareQuestion =>
+      'Remove this recipient’s access to the board?';
+
+  @override
+  String get permissionRead => 'Read';
+
+  @override
+  String get permissionEdit => 'Edit';
+
+  @override
+  String get permissionShare => 'Share';
+
+  @override
+  String get permissionManage => 'Manage';
+
+  @override
+  String get user => 'User';
+
+  @override
+  String get group => 'Group';
+
+  @override
+  String get team => 'Team';
+
+  @override
+  String get externalRecipient => 'External recipient';
+
+  @override
+  String get noShares => 'This board is not shared yet.';
+
+  @override
+  String get manageLabels => 'Manage labels';
+
+  @override
+  String get addLabel => 'Add label';
+
+  @override
+  String get editLabel => 'Edit label';
+
+  @override
+  String get deleteLabel => 'Delete label';
+
+  @override
+  String get deleteLabelQuestion =>
+      'Remove this label from the board and all its cards?';
+
+  @override
+  String get alreadyShared =>
+      'This recipient already has access. Refresh the board and edit the existing share.';
 }

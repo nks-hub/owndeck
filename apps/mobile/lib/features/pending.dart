@@ -125,7 +125,8 @@ class _PendingScreenState extends State<PendingScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        (changes['title'] ??
+                        (changes['displayName'] ??
+                                changes['title'] ??
                                 base['title'] ??
                                 (write.kind.endsWith('Comment')
                                     ? text.comments
@@ -134,7 +135,9 @@ class _PendingScreenState extends State<PendingScreen> {
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       Text(
-                        write.error == 'dependency_unavailable'
+                        write.error == 'already_shared'
+                            ? text.alreadyShared
+                            : write.error == 'dependency_unavailable'
                             ? text.dependencyUnavailable
                             : state,
                       ),

@@ -11,6 +11,16 @@ part 'views.dart';
 part 'structure_writes.dart';
 part 'card_actions.dart';
 part 'comments.dart';
+part 'board_metadata.dart';
+
+const boardMetadataKinds = {
+  'createLabel',
+  'updateLabel',
+  'deleteLabel',
+  'createAcl',
+  'updateAcl',
+  'deleteAcl',
+};
 
 class StoredAccounts extends Table {
   TextColumn get id => text()();

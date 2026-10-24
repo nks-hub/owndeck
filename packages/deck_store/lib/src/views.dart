@@ -62,6 +62,22 @@ extension DeckViews on DeckDatabase {
       }
       proposal = jsonEncode(data);
     }
+    final metadata = object(jsonDecode(proposal));
+    for (final field in const {
+      'labelId': 'createLabel',
+      'aclId': 'createAcl',
+    }.entries) {
+      if (metadata[field.key] is int && (metadata[field.key] as int) < 0) {
+        final id = await resolveId(
+          write.accountId,
+          metadata[field.key] as int,
+          field.value,
+        );
+        if (id == null) return null;
+        metadata[field.key] = id;
+      }
+    }
+    proposal = jsonEncode(metadata);
     return write.copyWith(
       boardId: boardId,
       stackId: stackId,
@@ -79,6 +95,8 @@ extension DeckViews on DeckDatabase {
           write.stackId < 0)
         -write.stackId,
       if (write.cardId != null && write.cardId! < 0) -write.cardId!,
+      for (final key in ['labelId', 'aclId'])
+        if (data[key] is int && (data[key] as int) < 0) -(data[key] as int),
       if (write.kind.endsWith('Comment'))
         for (final key in ['commentId', 'parentId'])
           if (data[key] is int && (data[key] as int) < 0) -(data[key] as int),
@@ -164,6 +182,42 @@ extension DeckViews on DeckDatabase {
         if (base != null) {
           boards[id] = {...base, ...data, 'syncState': write.state};
         }
+      } else if (boardMetadataKinds.contains(write.kind)) {
+        final id =
+            await resolveId(accountId, write.boardId, 'createBoard') ??
+            write.boardId;
+        final board = boards[id];
+        if (board == null) continue;
+        final acl = write.kind.endsWith('Acl');
+        final field = acl ? 'acl' : 'labels';
+        final items = objects(board[field] ?? <Object?>[]).toList();
+        if (write.kind.startsWith('create')) {
+          items.add({
+            ...data,
+            'id': -write.sequence,
+            'boardId': id,
+            'syncState': write.state,
+            if (acl)
+              'participant': {
+                'id': data['participant'],
+                'uid': data['participant'],
+                'displayname': data['displayName'] ?? data['participant'],
+              },
+          });
+        } else {
+          final target =
+              await resolveId(
+                accountId,
+                intField(data, acl ? 'aclId' : 'labelId'),
+                acl ? 'createAcl' : 'createLabel',
+              ) ??
+              data[acl ? 'aclId' : 'labelId'];
+          final index = items.indexWhere((item) => item['id'] == target);
+          if (index >= 0) {
+            items[index] = {...items[index], ...data, 'syncState': write.state};
+          }
+        }
+        boards[id] = {...board, field: items};
       }
     }
     return boards.values.map(DeckBoard.fromJson).toList();

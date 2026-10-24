@@ -67,6 +67,7 @@ Neznámá pole tolerovat. Pole, jejichž vynechání změní význam, rozlišit 
 10. Název boardId/stackId v URL není dostačující důkaz oprávnění. Server má vlastní kontroly nad kartou a cílem. Klient musí správně reagovat na odmítnutí i po dříve úspěšné synchronizaci.
 11. `CardService::reorder` vrací seznam přerovnaných karet. Cílový `stackId` patří do URL i těla. Obecná mutace nemusí vracet detail karty; například přiřazení může vrátit vazbu. Po přijetí zápisu načíst aktuální kartu a neopakovat mutaci při selhání tohoto následného GET.
 12. `CommentService` dovoluje vytvářet komentáře s právem READ, bez EDIT. Změnu a odstranění povoluje pouze autorovi typu `users`; UID je nutné zjistit přes OCS aktuálního uživatele. Stránka má nejvýše 200 komentářů, základní limit zprávy v `IComment` je 1 000 znaků. Načtení částečné stránky není důkaz smazání zbývajících komentářů.
+13. Webový Deck hledá příjemce přes OCS `/core/autocomplete/get` s `itemType=deck` a typy 0/1/6/7; tento postup přebírá klient. Přidání a změna ACL vyžadují SHARE, odstranění ACL MANAGE. Správa štítků vyžaduje MANAGE. Server může omezit udělovaná práva podle práv odesílatele, proto klient před zápisem znovu ověřuje možnosti a po potvrzení načítá skutečný výsledek.
 
 Tyto nálezy vycházejí ze zdrojů, nikoli ze spuštění exploitu či měření. Otevřené serverové scénáře jsou přímo v [testing.md](testing.md).
 
@@ -79,6 +80,7 @@ Tyto nálezy vycházejí ze zdrojů, nikoli ze spuštění exploitu či měřen�
 | Aktuální uživatel | `/ocs/v2.php/cloud/user` | UID a zobrazované jméno pro vlastní přiřazené úkoly. |
 | App password | Login Flow v2 a OCS core apppassword | Vlastní token aplikace, jeho odvolání při odebrání účtu. |
 | Sharees | `/ocs/v2.php/apps/files_sharing/api/v1/sharees` | Hledání příjemců sdílení, typy filtrovat podle Decku. |
+| Autocomplete Deck | `/ocs/v2.php/core/autocomplete/get` | Primární hledání příjemců podle vydaného `src/stores/settings.js`; podporuje uživatele, skupiny, vzdálené uživatele a týmy. |
 | Files sharing | `/ocs/v2.php/apps/files_sharing/api/v1/shares` | Pouze když operace přílohy potřebuje vlastní share; práva nástěnky jsou Deck ACL. |
 | WebDAV | `/remote.php/dav/files/{user}/...` | PROPFIND, GET a případně PUT pro existující soubory; URL kódovat po segmentech a držet rozsah účtu. |
 | Upload v částech | WebDAV uploads | Potřebný pro velké soubory, až po ověření vztahu vytvořeného fileId k Deck attachment. |

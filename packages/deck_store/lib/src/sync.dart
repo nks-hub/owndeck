@@ -9,6 +9,7 @@ import 'database.dart';
 part 'structure_sync.dart';
 part 'card_actions_sync.dart';
 part 'comments_sync.dart';
+part 'board_metadata_sync.dart';
 
 final class DeckSync {
   DeckSync(this.database, this.account, this.client);
@@ -48,7 +49,13 @@ final class DeckSync {
         if (applied != null) {
           final resolved = await database.resolveWrite(applied);
           attemptedReadbacks.add(applied.id);
-          if (resolved != null) await _finishApplied(resolved);
+          if (resolved != null) {
+            if (boardMetadataKinds.contains(resolved.kind)) {
+              await _finishBoardMetadata(resolved);
+            } else {
+              await _finishApplied(resolved);
+            }
+          }
           continue;
         }
         PendingWrite? queued;
@@ -72,6 +79,10 @@ final class DeckSync {
           if (queued != null) break;
         }
         if (queued == null) return;
+        if (boardMetadataKinds.contains(queued.kind)) {
+          if (!await _sendBoardMetadata(queued)) return;
+          continue;
+        }
         if (queued.kind.endsWith('Board') || queued.kind.endsWith('Stack')) {
           if (!await _sendStructure(queued)) return;
           continue;
