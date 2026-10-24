@@ -672,4 +672,53 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get fileAttachment => 'Soubor';
+
+  @override
+  String get searchCards => 'Hledat karty';
+
+  @override
+  String get searchCardsHint => 'Název, popis nebo štítek';
+
+  @override
+  String get clearSearch => 'Vymazat hledání';
+
+  @override
+  String get myTasks => 'Moje úkoly';
+
+  @override
+  String get localSearchNotice =>
+      'Hledá se pouze v datech uložených v zařízení. Otevřete nástěnku, aby se načetly její karty.';
+
+  @override
+  String get includeArchived => 'Zahrnout archivované';
+
+  @override
+  String get includeCompleted => 'Zahrnout dokončené';
+
+  @override
+  String get anyDueDate => 'Libovolný termín';
+
+  @override
+  String get dueToday => 'Dnes';
+
+  @override
+  String get overdueTasks => 'Po termínu';
+
+  @override
+  String get withoutDueDate => 'Bez termínu';
+
+  @override
+  String get noMatchingCards =>
+      'Žádné uložené karty neodpovídají hledání a filtrům.';
+
+  @override
+  String get accountSearchUnavailable => 'Tento účet už není dostupný.';
+
+  @override
+  String get myTasksIdentityRequired =>
+      'Moje úkoly lze zobrazit až po ověření uživatele při synchronizaci.';
+
+  @override
+  String get rateLimited =>
+      'Server požádal o přestávku. Synchronizace se později zopakuje.';
 }

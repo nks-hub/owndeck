@@ -220,5 +220,20 @@
   "fileSaved": "File saved.",
   "fileOpenFailed": "The file could not be opened. You can save it and open it in another app.",
   "deletedAttachment": "Removed attachment",
-  "fileAttachment": "File"
+  "fileAttachment": "File",
+  "searchCards": "Search cards",
+  "searchCardsHint": "Title, description or label",
+  "clearSearch": "Clear search",
+  "myTasks": "My tasks",
+  "localSearchNotice": "Only data saved on this device is searched. Open a board to load its cards.",
+  "includeArchived": "Include archived",
+  "includeCompleted": "Include completed",
+  "anyDueDate": "Any due date",
+  "dueToday": "Today",
+  "overdueTasks": "Overdue",
+  "withoutDueDate": "No due date",
+  "noMatchingCards": "No saved cards match the search and filters.",
+  "accountSearchUnavailable": "This account is no longer available.",
+  "myTasksIdentityRequired": "My tasks will be available after sync verifies your user identity.",
+  "rateLimited": "The server requested a pause. Sync will retry later."
 }

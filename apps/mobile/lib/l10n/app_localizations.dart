@@ -1321,6 +1321,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'File'**
   String get fileAttachment;
+
+  /// No description provided for @searchCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Search cards'**
+  String get searchCards;
+
+  /// No description provided for @searchCardsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Title, description or label'**
+  String get searchCardsHint;
+
+  /// No description provided for @clearSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get clearSearch;
+
+  /// No description provided for @myTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'My tasks'**
+  String get myTasks;
+
+  /// No description provided for @localSearchNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Only data saved on this device is searched. Open a board to load its cards.'**
+  String get localSearchNotice;
+
+  /// No description provided for @includeArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'Include archived'**
+  String get includeArchived;
+
+  /// No description provided for @includeCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Include completed'**
+  String get includeCompleted;
+
+  /// No description provided for @anyDueDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Any due date'**
+  String get anyDueDate;
+
+  /// No description provided for @dueToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get dueToday;
+
+  /// No description provided for @overdueTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get overdueTasks;
+
+  /// No description provided for @withoutDueDate.
+  ///
+  /// In en, this message translates to:
+  /// **'No due date'**
+  String get withoutDueDate;
+
+  /// No description provided for @noMatchingCards.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved cards match the search and filters.'**
+  String get noMatchingCards;
+
+  /// No description provided for @accountSearchUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This account is no longer available.'**
+  String get accountSearchUnavailable;
+
+  /// No description provided for @myTasksIdentityRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'My tasks will be available after sync verifies your user identity.'**
+  String get myTasksIdentityRequired;
+
+  /// No description provided for @rateLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'The server requested a pause. Sync will retry later.'**
+  String get rateLimited;
 }
 
 class _AppLocalizationsDelegate

@@ -220,5 +220,20 @@
   "fileSaved": "Soubor byl uložen.",
   "fileOpenFailed": "Soubor nelze otevřít. Můžete jej uložit a otevřít v jiné aplikaci.",
   "deletedAttachment": "Odebraná příloha",
-  "fileAttachment": "Soubor"
+  "fileAttachment": "Soubor",
+  "searchCards": "Hledat karty",
+  "searchCardsHint": "Název, popis nebo štítek",
+  "clearSearch": "Vymazat hledání",
+  "myTasks": "Moje úkoly",
+  "localSearchNotice": "Hledá se pouze v datech uložených v zařízení. Otevřete nástěnku, aby se načetly její karty.",
+  "includeArchived": "Zahrnout archivované",
+  "includeCompleted": "Zahrnout dokončené",
+  "anyDueDate": "Libovolný termín",
+  "dueToday": "Dnes",
+  "overdueTasks": "Po termínu",
+  "withoutDueDate": "Bez termínu",
+  "noMatchingCards": "Žádné uložené karty neodpovídají hledání a filtrům.",
+  "accountSearchUnavailable": "Tento účet už není dostupný.",
+  "myTasksIdentityRequired": "Moje úkoly lze zobrazit až po ověření uživatele při synchronizaci.",
+  "rateLimited": "Server požádal o přestávku. Synchronizace se později zopakuje."
 }

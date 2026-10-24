@@ -670,4 +670,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fileAttachment => 'File';
+
+  @override
+  String get searchCards => 'Search cards';
+
+  @override
+  String get searchCardsHint => 'Title, description or label';
+
+  @override
+  String get clearSearch => 'Clear search';
+
+  @override
+  String get myTasks => 'My tasks';
+
+  @override
+  String get localSearchNotice =>
+      'Only data saved on this device is searched. Open a board to load its cards.';
+
+  @override
+  String get includeArchived => 'Include archived';
+
+  @override
+  String get includeCompleted => 'Include completed';
+
+  @override
+  String get anyDueDate => 'Any due date';
+
+  @override
+  String get dueToday => 'Today';
+
+  @override
+  String get overdueTasks => 'Overdue';
+
+  @override
+  String get withoutDueDate => 'No due date';
+
+  @override
+  String get noMatchingCards => 'No saved cards match the search and filters.';
+
+  @override
+  String get accountSearchUnavailable => 'This account is no longer available.';
+
+  @override
+  String get myTasksIdentityRequired =>
+      'My tasks will be available after sync verifies your user identity.';
+
+  @override
+  String get rateLimited =>
+      'The server requested a pause. Sync will retry later.';
 }

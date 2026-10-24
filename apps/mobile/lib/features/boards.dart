@@ -10,6 +10,7 @@ import 'card_column.dart';
 import 'pending.dart';
 import 'sync_notice.dart';
 import 'structure_editor.dart';
+import 'search.dart';
 import 'package:deck_store/deck_store.dart';
 
 class BoardsScreen extends StatefulWidget {
@@ -21,6 +22,7 @@ class BoardsScreen extends StatefulWidget {
 
 class _BoardsScreenState extends State<BoardsScreen> {
   int _filter = 0;
+  int _destination = 0;
   late final Stream<List<DeckBoard>> _boards = widget.session.watchBoards();
   @override
   void initState() {
@@ -34,8 +36,21 @@ class _BoardsScreenState extends State<BoardsScreen> {
     final session = widget.session;
     return Scaffold(
       appBar: AppBar(
-        title: Text(text.boards),
+        title: Text(_destination == 0 ? text.boards : text.myTasks),
         actions: [
+          IconButton(
+            tooltip: text.searchCards,
+            icon: const Icon(Icons.search),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                settings: const RouteSettings(name: '/search'),
+                builder: (_) => CardSearchScreen(
+                  session: session,
+                  mineOnly: _destination == 1,
+                ),
+              ),
+            ),
+          ),
           IconButton(
             tooltip: text.pendingChanges,
             icon: const Icon(Icons.sync_problem_outlined),
@@ -63,131 +78,153 @@ class _BoardsScreenState extends State<BoardsScreen> {
           ),
         ],
       ),
-      body: ListenableBuilder(
-        listenable: session,
-        builder: (context, _) => StreamBuilder<List<DeckBoard>>(
-          stream: _boards,
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return Center(child: Text(text.storageError));
-            }
-            final boards = (snapshot.data ?? [])
-                .where(
-                  (b) => _filter == 2
-                      ? b.deletedAt != 0
-                      : b.deletedAt == 0 && b.archived == (_filter == 1),
-                )
-                .toList();
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Wrap(
-                    spacing: 8,
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _destination,
+        onDestinationSelected: (value) => setState(() => _destination = value),
+        destinations: [
+          NavigationDestination(
+            icon: const Icon(Icons.view_kanban_outlined),
+            label: text.boards,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.checklist),
+            label: text.myTasks,
+          ),
+        ],
+      ),
+      body: _destination == 1
+          ? CardSearchView(
+              key: const ValueKey('my-tasks'),
+              session: session,
+              fixedMineOnly: true,
+            )
+          : ListenableBuilder(
+              listenable: session,
+              builder: (context, _) => StreamBuilder<List<DeckBoard>>(
+                stream: _boards,
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Center(child: Text(text.storageError));
+                  }
+                  final boards = (snapshot.data ?? [])
+                      .where(
+                        (b) => _filter == 2
+                            ? b.deletedAt != 0
+                            : b.deletedAt == 0 && b.archived == (_filter == 1),
+                      )
+                      .toList();
+                  return Column(
                     children: [
-                      ChoiceChip(
-                        label: Text(text.activeBoards),
-                        selected: _filter == 0,
-                        onSelected: (_) => setState(() => _filter = 0),
+                      Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Wrap(
+                          spacing: 8,
+                          children: [
+                            ChoiceChip(
+                              label: Text(text.activeBoards),
+                              selected: _filter == 0,
+                              onSelected: (_) => setState(() => _filter = 0),
+                            ),
+                            ChoiceChip(
+                              label: Text(text.archivedBoards),
+                              selected: _filter == 1,
+                              onSelected: (_) => setState(() => _filter = 1),
+                            ),
+                            ChoiceChip(
+                              label: Text(text.deletedBoards),
+                              selected: _filter == 2,
+                              onSelected: (_) => setState(() => _filter = 2),
+                            ),
+                            FilledButton.icon(
+                              icon: const Icon(Icons.add),
+                              label: Text(text.addBoard),
+                              onPressed:
+                                  session.capabilities?.canCreateBoards == true
+                                  ? () => editStructure(context, session)
+                                  : null,
+                            ),
+                          ],
+                        ),
                       ),
-                      ChoiceChip(
-                        label: Text(text.archivedBoards),
-                        selected: _filter == 1,
-                        onSelected: (_) => setState(() => _filter = 1),
+                      SyncNotice(
+                        session: session,
+                        scope: 'boards',
+                        retry: session.refreshBoards,
+                        hasData: boards.isNotEmpty,
                       ),
-                      ChoiceChip(
-                        label: Text(text.deletedBoards),
-                        selected: _filter == 2,
-                        onSelected: (_) => setState(() => _filter = 2),
-                      ),
-                      FilledButton.icon(
-                        icon: const Icon(Icons.add),
-                        label: Text(text.addBoard),
-                        onPressed: session.capabilities?.canCreateBoards == true
-                            ? () => editStructure(context, session)
-                            : null,
+                      Expanded(
+                        child: !snapshot.hasData
+                            ? const Center(child: CircularProgressIndicator())
+                            : RefreshIndicator(
+                                onRefresh: session.refreshBoards,
+                                child: ListView.builder(
+                                  physics:
+                                      const AlwaysScrollableScrollPhysics(),
+                                  itemCount: boards.isEmpty ? 1 : boards.length,
+                                  itemBuilder: (context, index) {
+                                    if (boards.isEmpty) {
+                                      return Padding(
+                                        padding: const EdgeInsets.all(24),
+                                        child: Column(
+                                          children: [
+                                            Text(
+                                              text.noBoards,
+                                              style: Theme.of(
+                                                context,
+                                              ).textTheme.titleLarge,
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(text.noBoardsHint),
+                                          ],
+                                        ),
+                                      );
+                                    }
+                                    final board = boards[index];
+                                    final color = int.tryParse(
+                                      board.color.replaceFirst('#', ''),
+                                      radix: 16,
+                                    );
+                                    return ListTile(
+                                      key: ValueKey(board.id),
+                                      leading: Icon(
+                                        Icons.view_kanban_outlined,
+                                        color: color == null
+                                            ? null
+                                            : Color(0xff000000 | color),
+                                      ),
+                                      title: Text(board.title),
+                                      subtitle: board.raw['syncState'] != null
+                                          ? Text(text.pendingChanges)
+                                          : board.permissions.edit
+                                          ? null
+                                          : Text(text.readOnly),
+                                      trailing: BoardActions(
+                                        session: session,
+                                        board: board,
+                                      ),
+                                      onTap: board.deletedAt != 0
+                                          ? null
+                                          : () => Navigator.of(context).push(
+                                              MaterialPageRoute<void>(
+                                                settings: const RouteSettings(
+                                                  name: '/board',
+                                                ),
+                                                builder: (_) => BoardScreen(
+                                                  session: session,
+                                                  board: board,
+                                                ),
+                                              ),
+                                            ),
+                                    );
+                                  },
+                                ),
+                              ),
                       ),
                     ],
-                  ),
-                ),
-                SyncNotice(
-                  session: session,
-                  scope: 'boards',
-                  retry: session.refreshBoards,
-                  hasData: boards.isNotEmpty,
-                ),
-                Expanded(
-                  child: !snapshot.hasData
-                      ? const Center(child: CircularProgressIndicator())
-                      : RefreshIndicator(
-                          onRefresh: session.refreshBoards,
-                          child: ListView.builder(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            itemCount: boards.isEmpty ? 1 : boards.length,
-                            itemBuilder: (context, index) {
-                              if (boards.isEmpty) {
-                                return Padding(
-                                  padding: const EdgeInsets.all(24),
-                                  child: Column(
-                                    children: [
-                                      Text(
-                                        text.noBoards,
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.titleLarge,
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(text.noBoardsHint),
-                                    ],
-                                  ),
-                                );
-                              }
-                              final board = boards[index];
-                              final color = int.tryParse(
-                                board.color.replaceFirst('#', ''),
-                                radix: 16,
-                              );
-                              return ListTile(
-                                key: ValueKey(board.id),
-                                leading: Icon(
-                                  Icons.view_kanban_outlined,
-                                  color: color == null
-                                      ? null
-                                      : Color(0xff000000 | color),
-                                ),
-                                title: Text(board.title),
-                                subtitle: board.raw['syncState'] != null
-                                    ? Text(text.pendingChanges)
-                                    : board.permissions.edit
-                                    ? null
-                                    : Text(text.readOnly),
-                                trailing: BoardActions(
-                                  session: session,
-                                  board: board,
-                                ),
-                                onTap: board.deletedAt != 0
-                                    ? null
-                                    : () => Navigator.of(context).push(
-                                        MaterialPageRoute<void>(
-                                          settings: const RouteSettings(
-                                            name: '/board',
-                                          ),
-                                          builder: (_) => BoardScreen(
-                                            session: session,
-                                            board: board,
-                                          ),
-                                        ),
-                                      ),
-                              );
-                            },
-                          ),
-                        ),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
+                  );
+                },
+              ),
+            ),
     );
   }
 }
