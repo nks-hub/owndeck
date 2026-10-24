@@ -1,5 +1,6 @@
 package com.nkshub.nextclouddeck
 
+import android.os.Bundle
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -12,10 +13,48 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
+    private var linkChannel: MethodChannel? = null
+    private var linkReady = false
+    private var pendingLink: String? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        pendingLink = savedInstanceState?.getString("pending_card_link")
+        if (savedInstanceState == null) receiveLink(intent)
+        super.onCreate(savedInstanceState)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        pendingLink?.let { outState.putString("pending_card_link", it) }
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        receiveLink(intent)
+    }
+
+    private fun receiveLink(intent: Intent?) {
+        if (intent?.action != Intent.ACTION_VIEW) return
+        val uri = intent.data ?: return
+        val value = uri.toString()
+        if (uri.scheme != "ncdeck" || value.length > 4096) return
+        if (linkReady) linkChannel?.invokeMethod("link", value) else pendingLink = value
+    }
+
     private var pendingCamera: MethodChannel.Result? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        linkChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.nkshub.nextclouddeck/links")
+        linkChannel?.setMethodCallHandler { call, result ->
+            if (call.method == "getLaunchLink") {
+                linkReady = true
+                val value = pendingLink
+                pendingLink = null
+                result.success(value)
+            } else result.notImplemented()
+        }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.nkshub.nextclouddeck/camera_permission")
             .setMethodCallHandler { call, result ->
                 when (call.method) {
@@ -63,6 +102,9 @@ class MainActivity : FlutterActivity() {
     }
 
     override fun onDestroy() {
+        linkReady = false
+        linkChannel?.setMethodCallHandler(null)
+        linkChannel = null
         pendingCamera?.error("cancelled", "The camera request was cancelled.", null)
         pendingCamera = null
         super.onDestroy()

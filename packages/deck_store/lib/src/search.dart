@@ -141,7 +141,7 @@ extension DeckCardSearch on DeckDatabase {
           }
           final hit = CardSearchHit(board: board, stack: stack, card: card);
           if (hit.completed && !options.includeCompleted) continue;
-          if (options.mineOnly && !_assignedTo(card, uid!)) continue;
+          if (options.mineOnly && !cardAssignedTo(card, uid!)) continue;
           final due = hit.due;
           final matchesDate = switch (options.due) {
             CardDueFilter.any => true,
@@ -190,7 +190,7 @@ extension DeckCardSearch on DeckDatabase {
   });
 }
 
-bool _assignedTo(DeckCard card, String uid) {
+bool cardAssignedTo(DeckCard card, String uid) {
   final assigned = card.raw['assignedUsers'];
   final Iterable<JsonObject> entries = switch (assigned) {
     List values => values.whereType<JsonObject>(),

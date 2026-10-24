@@ -3,9 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'data/accounts.dart';
-import 'features/boards.dart';
-import 'features/login.dart';
+import 'features/account_gate.dart';
 import 'l10n/app_localizations.dart';
 import 'core/telemetry_bootstrap.dart';
 
@@ -27,7 +25,7 @@ class OwnDeckApp extends StatelessWidget {
     supportedLocales: AppLocalizations.supportedLocales,
     theme: _theme(Brightness.light),
     darkTheme: _theme(Brightness.dark),
-    home: const _AccountGate(),
+    home: const DeckAccountGate(),
   );
 }
 
@@ -47,55 +45,3 @@ ThemeData _theme(Brightness brightness) => ThemeData(
     style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
   ),
 );
-
-class _AccountGate extends ConsumerWidget {
-  const _AccountGate();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final accounts = ref.watch(accountsProvider);
-    return FutureBuilder<void>(
-      future: accounts.ready,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-        if (accounts.loadError != null) {
-          final text = AppLocalizations.of(context)!;
-          return Scaffold(
-            body: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(text.storageError),
-                    const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: accounts.retryLoad,
-                      child: Text(text.retry),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }
-        final session = accounts.session;
-        if (session == null) {
-          return LoginScreen(reauthenticateAccount: accounts.selected);
-        }
-        return Navigator(
-          key: ObjectKey(session),
-          observers: [telemetry.navigatorObserver()],
-          onGenerateRoute: (_) => MaterialPageRoute<void>(
-            settings: const RouteSettings(name: '/boards'),
-            builder: (_) => BoardsScreen(session: session),
-          ),
-        );
-      },
-    );
-  }
-}

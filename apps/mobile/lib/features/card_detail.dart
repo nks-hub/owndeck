@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart';
+
 import 'package:deck_protocol/deck_protocol.dart';
 import 'package:deck_store/deck_store.dart';
 import 'package:flutter/material.dart';
@@ -158,6 +160,8 @@ class _CardScreenState extends State<CardScreen> {
                     tooltip: text.cardActions,
                     onSelected: (action) {
                       switch (action) {
+                        case 'copy-link':
+                          unawaited(_copyLink(board, card));
                         case 'copy':
                           unawaited(_copy(card));
                         case 'move':
@@ -180,6 +184,11 @@ class _CardScreenState extends State<CardScreen> {
                     },
                     itemBuilder: (_) => [
                       PopupMenuItem(value: 'copy', child: Text(text.copyCard)),
+                      if (board.id > 0 && card.id > 0)
+                        PopupMenuItem(
+                          value: 'copy-link',
+                          child: Text(text.copyCardLink),
+                        ),
                       if (canEdit && !card.archived) ...[
                         PopupMenuItem(
                           value: 'move',

@@ -812,4 +812,47 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get telemetrySaveFailed => 'The setting could not be saved.';
+
+  @override
+  String get openCardLink => 'Open card link';
+
+  @override
+  String get cardLinkAddress => 'Nextcloud card link';
+
+  @override
+  String get invalidCardLink =>
+      'This is not a valid HTTPS Nextcloud card link.';
+
+  @override
+  String get cardLinkAccountRequired => 'Add an account for this server';
+
+  @override
+  String get chooseCardLinkAccount => 'Choose an account to open the card';
+
+  @override
+  String get copyCardLink => 'Copy card link';
+
+  @override
+  String get cardLinkCopied => 'Card link copied.';
+
+  @override
+  String get localSearchMode => 'Saved cards';
+
+  @override
+  String get serverSearchMode => 'Search on server';
+
+  @override
+  String get serverSearchNotice =>
+      'Server results do not include changes that have not been sent yet.';
+
+  @override
+  String get serverMyTasksNotice =>
+      'The server overview includes active, unfinished cards assigned to you.';
+
+  @override
+  String get serverSearchLimited =>
+      'The server returned the first 200 results. Refine your search.';
+
+  @override
+  String get openingCardLink => 'Opening card…';
 }

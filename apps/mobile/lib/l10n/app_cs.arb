@@ -263,5 +263,18 @@
   "usageAnalytics": "Statistiky používání",
   "usageAnalyticsDescription": "Odesílat pouze předem určené názvy obrazovek a akcí.",
   "telemetryUnavailable": "Tato služba není v tomto sestavení nastavená.",
-  "telemetrySaveFailed": "Nastavení se nepodařilo uložit."
+  "telemetrySaveFailed": "Nastavení se nepodařilo uložit.",
+  "openCardLink": "Otevřít odkaz na kartu",
+  "cardLinkAddress": "Odkaz na kartu v Nextcloudu",
+  "invalidCardLink": "Toto není platný HTTPS odkaz na kartu v Nextcloudu.",
+  "cardLinkAccountRequired": "Přidejte účet pro tento server",
+  "chooseCardLinkAccount": "Vyberte účet pro otevření karty",
+  "copyCardLink": "Kopírovat odkaz na kartu",
+  "cardLinkCopied": "Odkaz na kartu byl zkopírován.",
+  "localSearchMode": "Uložené karty",
+  "serverSearchMode": "Hledat na serveru",
+  "serverSearchNotice": "Výsledky ze serveru neobsahují dosud neodeslané změny.",
+  "serverMyTasksNotice": "Serverový přehled obsahuje aktivní nedokončené karty přiřazené vám.",
+  "serverSearchLimited": "Server vrátil prvních 200 výsledků. Upřesněte hledání.",
+  "openingCardLink": "Otevírá se karta…"
 }

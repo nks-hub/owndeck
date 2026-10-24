@@ -816,4 +816,47 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get telemetrySaveFailed => 'Nastavení se nepodařilo uložit.';
+
+  @override
+  String get openCardLink => 'Otevřít odkaz na kartu';
+
+  @override
+  String get cardLinkAddress => 'Odkaz na kartu v Nextcloudu';
+
+  @override
+  String get invalidCardLink =>
+      'Toto není platný HTTPS odkaz na kartu v Nextcloudu.';
+
+  @override
+  String get cardLinkAccountRequired => 'Přidejte účet pro tento server';
+
+  @override
+  String get chooseCardLinkAccount => 'Vyberte účet pro otevření karty';
+
+  @override
+  String get copyCardLink => 'Kopírovat odkaz na kartu';
+
+  @override
+  String get cardLinkCopied => 'Odkaz na kartu byl zkopírován.';
+
+  @override
+  String get localSearchMode => 'Uložené karty';
+
+  @override
+  String get serverSearchMode => 'Hledat na serveru';
+
+  @override
+  String get serverSearchNotice =>
+      'Výsledky ze serveru neobsahují dosud neodeslané změny.';
+
+  @override
+  String get serverMyTasksNotice =>
+      'Serverový přehled obsahuje aktivní nedokončené karty přiřazené vám.';
+
+  @override
+  String get serverSearchLimited =>
+      'Server vrátil prvních 200 výsledků. Upřesněte hledání.';
+
+  @override
+  String get openingCardLink => 'Otevírá se karta…';
 }

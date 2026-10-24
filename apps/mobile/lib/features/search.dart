@@ -1,11 +1,15 @@
 import 'dart:async';
 
 import 'package:deck_store/deck_store.dart';
+import 'package:deck_protocol/deck_protocol.dart';
 import 'package:flutter/material.dart';
 
 import '../data/session.dart';
+import '../data/card_reads.dart';
+import '../core/errors.dart';
 import '../l10n/app_localizations.dart';
 import 'card_detail.dart';
+import 'card_link_dialog.dart';
 
 class CardSearchScreen extends StatelessWidget {
   const CardSearchScreen({
@@ -18,7 +22,16 @@ class CardSearchScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(AppLocalizations.of(context)!.searchCards)),
+    appBar: AppBar(
+      title: Text(AppLocalizations.of(context)!.searchCards),
+      actions: [
+        IconButton(
+          tooltip: AppLocalizations.of(context)!.openCardLink,
+          icon: const Icon(Icons.link),
+          onPressed: () => enterCardLink(context),
+        ),
+      ],
+    ),
     body: CardSearchView(session: session, initiallyMineOnly: mineOnly),
   );
 }
@@ -40,6 +53,14 @@ class CardSearchView extends StatefulWidget {
 class _CardSearchViewState extends State<CardSearchView> {
   final _query = TextEditingController();
   late bool _mineOnly = widget.initiallyMineOnly || widget.fixedMineOnly;
+  bool _online = false;
+  bool _remoteBusy = false;
+  bool _limited = false;
+  Object? _remoteError;
+  List<DeckSearchEntry> _remote = [];
+  String? _remoteQuery;
+  String? _uid;
+  int? _opening;
   bool _archived = false;
   bool _completed = false;
   CardDueFilter _due = CardDueFilter.any;
@@ -82,17 +103,166 @@ class _CardSearchViewState extends State<CardSearchView> {
       _request++;
       _results = _search();
     });
+    if (_online) unawaited(_loadOnline(_request));
   }
 
   void _changed(String _) {
     _typing?.cancel();
-    setState(() => _queryPending = true);
+    setState(() {
+      _queryPending = true;
+      _request++;
+    });
     _typing = Timer(const Duration(milliseconds: 200), _refresh);
   }
 
   void _filter(VoidCallback update) {
     update();
     _refresh();
+  }
+
+  Future<void> _loadOnline(int request) async {
+    final term = _query.text.trim();
+    final mine = _mineOnly;
+    final key = '$mine:$term';
+    setState(() {
+      if (_remoteQuery != key) {
+        _remote = [];
+        _limited = false;
+      }
+      _remoteQuery = key;
+      _remoteBusy = true;
+      _remoteError = null;
+    });
+    try {
+      final uid = await widget.session.readServer((api) => api.currentUserId());
+      await widget.session.database.saveUserIdentity(
+        widget.session.account,
+        uid,
+      );
+      if (!mounted || request != _request || !_online) return;
+      final page = await widget.session.readServer(
+        (api) => mine && term.isEmpty
+            ? api.upcomingCards()
+            : api.searchCardsOnline(term),
+      );
+      if (!mounted || request != _request || !_online) return;
+      setState(() {
+        _uid = uid;
+        _remote = page.items;
+        _limited = page.limited;
+      });
+    } catch (error) {
+      if (mounted && request == _request && _online) {
+        setState(() => _remoteError = error);
+      }
+    } finally {
+      if (mounted && request == _request && _online) {
+        setState(() => _remoteBusy = false);
+      }
+    }
+  }
+
+  bool _remoteMatches(DeckSearchEntry entry) {
+    final card = entry.card;
+    if ((card.raw['deletedAt'] ?? 0) != 0 ||
+        !_archived && (card.archived || entry.boardArchived) ||
+        !_completed && card.raw['done'] != null) {
+      return false;
+    }
+    if (_mineOnly && (_uid == null || !cardAssignedTo(card, _uid!))) {
+      return false;
+    }
+    final due = DateTime.tryParse(
+      card.raw['duedate']?.toString() ?? '',
+    )?.toLocal();
+    final now = DateTime.now();
+    final start = DateTime(now.year, now.month, now.day);
+    final end = DateTime(now.year, now.month, now.day + 1);
+    return switch (_due) {
+      CardDueFilter.any => true,
+      CardDueFilter.today =>
+        due != null && !due.isBefore(start) && due.isBefore(end),
+      CardDueFilter.overdue => due != null && due.isBefore(now),
+      CardDueFilter.noDate =>
+        card.raw['duedate'] == null || card.raw['duedate'] == '',
+    };
+  }
+
+  Future<void> _openRemote(DeckSearchEntry entry) async {
+    if (_opening != null) return;
+    final request = _request;
+    setState(() => _opening = entry.card.id);
+    try {
+      final result = await widget.session.openRemoteCard(
+        entry.boardId,
+        entry.card.id,
+        stackId: entry.card.stackId,
+      );
+      if (!mounted || request != _request) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          settings: const RouteSettings(name: '/card'),
+          builder: (_) => CardScreen(
+            session: widget.session,
+            board: result.board,
+            card: result.card,
+          ),
+        ),
+      );
+    } catch (error) {
+      if (mounted && request == _request) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage(error, AppLocalizations.of(context)!)),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _opening = null);
+    }
+  }
+
+  List<Widget> _remoteSlivers(AppLocalizations text) {
+    final entries = _queryPending
+        ? <DeckSearchEntry>[]
+        : _remote.where(_remoteMatches).toList();
+    return [
+      if (_remoteBusy || _queryPending || _opening != null)
+        const SliverToBoxAdapter(child: LinearProgressIndicator()),
+      if (_remoteError != null)
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Text(errorMessage(_remoteError!, text)),
+                TextButton(onPressed: _refresh, child: Text(text.retry)),
+              ],
+            ),
+          ),
+        ),
+      if (_limited) _empty(text.serverSearchLimited),
+      if (entries.isEmpty &&
+          !_remoteBusy &&
+          !_queryPending &&
+          _remoteError == null)
+        _empty(text.noMatchingCards),
+      SliverList.builder(
+        itemCount: entries.length,
+        itemBuilder: (context, index) {
+          final entry = entries[index];
+          return ListTile(
+            key: ValueKey('remote:${entry.card.id}'),
+            leading: const Icon(Icons.cloud_outlined),
+            title: Text(entry.card.title),
+            subtitle: Text(
+              '${entry.boardTitle}${entry.stackTitle == null ? '' : ' · ${entry.stackTitle}'}',
+            ),
+            onTap: _opening == null ? () => _openRemote(entry) : null,
+          );
+        },
+      ),
+    ];
   }
 
   @override
@@ -130,7 +300,24 @@ class _CardSearchViewState extends State<CardSearchView> {
         ),
       ),
       const SizedBox(height: 12),
-      Text(text.localSearchNotice),
+      Wrap(
+        spacing: 8,
+        children: [
+          ChoiceChip(
+            label: Text(text.localSearchMode),
+            selected: !_online,
+            onSelected: (_) => _filter(() => _online = false),
+          ),
+          ChoiceChip(
+            label: Text(text.serverSearchMode),
+            selected: _online,
+            onSelected: (_) => _filter(() => _online = true),
+          ),
+        ],
+      ),
+      Text(_online ? text.serverSearchNotice : text.localSearchNotice),
+      if (_online && _mineOnly && _query.text.trim().isEmpty)
+        Text(text.serverMyTasksNotice),
       const SizedBox(height: 8),
       Wrap(
         spacing: 8,
@@ -145,12 +332,16 @@ class _CardSearchViewState extends State<CardSearchView> {
           FilterChip(
             label: Text(text.includeArchived),
             selected: _archived,
-            onSelected: (value) => _filter(() => _archived = value),
+            onSelected: _online && _mineOnly && _query.text.trim().isEmpty
+                ? null
+                : (value) => _filter(() => _archived = value),
           ),
           FilterChip(
             label: Text(text.includeCompleted),
             selected: _completed,
-            onSelected: (value) => _filter(() => _completed = value),
+            onSelected: _online && _mineOnly && _query.text.trim().isEmpty
+                ? null
+                : (value) => _filter(() => _completed = value),
           ),
         ],
       ),
@@ -195,79 +386,87 @@ class _CardSearchViewState extends State<CardSearchView> {
           padding: const EdgeInsets.all(16),
           sliver: SliverToBoxAdapter(child: _filters(text)),
         ),
-        StreamBuilder<CardSearchResult>(
-          key: ValueKey(_request),
-          stream: _results,
-          builder: (context, snapshot) {
-            final result = snapshot.data;
-            if (_queryPending ||
-                snapshot.connectionState == ConnectionState.waiting) {
-              return const SliverToBoxAdapter(child: LinearProgressIndicator());
-            }
-            if (snapshot.hasError) {
-              return SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    children: [
-                      Text(text.loadError),
-                      TextButton(onPressed: _refresh, child: Text(text.retry)),
-                    ],
-                  ),
-                ),
-              );
-            }
-            if (result == null || !result.accountAvailable) {
-              return _empty(text.accountSearchUnavailable);
-            }
-            if (_mineOnly && !result.identityKnown) {
-              return _empty(text.myTasksIdentityRequired);
-            }
-            if (result.hits.isEmpty) return _empty(text.noMatchingCards);
-            return SliverList.builder(
-              itemCount: result.hits.length,
-              itemBuilder: (context, index) {
-                final hit = result.hits[index];
-                final due = hit.due;
-                final material = MaterialLocalizations.of(context);
-                final dateText = due == null
-                    ? null
-                    : '${material.formatMediumDate(due)} ${material.formatTimeOfDay(TimeOfDay.fromDateTime(due))}';
-                return ListTile(
-                  key: ValueKey('search:${hit.board.id}:${hit.card.id}'),
-                  leading: Icon(
-                    hit.completed
-                        ? Icons.task_alt
-                        : hit.archived
-                        ? Icons.archive_outlined
-                        : Icons.check_box_outline_blank,
-                  ),
-                  title: Text(hit.card.title),
-                  subtitle: Text(
-                    '${hit.board.title} · ${hit.stack.title}${dateText == null ? '' : '\n$dateText'}',
-                  ),
-                  isThreeLine: dateText != null,
-                  trailing: hit.card.raw['syncState'] == null
-                      ? null
-                      : Tooltip(
-                          message: text.pendingChanges,
-                          child: const Icon(Icons.sync),
+        if (_online)
+          ..._remoteSlivers(text)
+        else
+          StreamBuilder<CardSearchResult>(
+            key: ValueKey(_request),
+            stream: _results,
+            builder: (context, snapshot) {
+              final result = snapshot.data;
+              if (_queryPending ||
+                  snapshot.connectionState == ConnectionState.waiting) {
+                return const SliverToBoxAdapter(
+                  child: LinearProgressIndicator(),
+                );
+              }
+              if (snapshot.hasError) {
+                return SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      children: [
+                        Text(text.loadError),
+                        TextButton(
+                          onPressed: _refresh,
+                          child: Text(text.retry),
                         ),
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      settings: const RouteSettings(name: '/card'),
-                      builder: (_) => CardScreen(
-                        session: widget.session,
-                        board: hit.board,
-                        card: hit.card,
-                      ),
+                      ],
                     ),
                   ),
                 );
-              },
-            );
-          },
-        ),
+              }
+              if (result == null || !result.accountAvailable) {
+                return _empty(text.accountSearchUnavailable);
+              }
+              if (_mineOnly && !result.identityKnown) {
+                return _empty(text.myTasksIdentityRequired);
+              }
+              if (result.hits.isEmpty) return _empty(text.noMatchingCards);
+              return SliverList.builder(
+                itemCount: result.hits.length,
+                itemBuilder: (context, index) {
+                  final hit = result.hits[index];
+                  final due = hit.due;
+                  final material = MaterialLocalizations.of(context);
+                  final dateText = due == null
+                      ? null
+                      : '${material.formatMediumDate(due)} ${material.formatTimeOfDay(TimeOfDay.fromDateTime(due))}';
+                  return ListTile(
+                    key: ValueKey('search:${hit.board.id}:${hit.card.id}'),
+                    leading: Icon(
+                      hit.completed
+                          ? Icons.task_alt
+                          : hit.archived
+                          ? Icons.archive_outlined
+                          : Icons.check_box_outline_blank,
+                    ),
+                    title: Text(hit.card.title),
+                    subtitle: Text(
+                      '${hit.board.title} · ${hit.stack.title}${dateText == null ? '' : '\n$dateText'}',
+                    ),
+                    isThreeLine: dateText != null,
+                    trailing: hit.card.raw['syncState'] == null
+                        ? null
+                        : Tooltip(
+                            message: text.pendingChanges,
+                            child: const Icon(Icons.sync),
+                          ),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        settings: const RouteSettings(name: '/card'),
+                        builder: (_) => CardScreen(
+                          session: widget.session,
+                          board: hit.board,
+                          card: hit.card,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
       ],
     );
   }

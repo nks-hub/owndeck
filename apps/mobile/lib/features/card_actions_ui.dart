@@ -1,6 +1,20 @@
 part of 'card_detail.dart';
 
 extension _CardDialogs on _CardScreenState {
+  Future<void> _copyLink(DeckBoard board, DeckCard card) async {
+    final link = DeckCardLink(
+      server: widget.session.client.base,
+      boardId: board.id,
+      cardId: card.id,
+    );
+    await Clipboard.setData(ClipboardData(text: link.webUri.toString()));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.cardLinkCopied)),
+      );
+    }
+  }
+
   Future<void> _copy(DeckCard card) async {
     if (_copying) return;
     _setCopyState(active: true);

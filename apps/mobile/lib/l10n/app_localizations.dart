@@ -1579,6 +1579,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The setting could not be saved.'**
   String get telemetrySaveFailed;
+
+  /// No description provided for @openCardLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Open card link'**
+  String get openCardLink;
+
+  /// No description provided for @cardLinkAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Nextcloud card link'**
+  String get cardLinkAddress;
+
+  /// No description provided for @invalidCardLink.
+  ///
+  /// In en, this message translates to:
+  /// **'This is not a valid HTTPS Nextcloud card link.'**
+  String get invalidCardLink;
+
+  /// No description provided for @cardLinkAccountRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an account for this server'**
+  String get cardLinkAccountRequired;
+
+  /// No description provided for @chooseCardLinkAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an account to open the card'**
+  String get chooseCardLinkAccount;
+
+  /// No description provided for @copyCardLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy card link'**
+  String get copyCardLink;
+
+  /// No description provided for @cardLinkCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Card link copied.'**
+  String get cardLinkCopied;
+
+  /// No description provided for @localSearchMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved cards'**
+  String get localSearchMode;
+
+  /// No description provided for @serverSearchMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Search on server'**
+  String get serverSearchMode;
+
+  /// No description provided for @serverSearchNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Server results do not include changes that have not been sent yet.'**
+  String get serverSearchNotice;
+
+  /// No description provided for @serverMyTasksNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'The server overview includes active, unfinished cards assigned to you.'**
+  String get serverMyTasksNotice;
+
+  /// No description provided for @serverSearchLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'The server returned the first 200 results. Refine your search.'**
+  String get serverSearchLimited;
+
+  /// No description provided for @openingCardLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening card…'**
+  String get openingCardLink;
 }
 
 class _AppLocalizationsDelegate
