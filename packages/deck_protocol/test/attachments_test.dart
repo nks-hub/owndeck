@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:deck_protocol/deck_protocol.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:test/test.dart';
 
 DeckClient client(http.Client transport) => DeckClient(
@@ -100,7 +101,13 @@ void main() {
             startsWith('multipart/form-data; boundary='),
           );
           expect(request.body, contains('name="type"\r\n\r\nfile'));
-        expect(request.body, contains('name="data"\r\n\r\n\r\n'));
+          final boundary = MediaType.parse(
+            request.headers['content-type']!,
+          ).parameters['boundary'];
+          final dataPart = request.body
+              .split('--$boundary')
+              .singleWhere((part) => part.contains('name="data"'));
+          expect(dataPart.split('\r\n\r\n').last, '\r\n');
           expect(request.body, contains('name="file"; filename="report.txt"'));
           expect(request.body, contains('hello'));
           expect(request.followRedirects, isFalse);
