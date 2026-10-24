@@ -219,4 +219,73 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get discardDraftQuestion =>
       'Permanently remove this draft text from this device?';
+
+  @override
+  String get addBoard => 'Add board';
+
+  @override
+  String get editBoard => 'Edit board';
+
+  @override
+  String get addStack => 'Add column';
+
+  @override
+  String get editStack => 'Edit column';
+
+  @override
+  String get name => 'Name';
+
+  @override
+  String get color => 'Color';
+
+  @override
+  String get position => 'Position';
+
+  @override
+  String get archive => 'Archive';
+
+  @override
+  String get unarchive => 'Unarchive';
+
+  @override
+  String get deleteBoard => 'Delete board';
+
+  @override
+  String get deleteStack => 'Delete column';
+
+  @override
+  String get deleteStructureQuestion =>
+      'Delete the selected item and its contents on the server?';
+
+  @override
+  String get activeBoards => 'Active';
+
+  @override
+  String get archivedBoards => 'Archived';
+
+  @override
+  String get deletedBoards => 'Deleted';
+
+  @override
+  String get restoreBoard => 'Restore board';
+
+  @override
+  String get invalidName => 'The name must contain 1 to 100 characters.';
+
+  @override
+  String get invalidColor =>
+      'Enter a six-digit hexadecimal color, for example 008080.';
+
+  @override
+  String get invalidPosition => 'Position must be a non-negative integer.';
+
+  @override
+  String get boardActions => 'Board actions';
+
+  @override
+  String get stackActions => 'Column actions';
+
+  @override
+  String get dependencyUnavailable =>
+      'The parent board or column was discarded. Your local content has been preserved.';
 }

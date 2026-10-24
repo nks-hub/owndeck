@@ -7,6 +7,8 @@ import 'package:uuid/uuid.dart';
 part 'database.g.dart';
 part 'writes.dart';
 part 'editor_drafts.dart';
+part 'views.dart';
+part 'structure_writes.dart';
 
 class StoredAccounts extends Table {
   TextColumn get id => text()();
@@ -15,6 +17,7 @@ class StoredAccounts extends Table {
   TextColumn get credentialRef => text().unique()();
   TextColumn get state => text().withDefault(const Constant('active'))();
   IntColumn get generation => integer().withDefault(const Constant(1))();
+  TextColumn get capabilities => text().nullable()();
   IntColumn get contentEpoch => integer().withDefault(const Constant(0))();
   BoolColumn get selected => boolean().withDefault(const Constant(false))();
   @override
@@ -122,7 +125,7 @@ class DeckDatabase extends _$DeckDatabase {
   DeckDatabase(super.executor);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -135,6 +138,8 @@ class DeckDatabase extends _$DeckDatabase {
       if (from < 3)
         await m.addColumn(storedAccounts, storedAccounts.contentEpoch);
       if (from < 4) await m.createTable(editorDrafts);
+      if (from < 5)
+        await m.addColumn(storedAccounts, storedAccounts.capabilities);
     },
     beforeOpen: (_) => customStatement('PRAGMA foreign_keys = ON'),
   );
@@ -147,71 +152,6 @@ class DeckDatabase extends _$DeckDatabase {
     final current = await account(accountId);
     return current?.state == 'active' && current?.generation == generation;
   }
-
-  Stream<List<DeckBoard>> watchBoards(String accountId) =>
-      (select(
-        storedBoards,
-      )..where((b) => b.accountId.equals(accountId))).watch().map(
-        (rows) => rows
-            .map((r) => DeckBoard.fromJson(object(jsonDecode(r.payload))))
-            .toList(),
-      );
-
-  Stream<List<DeckStack>> watchStacks(String accountId, int boardId) =>
-      customSelect(
-        '''SELECT s.remote_id, s.payload AS stack_json, c.payload AS card_json
-       FROM stored_stacks s LEFT JOIN stored_cards c
-       ON c.account_id = s.account_id AND c.stack_id = s.remote_id AND c.board_id = s.board_id
-       WHERE s.account_id = ? AND s.board_id = ?
-       ORDER BY s.position, s.remote_id, c.position, c.remote_id''',
-        variables: [Variable(accountId), Variable(boardId)],
-        readsFrom: {storedStacks, storedCards, pendingWrites},
-      ).watch().asyncMap((rows) async {
-        final stacks = <int, JsonObject>{};
-        for (final row in rows) {
-          final stack = stacks.putIfAbsent(
-            row.read<int>('remote_id'),
-            () => {
-              ...object(jsonDecode(row.read<String>('stack_json'))),
-              'cards': <JsonObject>[],
-            },
-          );
-          final card = row.readNullable<String>('card_json');
-          if (card != null)
-            (stack['cards'] as List<JsonObject>).add(object(jsonDecode(card)));
-        }
-        final pending = await writesFor(accountId, boardId: boardId);
-        for (final write in pending) {
-          final stack = stacks[write.stackId];
-          if (stack == null) continue;
-          final cards = stack['cards'] as List<JsonObject>;
-          final changes = object(jsonDecode(write.proposal));
-          if (write.kind == 'createCard') {
-            cards.add({
-              ...changes,
-              'id': -write.sequence,
-              'stackId': write.stackId,
-              'syncState': write.state,
-            });
-          } else if (write.kind == 'updateCard') {
-            final index = cards.indexWhere((c) => c['id'] == write.cardId);
-            final original = index < 0
-                ? object(jsonDecode(write.base!))
-                : cards[index];
-            final projected = {
-              ...original,
-              ...changes,
-              'syncState': write.state,
-            };
-            if (index < 0) {
-              cards.add(projected);
-            } else {
-              cards[index] = projected;
-            }
-          }
-        }
-        return stacks.values.map(DeckStack.fromJson).toList();
-      });
 
   Future<SyncCheckpoint?> checkpoint(String accountId, String scope) =>
       (select(syncCheckpoints)..where(

@@ -220,4 +220,73 @@ class AppLocalizationsCs extends AppLocalizations {
   @override
   String get discardDraftQuestion =>
       'Trvale odstranit tento rozepsaný text z telefonu?';
+
+  @override
+  String get addBoard => 'Přidat nástěnku';
+
+  @override
+  String get editBoard => 'Upravit nástěnku';
+
+  @override
+  String get addStack => 'Přidat sloupec';
+
+  @override
+  String get editStack => 'Upravit sloupec';
+
+  @override
+  String get name => 'Název';
+
+  @override
+  String get color => 'Barva';
+
+  @override
+  String get position => 'Pořadí';
+
+  @override
+  String get archive => 'Archivovat';
+
+  @override
+  String get unarchive => 'Vrátit z archivu';
+
+  @override
+  String get deleteBoard => 'Smazat nástěnku';
+
+  @override
+  String get deleteStack => 'Smazat sloupec';
+
+  @override
+  String get deleteStructureQuestion =>
+      'Opravdu smazat vybranou položku včetně jejího obsahu na serveru?';
+
+  @override
+  String get activeBoards => 'Aktivní';
+
+  @override
+  String get archivedBoards => 'Archivované';
+
+  @override
+  String get deletedBoards => 'Smazané';
+
+  @override
+  String get restoreBoard => 'Obnovit nástěnku';
+
+  @override
+  String get invalidName => 'Název musí mít 1 až 100 znaků.';
+
+  @override
+  String get invalidColor =>
+      'Barvu zadejte šesti hexadecimálními znaky, například 008080.';
+
+  @override
+  String get invalidPosition => 'Pořadí musí být celé nezáporné číslo.';
+
+  @override
+  String get boardActions => 'Akce nástěnky';
+
+  @override
+  String get stackActions => 'Akce sloupce';
+
+  @override
+  String get dependencyUnavailable =>
+      'Nadřazená nástěnka nebo sloupec byly zrušeny. Místní obsah zůstal zachovaný.';
 }

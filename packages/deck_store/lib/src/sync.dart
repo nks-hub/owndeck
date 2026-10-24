@@ -5,8 +5,10 @@ import 'package:uuid/uuid.dart';
 
 import 'database.dart';
 
-final class CardSync {
-  CardSync(this.database, this.account, this.client);
+part 'structure_sync.dart';
+
+final class DeckSync {
+  DeckSync(this.database, this.account, this.client);
   final DeckDatabase database;
   final StoredAccount account;
   final DeckClient client;
@@ -34,10 +36,30 @@ final class CardSync {
     try {
       await database.recoverWrites(account, _owner);
       while (!_closed) {
-        final queued = (await database.writesFor(
+        PendingWrite? queued;
+        for (final candidate in (await database.writesFor(
           account.id,
-        )).where((w) => w.state == 'queued').firstOrNull;
+        )).where((w) => w.state == 'queued')) {
+          if (await database.dependencyUnavailable(candidate)) {
+            if (await database.startWrite(account, _owner, candidate.id)) {
+              await database.markWrite(
+                account,
+                _owner,
+                candidate.id,
+                'blocked',
+                error: 'dependency_unavailable',
+              );
+            }
+            continue;
+          }
+          queued = await database.resolveWrite(candidate);
+          if (queued != null) break;
+        }
         if (queued == null) return;
+        if (queued.kind.endsWith('Board') || queued.kind.endsWith('Stack')) {
+          if (!await _sendStructure(queued)) return;
+          continue;
+        }
         // A successful read establishes reachability before changing queued to sending.
         DeckResponse boardResponse;
         try {

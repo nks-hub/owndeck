@@ -493,6 +493,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Permanently remove this draft text from this device?'**
   String get discardDraftQuestion;
+
+  /// No description provided for @addBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Add board'**
+  String get addBoard;
+
+  /// No description provided for @editBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit board'**
+  String get editBoard;
+
+  /// No description provided for @addStack.
+  ///
+  /// In en, this message translates to:
+  /// **'Add column'**
+  String get addStack;
+
+  /// No description provided for @editStack.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit column'**
+  String get editStack;
+
+  /// No description provided for @name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get name;
+
+  /// No description provided for @color.
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get color;
+
+  /// No description provided for @position.
+  ///
+  /// In en, this message translates to:
+  /// **'Position'**
+  String get position;
+
+  /// No description provided for @archive.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get archive;
+
+  /// No description provided for @unarchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Unarchive'**
+  String get unarchive;
+
+  /// No description provided for @deleteBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete board'**
+  String get deleteBoard;
+
+  /// No description provided for @deleteStack.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete column'**
+  String get deleteStack;
+
+  /// No description provided for @deleteStructureQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the selected item and its contents on the server?'**
+  String get deleteStructureQuestion;
+
+  /// No description provided for @activeBoards.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get activeBoards;
+
+  /// No description provided for @archivedBoards.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get archivedBoards;
+
+  /// No description provided for @deletedBoards.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted'**
+  String get deletedBoards;
+
+  /// No description provided for @restoreBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore board'**
+  String get restoreBoard;
+
+  /// No description provided for @invalidName.
+  ///
+  /// In en, this message translates to:
+  /// **'The name must contain 1 to 100 characters.'**
+  String get invalidName;
+
+  /// No description provided for @invalidColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a six-digit hexadecimal color, for example 008080.'**
+  String get invalidColor;
+
+  /// No description provided for @invalidPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Position must be a non-negative integer.'**
+  String get invalidPosition;
+
+  /// No description provided for @boardActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Board actions'**
+  String get boardActions;
+
+  /// No description provided for @stackActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Column actions'**
+  String get stackActions;
+
+  /// No description provided for @dependencyUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The parent board or column was discarded. Your local content has been preserved.'**
+  String get dependencyUnavailable;
 }
 
 class _AppLocalizationsDelegate

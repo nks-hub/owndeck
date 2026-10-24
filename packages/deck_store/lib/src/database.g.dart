@@ -72,6 +72,17 @@ class $StoredAccountsTable extends StoredAccounts
     requiredDuringInsert: false,
     defaultValue: const Constant(1),
   );
+  static const VerificationMeta _capabilitiesMeta = const VerificationMeta(
+    'capabilities',
+  );
+  @override
+  late final GeneratedColumn<String> capabilities = GeneratedColumn<String>(
+    'capabilities',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _contentEpochMeta = const VerificationMeta(
     'contentEpoch',
   );
@@ -107,6 +118,7 @@ class $StoredAccountsTable extends StoredAccounts
     credentialRef,
     state,
     generation,
+    capabilities,
     contentEpoch,
     selected,
   ];
@@ -166,6 +178,15 @@ class $StoredAccountsTable extends StoredAccounts
         generation.isAcceptableOrUnknown(data['generation']!, _generationMeta),
       );
     }
+    if (data.containsKey('capabilities')) {
+      context.handle(
+        _capabilitiesMeta,
+        capabilities.isAcceptableOrUnknown(
+          data['capabilities']!,
+          _capabilitiesMeta,
+        ),
+      );
+    }
     if (data.containsKey('content_epoch')) {
       context.handle(
         _contentEpochMeta,
@@ -218,6 +239,10 @@ class $StoredAccountsTable extends StoredAccounts
         DriftSqlType.int,
         data['${effectivePrefix}generation'],
       )!,
+      capabilities: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}capabilities'],
+      ),
       contentEpoch: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}content_epoch'],
@@ -242,6 +267,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
   final String credentialRef;
   final String state;
   final int generation;
+  final String? capabilities;
   final int contentEpoch;
   final bool selected;
   const StoredAccount({
@@ -251,6 +277,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
     required this.credentialRef,
     required this.state,
     required this.generation,
+    this.capabilities,
     required this.contentEpoch,
     required this.selected,
   });
@@ -263,6 +290,9 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
     map['credential_ref'] = Variable<String>(credentialRef);
     map['state'] = Variable<String>(state);
     map['generation'] = Variable<int>(generation);
+    if (!nullToAbsent || capabilities != null) {
+      map['capabilities'] = Variable<String>(capabilities);
+    }
     map['content_epoch'] = Variable<int>(contentEpoch);
     map['selected'] = Variable<bool>(selected);
     return map;
@@ -276,6 +306,9 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
       credentialRef: Value(credentialRef),
       state: Value(state),
       generation: Value(generation),
+      capabilities: capabilities == null && nullToAbsent
+          ? const Value.absent()
+          : Value(capabilities),
       contentEpoch: Value(contentEpoch),
       selected: Value(selected),
     );
@@ -293,6 +326,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
       credentialRef: serializer.fromJson<String>(json['credentialRef']),
       state: serializer.fromJson<String>(json['state']),
       generation: serializer.fromJson<int>(json['generation']),
+      capabilities: serializer.fromJson<String?>(json['capabilities']),
       contentEpoch: serializer.fromJson<int>(json['contentEpoch']),
       selected: serializer.fromJson<bool>(json['selected']),
     );
@@ -307,6 +341,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
       'credentialRef': serializer.toJson<String>(credentialRef),
       'state': serializer.toJson<String>(state),
       'generation': serializer.toJson<int>(generation),
+      'capabilities': serializer.toJson<String?>(capabilities),
       'contentEpoch': serializer.toJson<int>(contentEpoch),
       'selected': serializer.toJson<bool>(selected),
     };
@@ -319,6 +354,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
     String? credentialRef,
     String? state,
     int? generation,
+    Value<String?> capabilities = const Value.absent(),
     int? contentEpoch,
     bool? selected,
   }) => StoredAccount(
@@ -328,6 +364,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
     credentialRef: credentialRef ?? this.credentialRef,
     state: state ?? this.state,
     generation: generation ?? this.generation,
+    capabilities: capabilities.present ? capabilities.value : this.capabilities,
     contentEpoch: contentEpoch ?? this.contentEpoch,
     selected: selected ?? this.selected,
   );
@@ -343,6 +380,9 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
       generation: data.generation.present
           ? data.generation.value
           : this.generation,
+      capabilities: data.capabilities.present
+          ? data.capabilities.value
+          : this.capabilities,
       contentEpoch: data.contentEpoch.present
           ? data.contentEpoch.value
           : this.contentEpoch,
@@ -359,6 +399,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
           ..write('credentialRef: $credentialRef, ')
           ..write('state: $state, ')
           ..write('generation: $generation, ')
+          ..write('capabilities: $capabilities, ')
           ..write('contentEpoch: $contentEpoch, ')
           ..write('selected: $selected')
           ..write(')'))
@@ -373,6 +414,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
     credentialRef,
     state,
     generation,
+    capabilities,
     contentEpoch,
     selected,
   );
@@ -386,6 +428,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
           other.credentialRef == this.credentialRef &&
           other.state == this.state &&
           other.generation == this.generation &&
+          other.capabilities == this.capabilities &&
           other.contentEpoch == this.contentEpoch &&
           other.selected == this.selected);
 }
@@ -397,6 +440,7 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
   final Value<String> credentialRef;
   final Value<String> state;
   final Value<int> generation;
+  final Value<String?> capabilities;
   final Value<int> contentEpoch;
   final Value<bool> selected;
   final Value<int> rowid;
@@ -407,6 +451,7 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
     this.credentialRef = const Value.absent(),
     this.state = const Value.absent(),
     this.generation = const Value.absent(),
+    this.capabilities = const Value.absent(),
     this.contentEpoch = const Value.absent(),
     this.selected = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -418,6 +463,7 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
     required String credentialRef,
     this.state = const Value.absent(),
     this.generation = const Value.absent(),
+    this.capabilities = const Value.absent(),
     this.contentEpoch = const Value.absent(),
     this.selected = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -432,6 +478,7 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
     Expression<String>? credentialRef,
     Expression<String>? state,
     Expression<int>? generation,
+    Expression<String>? capabilities,
     Expression<int>? contentEpoch,
     Expression<bool>? selected,
     Expression<int>? rowid,
@@ -443,6 +490,7 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
       if (credentialRef != null) 'credential_ref': credentialRef,
       if (state != null) 'state': state,
       if (generation != null) 'generation': generation,
+      if (capabilities != null) 'capabilities': capabilities,
       if (contentEpoch != null) 'content_epoch': contentEpoch,
       if (selected != null) 'selected': selected,
       if (rowid != null) 'rowid': rowid,
@@ -456,6 +504,7 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
     Value<String>? credentialRef,
     Value<String>? state,
     Value<int>? generation,
+    Value<String?>? capabilities,
     Value<int>? contentEpoch,
     Value<bool>? selected,
     Value<int>? rowid,
@@ -467,6 +516,7 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
       credentialRef: credentialRef ?? this.credentialRef,
       state: state ?? this.state,
       generation: generation ?? this.generation,
+      capabilities: capabilities ?? this.capabilities,
       contentEpoch: contentEpoch ?? this.contentEpoch,
       selected: selected ?? this.selected,
       rowid: rowid ?? this.rowid,
@@ -494,6 +544,9 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
     if (generation.present) {
       map['generation'] = Variable<int>(generation.value);
     }
+    if (capabilities.present) {
+      map['capabilities'] = Variable<String>(capabilities.value);
+    }
     if (contentEpoch.present) {
       map['content_epoch'] = Variable<int>(contentEpoch.value);
     }
@@ -515,6 +568,7 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
           ..write('credentialRef: $credentialRef, ')
           ..write('state: $state, ')
           ..write('generation: $generation, ')
+          ..write('capabilities: $capabilities, ')
           ..write('contentEpoch: $contentEpoch, ')
           ..write('selected: $selected, ')
           ..write('rowid: $rowid')
@@ -3452,6 +3506,7 @@ typedef $$StoredAccountsTableCreateCompanionBuilder =
       required String credentialRef,
       Value<String> state,
       Value<int> generation,
+      Value<String?> capabilities,
       Value<int> contentEpoch,
       Value<bool> selected,
       Value<int> rowid,
@@ -3464,6 +3519,7 @@ typedef $$StoredAccountsTableUpdateCompanionBuilder =
       Value<String> credentialRef,
       Value<String> state,
       Value<int> generation,
+      Value<String?> capabilities,
       Value<int> contentEpoch,
       Value<bool> selected,
       Value<int> rowid,
@@ -3643,6 +3699,11 @@ class $$StoredAccountsTableFilterComposer
 
   ColumnFilters<int> get generation => $composableBuilder(
     column: $table.generation,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get capabilities => $composableBuilder(
+    column: $table.capabilities,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3871,6 +3932,11 @@ class $$StoredAccountsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get capabilities => $composableBuilder(
+    column: $table.capabilities,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get contentEpoch => $composableBuilder(
     column: $table.contentEpoch,
     builder: (column) => ColumnOrderings(column),
@@ -3910,6 +3976,11 @@ class $$StoredAccountsTableAnnotationComposer
 
   GeneratedColumn<int> get generation => $composableBuilder(
     column: $table.generation,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get capabilities => $composableBuilder(
+    column: $table.capabilities,
     builder: (column) => column,
   );
 
@@ -4141,6 +4212,7 @@ class $$StoredAccountsTableTableManager
                 Value<String> credentialRef = const Value.absent(),
                 Value<String> state = const Value.absent(),
                 Value<int> generation = const Value.absent(),
+                Value<String?> capabilities = const Value.absent(),
                 Value<int> contentEpoch = const Value.absent(),
                 Value<bool> selected = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -4151,6 +4223,7 @@ class $$StoredAccountsTableTableManager
                 credentialRef: credentialRef,
                 state: state,
                 generation: generation,
+                capabilities: capabilities,
                 contentEpoch: contentEpoch,
                 selected: selected,
                 rowid: rowid,
@@ -4163,6 +4236,7 @@ class $$StoredAccountsTableTableManager
                 required String credentialRef,
                 Value<String> state = const Value.absent(),
                 Value<int> generation = const Value.absent(),
+                Value<String?> capabilities = const Value.absent(),
                 Value<int> contentEpoch = const Value.absent(),
                 Value<bool> selected = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -4173,6 +4247,7 @@ class $$StoredAccountsTableTableManager
                 credentialRef: credentialRef,
                 state: state,
                 generation: generation,
+                capabilities: capabilities,
                 contentEpoch: contentEpoch,
                 selected: selected,
                 rowid: rowid,

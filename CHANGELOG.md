@@ -14,5 +14,8 @@
 - Prevent an older refresh response from overwriting a confirmed write.
 - Autosave card editor drafts separately from the server outbox and restore them after restart.
 - Refresh after resuming or changing networks; poll opened boards only in the foreground.
+- Create, edit, archive, delete, and restore boards through the durable outbox.
+- Create, rename, reorder, and delete columns with board management permission.
+- Resolve offline parent-child creation dependencies without guessing server IDs.
 
 Automated and device acceptance tests are scheduled after feature development. This version has not been distributed.

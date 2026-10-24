@@ -51,8 +51,8 @@ void main() {
   });
   tearDown(() => db.close());
 
-  CardSync engine(Future<http.Response> Function(http.Request) handle) =>
-      CardSync(
+  DeckSync engine(Future<http.Response> Function(http.Request) handle) =>
+      DeckSync(
         db,
         account,
         DeckClient(

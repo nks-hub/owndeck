@@ -9,6 +9,8 @@ import 'accounts.dart';
 import 'card_editor.dart';
 import 'pending.dart';
 import 'sync_notice.dart';
+import 'structure_editor.dart';
+import 'package:deck_store/deck_store.dart';
 
 class BoardsScreen extends StatefulWidget {
   const BoardsScreen({super.key, required this.session});
@@ -18,6 +20,7 @@ class BoardsScreen extends StatefulWidget {
 }
 
 class _BoardsScreenState extends State<BoardsScreen> {
+  int _filter = 0;
   late final Stream<List<DeckBoard>> _boards = widget.session.watchBoards();
   @override
   void initState() {
@@ -68,10 +71,44 @@ class _BoardsScreenState extends State<BoardsScreen> {
             if (snapshot.hasError)
               return Center(child: Text(text.storageError));
             final boards = (snapshot.data ?? [])
-                .where((b) => !b.archived && b.deletedAt == 0)
+                .where(
+                  (b) => _filter == 2
+                      ? b.deletedAt != 0
+                      : b.deletedAt == 0 && b.archived == (_filter == 1),
+                )
                 .toList();
             return Column(
               children: [
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Wrap(
+                    spacing: 8,
+                    children: [
+                      ChoiceChip(
+                        label: Text(text.activeBoards),
+                        selected: _filter == 0,
+                        onSelected: (_) => setState(() => _filter = 0),
+                      ),
+                      ChoiceChip(
+                        label: Text(text.archivedBoards),
+                        selected: _filter == 1,
+                        onSelected: (_) => setState(() => _filter = 1),
+                      ),
+                      ChoiceChip(
+                        label: Text(text.deletedBoards),
+                        selected: _filter == 2,
+                        onSelected: (_) => setState(() => _filter = 2),
+                      ),
+                      FilledButton.icon(
+                        icon: const Icon(Icons.add),
+                        label: Text(text.addBoard),
+                        onPressed: session.capabilities?.canCreateBoards == true
+                            ? () => editStructure(context, session)
+                            : null,
+                      ),
+                    ],
+                  ),
+                ),
                 SyncNotice(
                   session: session,
                   scope: 'boards',
@@ -117,21 +154,28 @@ class _BoardsScreenState extends State<BoardsScreen> {
                                       : Color(0xff000000 | color),
                                 ),
                                 title: Text(board.title),
-                                subtitle: board.permissions.edit
+                                subtitle: board.raw['syncState'] != null
+                                    ? Text(text.pendingChanges)
+                                    : board.permissions.edit
                                     ? null
                                     : Text(text.readOnly),
-                                trailing: const Icon(Icons.chevron_right),
-                                onTap: () => Navigator.of(context).push(
-                                  MaterialPageRoute<void>(
-                                    settings: const RouteSettings(
-                                      name: '/board',
-                                    ),
-                                    builder: (_) => BoardScreen(
-                                      session: session,
-                                      board: board,
-                                    ),
-                                  ),
+                                trailing: BoardActions(
+                                  session: session,
+                                  board: board,
                                 ),
+                                onTap: board.deletedAt != 0
+                                    ? null
+                                    : () => Navigator.of(context).push(
+                                        MaterialPageRoute<void>(
+                                          settings: const RouteSettings(
+                                            name: '/board',
+                                          ),
+                                          builder: (_) => BoardScreen(
+                                            session: session,
+                                            board: board,
+                                          ),
+                                        ),
+                                      ),
                               );
                             },
                           ),
@@ -155,6 +199,9 @@ class BoardScreen extends StatefulWidget {
 }
 
 class _BoardScreenState extends State<BoardScreen> {
+  late DeckBoard _board = widget.board;
+  bool _unavailable = false;
+  StreamSubscription<DeckBoard?>? _boardChanges;
   late final Stream<List<DeckStack>> _stacks = widget.session.watchStacks(
     widget.board.id,
   );
@@ -162,6 +209,20 @@ class _BoardScreenState extends State<BoardScreen> {
   @override
   void initState() {
     super.initState();
+    _boardChanges = widget.session.database
+        .watchBoard(widget.session.account.id, widget.board.id)
+        .listen(
+          (board) {
+            if (mounted)
+              setState(() {
+                _unavailable = board == null || !board.permissions.read;
+                if (board != null) _board = board;
+              });
+          },
+          onError: (Object _) {
+            if (mounted) setState(() => _unavailable = true);
+          },
+        );
     scheduleMicrotask(() {
       if (mounted) widget.session.openBoard(widget.board.id);
     });
@@ -169,6 +230,7 @@ class _BoardScreenState extends State<BoardScreen> {
 
   @override
   void dispose() {
+    unawaited(_boardChanges?.cancel());
     widget.session.closeBoard(widget.board.id);
     super.dispose();
   }
@@ -177,10 +239,23 @@ class _BoardScreenState extends State<BoardScreen> {
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context)!;
     final session = widget.session;
+    if (_unavailable || _board.deletedAt != 0)
+      return Scaffold(
+        appBar: AppBar(title: Text(_board.title)),
+        body: Center(child: Text(text.permissionError)),
+      );
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.board.title),
+        title: Text(_board.title),
         actions: [
+          if (_board.permissions.manage && !_board.archived)
+            IconButton(
+              tooltip: text.addStack,
+              icon: const Icon(Icons.add),
+              onPressed: () =>
+                  editStructure(context, session, board: _board, column: true),
+            ),
+          BoardActions(session: session, board: _board),
           IconButton(
             onPressed: _refresh,
             tooltip: text.refresh,
@@ -238,6 +313,15 @@ class _BoardScreenState extends State<BoardScreen> {
                                             if (index == stack.cards.length) {
                                               return Column(
                                                 children: [
+                                                  if (_board
+                                                          .permissions
+                                                          .manage &&
+                                                      !_board.archived)
+                                                    StackActions(
+                                                      session: session,
+                                                      board: _board,
+                                                      stack: stack,
+                                                    ),
                                                   if (stack.cards.isEmpty)
                                                     Padding(
                                                       padding:
@@ -252,7 +336,7 @@ class _BoardScreenState extends State<BoardScreen> {
                                                           .board
                                                           .permissions
                                                           .edit &&
-                                                      !widget.board.archived)
+                                                      !_board.archived)
                                                     Padding(
                                                       padding:
                                                           const EdgeInsets.symmetric(

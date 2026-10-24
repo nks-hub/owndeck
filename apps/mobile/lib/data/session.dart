@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:deck_protocol/deck_protocol.dart';
@@ -8,7 +9,11 @@ import 'package:flutter/widgets.dart';
 
 final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
   DeckSession(this.database, this.account, this.client) {
-    sync = CardSync(database, account, client);
+    sync = DeckSync(database, account, client);
+    if (account.capabilities != null)
+      capabilities = DeckCapabilities.fromJson(
+        object(jsonDecode(account.capabilities!)),
+      );
     WidgetsBinding.instance.addObserver(this);
     _foreground =
         WidgetsBinding.instance.lifecycleState == null ||
@@ -26,7 +31,7 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
   final DeckDatabase database;
   final StoredAccount account;
   final DeckClient client;
-  late final CardSync sync;
+  late final DeckSync sync;
   late final StreamSubscription<List<ConnectivityResult>> _connection;
   late final Timer _timer;
   final _openBoards = <int>{};
@@ -70,6 +75,7 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> refreshBoards() => _refresh('boards', () async {
     await sync.run();
     capabilities = await client.capabilities();
+    await database.saveCapabilities(account, capabilities!);
     final cached = await database.checkpoint(account.id, 'boards');
     final epoch = (await database.account(account.id))?.contentEpoch;
     final response = await client.rest('GET', ['boards'], etag: cached?.etag);
@@ -87,11 +93,17 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> refreshStacks(int boardId) =>
       _refresh('board:$boardId', () async {
         await sync.run();
-        final cached = await database.checkpoint(account.id, 'board:$boardId');
+        final resolved = await database.resolveId(
+          account.id,
+          boardId,
+          'createBoard',
+        );
+        if (resolved == null) return;
+        final cached = await database.checkpoint(account.id, 'board:$resolved');
         final epoch = (await database.account(account.id))?.contentEpoch;
         final response = await client.rest('GET', [
           'boards',
-          '$boardId',
+          '$resolved',
           'stacks',
         ], etag: cached?.etag);
         if (_disposed || response.notModified) return;
@@ -99,7 +111,7 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
         await database.saveStacks(
           account.id,
           account.generation,
-          boardId,
+          resolved,
           stacks,
           response.etag,
           contentEpoch: epoch,

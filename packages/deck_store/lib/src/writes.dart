@@ -48,19 +48,17 @@ extension DeckWrites on DeckDatabase {
       }
     }
     final source = resolved;
-    final board =
-        await (select(storedBoards)..where(
-              (b) =>
-                  b.accountId.equals(account.id) & b.remoteId.equals(boardId),
-            ))
-            .getSingleOrNull();
+    final resolvedBoardId =
+        await resolveId(account.id, boardId, 'createBoard') ?? boardId;
+    final board = (await boardView(
+      account.id,
+    )).where((b) => b.id == resolvedBoardId).firstOrNull;
     if (board == null ||
-        !DeckBoard.fromJson(
-          object(jsonDecode(board.payload)),
-        ).permissions.edit) {
+        !board.permissions.edit ||
+        board.archived ||
+        board.deletedAt != 0)
       throw StateError('permission_denied');
-    }
-    final existing = (await writesFor(account.id, boardId: boardId))
+    final existing = (await writesFor(account.id))
         .where(
           (w) =>
               source != null &&
@@ -226,19 +224,7 @@ extension DeckWrites on DeckDatabase {
         error: const Value(null),
       ),
     );
-    final currentAccount = (await this.account(account.id))!;
-    await (update(storedAccounts)..where((a) => a.id.equals(account.id))).write(
-      StoredAccountsCompanion(
-        contentEpoch: Value(currentAccount.contentEpoch + 1),
-      ),
-    );
-    await (delete(syncCheckpoints)..where(
-          (c) =>
-              c.accountId.equals(account.id) &
-              (c.scope.equals('boards') |
-                  c.scope.equals('board:${write.boardId}')),
-        ))
-        .go();
+    await invalidateMutation(account.id, write.boardId);
   });
 
   Future<void> decideWrite(
@@ -260,7 +246,10 @@ extension DeckWrites on DeckDatabase {
         base: acceptRemoteBase && write.remote != null
             ? Value(write.remote)
             : const Value.absent(),
-        stackId: acceptRemoteBase && write.remote != null
+        stackId:
+            acceptRemoteBase &&
+                write.remote != null &&
+                write.kind == 'updateCard'
             ? Value(intField(object(jsonDecode(write.remote!)), 'stackId'))
             : const Value.absent(),
       ),

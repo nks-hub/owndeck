@@ -126,7 +126,11 @@ class _PendingScreenState extends State<PendingScreen> {
                             .toString(),
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
-                      Text(state),
+                      Text(
+                        write.error == 'dependency_unavailable'
+                            ? text.dependencyUnavailable
+                            : state,
+                      ),
                       const SizedBox(height: 12),
                       Text(text.localVersion),
                       SelectableText(
