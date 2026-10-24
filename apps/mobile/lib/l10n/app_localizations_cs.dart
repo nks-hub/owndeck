@@ -797,6 +797,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get telemetryTitle => 'Diagnostika a používání';
 
   @override
+  String get privacyPolicy => 'Zásady ochrany soukromí';
+
+  @override
   String get crashReporting => 'Hlášení chyb';
 
   @override

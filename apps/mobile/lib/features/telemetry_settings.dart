@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../core/telemetry_bootstrap.dart';
 import '../l10n/app_localizations.dart';
@@ -42,6 +44,29 @@ class _TelemetrySettingsScreenState extends State<TelemetrySettingsScreen> {
       await _runtime.setAnalytics(_runtime.preferences.analytics);
     }
   }, retry: true);
+
+  Future<void> _openPrivacyPolicy() async {
+    final czech = Localizations.localeOf(context).languageCode == 'cs';
+    final uri = Uri.parse(
+      czech
+          ? 'https://nks-hub.cz/stranka/owndeck-soukromi'
+          : 'https://nks-hub.cz/en/stranka/owndeck-privacy',
+    );
+    try {
+      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        _browserError();
+      }
+    } on PlatformException {
+      _browserError();
+    }
+  }
+
+  void _browserError() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AppLocalizations.of(context)!.browserError)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,6 +145,16 @@ class _TelemetrySettingsScreenState extends State<TelemetrySettingsScreen> {
                           !config.analyticsAvailable
                       ? null
                       : (value) => _save(() => _runtime.setAnalytics(value)),
+                ),
+                Semantics(
+                  key: const Key('privacy-policy-link'),
+                  link: true,
+                  child: ListTile(
+                    leading: const Icon(Icons.privacy_tip_outlined),
+                    title: Text(text.privacyPolicy),
+                    trailing: const Icon(Icons.open_in_new),
+                    onTap: _openPrivacyPolicy,
+                  ),
                 ),
               ],
             );

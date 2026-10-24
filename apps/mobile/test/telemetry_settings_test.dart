@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nextclouddeck/core/telemetry.dart';
 import 'package:nextclouddeck/core/telemetry_bootstrap.dart';
 import 'package:nextclouddeck/core/telemetry_preferences.dart';
 import 'package:nextclouddeck/features/telemetry_settings.dart';
+import 'package:nextclouddeck/l10n/app_localizations.dart';
 
 import 'test_support.dart';
 
@@ -66,6 +68,93 @@ const _configured = TelemetryConfig(
 );
 
 void main() {
+  const browser = MethodChannel('plugins.flutter.io/url_launcher');
+  final launches = <MethodCall>[];
+  var launchResult = true;
+  PlatformException? launchError;
+
+  setUp(() {
+    launches.clear();
+    launchResult = true;
+    launchError = null;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(browser, (call) async {
+          launches.add(call);
+          if (launchError != null) throw launchError!;
+          return launchResult;
+        });
+  });
+
+  tearDown(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(browser, null);
+  });
+
+  for (final locale in ['en', 'cs']) {
+    testWidgets('privacy policy opens the $locale page without telemetry', (
+      tester,
+    ) async {
+      final runtime = TelemetryRuntime(config: const TelemetryConfig());
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: Locale(locale),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: TelemetrySettingsScreen(runtime: runtime),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final link = find.byKey(const Key('privacy-policy-link'));
+      final semantics = tester.ensureSemantics();
+      try {
+        await tester.pump();
+        expect(tester.getSemantics(link).flagsCollection.isLink, isTrue);
+      } finally {
+        semantics.dispose();
+      }
+      expect(
+        find.text(
+          locale == 'cs' ? 'Zásady ochrany soukromí' : 'Privacy policy',
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(link);
+      await tester.pumpAndSettle();
+      expect(launches, hasLength(1));
+      expect(launches.single.method, 'launch');
+      expect(
+        launches.single.arguments['url'],
+        locale == 'cs'
+            ? 'https://nks-hub.cz/stranka/owndeck-soukromi'
+            : 'https://nks-hub.cz/en/stranka/owndeck-privacy',
+      );
+      expect(launches.single.arguments['useWebView'], isFalse);
+      expect(launches.single.arguments['useSafariVC'], isFalse);
+      await tester.pumpWidget(const SizedBox());
+      await runtime.close();
+    });
+  }
+
+  for (final throws in [false, true]) {
+    testWidgets('privacy policy reports a browser failure (throws=$throws)', (
+      tester,
+    ) async {
+      launchResult = false;
+      if (throws) launchError = PlatformException(code: 'unavailable');
+      final runtime = TelemetryRuntime(config: const TelemetryConfig());
+      await tester.pumpWidget(
+        localizedTestApp(home: TelemetrySettingsScreen(runtime: runtime)),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('privacy-policy-link')));
+      await tester.pumpAndSettle();
+      expect(find.text('The browser could not be opened.'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+      await runtime.close();
+    });
+  }
+
   testWidgets(
     'unconfigured builds show disabled controls without loading preferences or SDKs',
     (tester) async {

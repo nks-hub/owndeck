@@ -258,6 +258,7 @@
   "noDeckNotifications": "No Deck notifications.",
   "openInNextcloud": "Open in Nextcloud",
   "telemetryTitle": "Diagnostics and usage",
+  "privacyPolicy": "Privacy policy",
   "crashReporting": "Error reporting",
   "crashReportingDescription": "Send technical errors without card contents, files or credentials.",
   "usageAnalytics": "Usage statistics",

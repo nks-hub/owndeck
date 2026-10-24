@@ -793,6 +793,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get telemetryTitle => 'Diagnostics and usage';
 
   @override
+  String get privacyPolicy => 'Privacy policy';
+
+  @override
   String get crashReporting => 'Error reporting';
 
   @override

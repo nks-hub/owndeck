@@ -258,6 +258,7 @@
   "noDeckNotifications": "Žádná oznámení Decku.",
   "openInNextcloud": "Otevřít v Nextcloudu",
   "telemetryTitle": "Diagnostika a používání",
+  "privacyPolicy": "Zásady ochrany soukromí",
   "crashReporting": "Hlášení chyb",
   "crashReportingDescription": "Odesílat technické chyby bez obsahu karet, souborů a přihlašovacích údajů.",
   "usageAnalytics": "Statistiky používání",
