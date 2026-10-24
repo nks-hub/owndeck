@@ -38,13 +38,14 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] D08 Volitelné Sentry/Rybbit, konfigurace přes CI, obě služby v našich buildech a oddělené přepínače hotové; doručení ze S9 ověřené, nastavení přežije restart na S9/S21. Sentry zachytává Dart/Flutter chyby, nativní crash/hang sběr není zapnutý.
 - [x] D09 České/anglické texty, srozumitelné chyby, společné přihlášení, vlastní launcher ikony a hlavní přístupnost zapojené; 200% text a malá výška ověřené testy, landscape editor i Cancel fyzicky na S9 v `ba364e0`. Formální TalkBack/VoiceOver audit se netvrdí.
 - [x] D10 Kopie karet, směrované vazby, hotový sloupec a přehled oznámení hotové a ověřené i na Decku 1.18.5. Vazby neblokují dokončení karty. OS push není zapnutý; chybí ověřený mobilní push kanál pro Deck.
-- [ ] T01 Spouštět jednotkové a UI sady neblokujícím způsobem na pozadí, nezávislé sady paralelně; po vývoji dokončit integrační ověření a opravit nálezy.
+- [x] T01 Oddělené paralelní sady prošly; finální `f47135f` má úspěšné testy a analyzery všech tří balíků v CI, včetně regresí dialogů a obnovy fronty.
 - [ ] T02 Ověřit skutečný Nextcloud server, oba buildy a příjem bezpečných telemetrických událostí.
 - [ ] T03 Průběžně provádět fyzické testy S9/S21 na pozadí nad izolovanými kandidáty, nezávisle pro každý telefon, a samostatné ověření iOS; před dokončením doložit finální revizi.
 
-Aktuální krok: závěrečné ověření sloučené verze. Skutečný Nextcloud 34.0.4 / Deck 1.18.5 prošel 21 kontrolami CRUD/příloh a 8 kontrolami hledání/odkazů; S9/S21 prošly UI scénáři s odděleným host grantem, S21 navíc cold/warm odkazy. Běží profilové měření 10 sloupců / 1 000 karet. Oficiální Android+iOS sestavení `fe8d724` prošla; běžný Android CI narazil na plný disk, úprava runneru čeká na závěrečný běh. Podrobné revize a meze jsou v `docs/testing.md`.
+Aktuální krok: první vydání do uzavřeného testu Google Play. Zdroj `14318f5` prošel 273 testy a třemi analyzery; odkaz na zásady soukromí má dalších 7 cílených testů. Podepsaný AAB `f47135f` obsahuje ikony a obě telemetrie bez probe. Aplikace je založená, přístup API ověřený a povinné deklarace vyplněné; probíhá příprava vydání. Podrobné revize a meze jsou v `docs/testing.md`.
 
 - [x] N01 Související práce na OwnNotes je dokončená; přesný rozsah a důkazy jsou v jeho vlastním TODO.
 
 - [ ] R01 Při samostatné práci na OwnTalku ověřit také SAN certifikátů a oddělení přístupnosti prvků přihlašovací karty; v Decku a Notes jsou opravené, OwnTalk zde nebyl měněn.
-- [ ] R02 Vydat 0.1.0+1 přes Google Play API do uzavřeného testu alpha včetně ikony a stejných Google skupin jako OwnNotes; API vrací Package not found, první založení aplikace a souhlasy v Play Console zatím blokují vydání.
+- [ ] R02 Vydat 0.1.0+1 do Google Play alpha včetně ikony a stejných tří Google skupin jako OwnNotes; první založení a deklarace dokončené přes Play Console, balíček a podklady se nahrávají přes API.
+- [ ] P01 Na S9 zlepšit p95 celého snímku při souvislém posunu 1 000 karet: naměřeno 24,388 ms proti cíli 16,7 ms; S21 splnil 10,268 ms, start z cache prošel na obou telefonech.

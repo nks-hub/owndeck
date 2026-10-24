@@ -74,5 +74,19 @@ Na stejném kandidátu S21 následně prošel celý tok s odděleným lokálním
 | `14318f5` | S21: cold/warm `ncdeck` odkazy, neplatné a cizí adresy bez přeposlání přístupu, skutečné kopírování/vložení, zachování dialogu a přepnutí účtů bez staré route. | Dva místní HTTPS testovací servery s různými přístupy a shodnými ID karet; kompatibilitu skutečného serveru dokládá předchozí řádek. |
 | `add58f3` | Skutečný SDK startup na S9 a doručení bezpečných událostí do obou služeb. Následný běžný kandidát měl probe vypnutý. | Sentry testuje Dart/Flutter pipeline, nikoli nativní crash/hang záznam. |
 | `fe8d724` | Oficiální Android release a iOS release bez podpisu s oběma CI konfiguracemi prošly; jednotkové sady a analyzer také. | Není to store distribuce ani fyzický iOS test. Běžný Android debug CI vyčerpal disk runneru; cílená oprava je v `1a4f576`. |
+| `14318f5` | Nový oddělený checkout: 108 protokolových, 77 databázových a 88 mobilních testů, žádné chyby ani přeskočení; všechny tři analyzery bez nálezů. | Zahrnuje opravené dialogy při 100/200% textu i obnovu fronty bez otevřené nástěnky. |
+| `f47135f` | Podepsaný AAB 0.1.0+1: validace bundletool, kontrola podpisu všech 356 obsahových položek, package/verze, vlastní ikony, obě telemetrie bez probe a veřejné odkazy na soukromí. Odkaz má 7 cílených widget testů. | Sestavení samo nedokládá přijetí v Google Play. |
+| `f47135f` | [CI 40143408518](https://github.com/nks-hub/owndeck/actions/runs/40143408518): všech pět úloh prošlo, tedy testy/analyzery všech tří balíků a sestavení Android/iOS. | Oba CI buildy jsou bez telemetrie; podepsaný Android s telemetrií dokládá předchozí řádek. |
+
+## Výkon na Androidu
+
+Profilovací zdroj `14318f5`, lokální HTTPS data 10 sloupců a 1 000 karet bez příloh, 60 Hz a zobrazení na výšku. Start měří první použitelný řádek uložené nástěnky; neměří načtení ze skutečného serveru ani fyzické rozsvícení displeje. Posun tvoří 18 navazujících dvousekundových animací skutečného seznamu. Data pocházejí z Flutter `FrameTiming`.
+
+| Telefon | Pět startů z cache | Posun | p95 UI / raster / celý snímek |
+|---|---|---|---|
+| S9+ / Android 10, Impeller OpenGLES | 2 672 / 2 362 / 2 387 / 2 384 / 2 373 ms | 36,090 s, 2 127 snímků | 10,608 / 12,874 / 24,388 ms |
+| S21 / Android 15, Impeller Vulkan | 753 / 696 / 749 / 704 / 703 ms | 36,038 s, 2 159 snímků | 3,880 / 4,978 / 10,268 ms |
+
+Start splnil cíl na obou telefonech. Cíl 16,7 ms pro p95 celého snímku splnil S21, S9 jej nesplnil. Na S9 bylo 16 mezer nad 33,4 ms, maximum 83,46 ms; na S21 žádná, maximum 33,382 ms. Obě telemetrie byly nakonfigurované, stav jejich přepínačů během měření nebyl ověřen. Dočasná orientace, rozlišení a obnovovací režim byly vrácené; testovací účty a spojení uklizené.
 
 Vlastní testovací účty v telefonech, přístupové soubory, lokální servery a ADB mapování byly uklizeny. Serverové testovací nástěnky a legacy přílohy jsou odstraněné podle serverového soft-delete; vlastní nahrané běžné soubory byly smazané přes WebDAV a jejich nepřítomnost ověřena. Žádná existující uživatelská data se neměnila. Podrobné záznamy zůstávají mimo Git.
