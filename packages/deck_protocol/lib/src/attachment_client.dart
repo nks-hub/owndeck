@@ -85,6 +85,7 @@ extension DeckAttachmentClient on DeckClient {
           http.AbortableMultipartRequest('POST', uri, abortTrigger: abort)
             ..headers['Accept'] = 'application/json'
             ..fields['type'] = type
+        ..fields['data'] = ''
             ..files.add(
               http.MultipartFile(
                 'file',

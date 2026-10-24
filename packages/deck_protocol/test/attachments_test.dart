@@ -100,6 +100,7 @@ void main() {
             startsWith('multipart/form-data; boundary='),
           );
           expect(request.body, contains('name="type"\r\n\r\nfile'));
+        expect(request.body, contains('name="data"\r\n\r\n\r\n'));
           expect(request.body, contains('name="file"; filename="report.txt"'));
           expect(request.body, contains('hello'));
           expect(request.followRedirects, isFalse);
