@@ -57,8 +57,22 @@ Výsledek má tvar: datum, commit, zařízení/runtime, OS, build/hash, scéná�
 
 ## Ověření společného přihlášení
 
-Protokol `4f6dbc8`: 56 testů prošlo, včetně šesti skutečných lokálních TLS scénářů. Databáze `c5866ce`: 40 testů prošlo. Mobilní UI `1af10e2`: 24 testů prošlo, včetně QR, zrušení, cizí identity při opětovném přihlášení a čitelnosti chyby pro asistivní nástroje. Pozdější změny se týkají pouze testů a přístupnosti formuláře; nemění testovaný protokol ani databázi.
+Protokol `4f6dbc8`: 56 testů prošlo, včetně šesti skutečných lokálních TLS scénářů. Databáze `c5866ce`: 40 testů prošlo. Mobilní UI `1af10e2`: 24 testů prošlo, včetně QR, zrušení, cizí identity při opětovném přihlášení a čitelnosti chyby pro asistivní nástroje. Mezi těmito uvedenými přihlašovacími revizemi se měnily jen testy a přístupnost formuláře; toto historické ověření nepokrývá pozdější funkce.
 
 Android kandidát `79c1be8` na S21 prošel instalací, startem, přesným zadáním HTTP adresy, odmítnutím této adresy a kontrolou runtime chyb. SHA-256 APK: `0ae818387e14b2c589dc4fb13e4a73bfffa2345682fa5bdd65b0b39dee3ae393`. Přihlášení se serverem a iOS nejsou tímto základním scénářem ověřené.
 
 Na stejném kandidátu S21 následně prošel celý tok s odděleným lokálním HTTPS testovacím serverem: potvrzení certifikátu, otevření a návrat z prohlížeče, zrušení před schválením bez vytvoření účtu, dokončení a autentizované čtení, zachování účtu a pinu po restartu. Při výměně certifikátu server nedostal žádný HTTP požadavek. Odmítnutí kamery zobrazilo vysvětlení a nastavení. Testovací účet byl odebrán a požadavek na odvolání tokenu dorazil. Schválení prováděl testovací server; nejde o důkaz kompatibility se skutečným Nextcloudem ani ověření jeho odvolání tokenů.
+
+## Funkční milníky 24.–25. 10. 2026
+
+| Revize | Ověření | Meze |
+|---|---|---|
+| `8b0780b` | Skutečný Nextcloud 34.0.4 / Deck 1.18.5 / API 1.1: 16 kontrol CRUD, komentářů, štítků, přiřazení, příloh, kopií, vazeb, hotového sloupce a oznámení; dalších 5 kontrol legacy příloh včetně obnovy. | CLI používá skutečný produkční protokol. Druhý schválený účet patřil jinému serveru, proto nebylo provedeno živé ověření ACL mezi účty. Start/barva jsou na 1.18 skryté. |
+| `14318f5` | Skutečný server: 8 kontrol hledání, upcoming, kontextu karty, tvaru odpovědí a úklidu; izolovaný prohlížeč otevřel správnou kartu přes vytvořený webový odkaz. | Serverový search má limit 200; timestamp cursor nezaručuje úplnost u shodných časů. Přehled se řídí serverovým výběrem aktivních nedokončených karet. |
+| `927304b` | S9+ / Android 10 a S21 / Android 15: přihlášení, nástěnka/sloupec/karta, úpravy, komentář, hledání, Moje úkoly, samostatné přepínače telemetrie a restart; změny potvrzené API readbackem. | Stejný přihlašovací tok telefonu schválil izolovaný prohlížeč na hostu. Nejde o důkaz zadávání hesla do prohlížeče telefonu. |
+| `ba364e0` | S9+: opravený editor na šířku, obě pole s otevřenou IME, zrušení a návrat bez restartu; bez framework/runtime chyb. | Cílený retest opravuje chybu nalezenou v předchozí revizi, není novým úplným průchodem všech funkcí. |
+| `14318f5` | S21: cold/warm `ncdeck` odkazy, neplatné a cizí adresy bez přeposlání přístupu, skutečné kopírování/vložení, zachování dialogu a přepnutí účtů bez staré route. | Dva místní HTTPS testovací servery s různými přístupy a shodnými ID karet; kompatibilitu skutečného serveru dokládá předchozí řádek. |
+| `add58f3` | Skutečný SDK startup na S9 a doručení bezpečných událostí do obou služeb. Následný běžný kandidát měl probe vypnutý. | Sentry testuje Dart/Flutter pipeline, nikoli nativní crash/hang záznam. |
+| `fe8d724` | Oficiální Android release a iOS release bez podpisu s oběma CI konfiguracemi prošly; jednotkové sady a analyzer také. | Není to store distribuce ani fyzický iOS test. Běžný Android debug CI vyčerpal disk runneru; cílená oprava je v `1a4f576`. |
+
+Vlastní testovací účty v telefonech, přístupové soubory, lokální servery a ADB mapování byly uklizeny. Serverové testovací nástěnky a legacy přílohy jsou odstraněné podle serverového soft-delete; vlastní nahrané běžné soubory byly smazané přes WebDAV a jejich nepřítomnost ověřena. Žádná existující uživatelská data se neměnila. Podrobné záznamy zůstávají mimo Git.

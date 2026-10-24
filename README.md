@@ -10,18 +10,23 @@ OwnDeck is a Flutter client for Nextcloud Deck on Android and iOS, currently und
 
 ## Features
 
-- 📋 **Planning** - Product requirements, API findings, and implementation tasks are tracked in this repository.
-- 🔌 **API reference** - An inventory covers 86 versioned routes from Deck 1.19.1.
-- 📱 **Mobile client** - Initial code supports Nextcloud browser sign-in, secure account storage, and board browsing under `com.nkshub.nextclouddeck`.
+- 📋 **Boards and cards** - Board and column management, labels, assignments, due dates, card copies, related cards and done columns.
+- 💾 **Offline work** - Cached data, saved card and comment drafts, a persistent write queue and explicit conflict decisions.
+- 📎 **Files and comments** - Upload, download, export and link Nextcloud files; read, write and edit comments.
+- 🔎 **Search** - Local and server search, task filters, and links that open the correct account and card.
+- 🔐 **Accounts** - Browser and QR sign-in, separate account data and system credential storage.
+- 📊 **Optional diagnostics** - CI-configured Dart/Flutter error reporting and usage events, with separate opt-out switches.
 
-Card creation and basic edits now use a persistent outbox with conflict handling. Board administration, remaining card operations, and telemetry are still in progress. See [TODO.md](TODO.md) for their status.
+The client uses `com.nkshub.nextclouddeck`. See [TODO.md](TODO.md) and [verification results](docs/testing.md) for the current scope and acceptance limits.
 
 ## Requirements
 
 - Flutter 3.44.4 with Dart 3.12.2.
-- Android SDK for Android builds; macOS and Xcode for iOS builds.
+- Android 7 or later (API 24), with Android SDK for builds.
+- macOS and Xcode 26.3 for iOS builds.
 - iOS 14 or later, required by the system file picker.
-- A Nextcloud server with Deck enabled for integration tests.
+- A Nextcloud server with Deck API 1.1. Live compatibility is verified with Deck 1.18.5; card start dates and colors require Deck 1.19 or later.
+- OpenSSL for local TLS tests.
 - Python 3.10+ to regenerate the API inventory.
 
 ## Installation
@@ -36,11 +41,11 @@ flutter run
 
 Repository access is currently restricted while development is in progress.
 
-The commands above start the development client; device acceptance has not been completed.
+These commands start a development build. Distribution signing and store publishing are separate steps.
 
 ## Configuration
 
-The application version is recorded in `VERSION`. Sentry and Rybbit will be optional build configuration, supplied through CI for publisher builds. Builds without that configuration must operate without either service.
+The application version is recorded in `VERSION`. Ordinary builds do not initialize Sentry or Rybbit. Publisher CI requires the repository secrets `SENTRY_DSN`, `RYBBIT_HOST` and `RYBBIT_SITE_ID`, and generates an ignored `telemetry.json` file for the build. Each service can be disabled in the app. Native crash, hang, replay and automatic session collection are disabled.
 
 Credentials, signing files, local environments, and runtime logs must stay outside Git. Runtime ingestion configuration is readable from an application binary; administrative service tokens must never be bundled.
 
@@ -48,7 +53,7 @@ The [product specification](docs/product.md), [API analysis](docs/nextcloud-api.
 
 ## Development
 
-Use [TODO.md](TODO.md) to select the next task. Application tests and physical-device acceptance are planned in [docs/testing.md](docs/testing.md); no application test results are claimed yet.
+Use [TODO.md](TODO.md) to select the next task. Tests run in isolated checkouts during development; [docs/testing.md](docs/testing.md) records the tested revisions and distinguishes API, device and build evidence. Run `dart test` in each package and `flutter test` in `apps/mobile`.
 
 To regenerate the source-based API inventory:
 

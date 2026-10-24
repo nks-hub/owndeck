@@ -14,7 +14,7 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] D01 Založena Flutter aplikace Android/iOS `com.nkshub.nextclouddeck`, SDK 3.44.4, protokol a přihlášení podle OwnNotes; závislosti vyřešeny, runtime ověření zůstává v T01–T03.
 - [x] D02 Implementován Login Flow v2, oddělené reference tokenů, databázové účty, opětovné přihlášení, přepnutí a odebrání s odvoláním tokenu; spuštění testů zůstává v T01–T03.
 - [x] D02b Přihlášení sjednoceno podle OwnTalku v Decku i Notes: texty, ovládací ikony, vzhled, QR, průběh a certifikáty; Deck ověřen automaticky a na S21, cílené testy Notes prošly, jeho fyzické ověření zatím není dokončené.
-- [ ] D02c Ověřit odvolání tokenu na skutečném serveru a navázání HTTP 401 na opětovné přihlášení; současný session catch pouze zobrazuje chybu, musí zachovat koncepty a nabídnout obnovu účtu.
+- [x] D02c HTTP 401 otevírá obnovu přihlášení bez ztráty konceptů; stará generace nesmí odhlásit nový účet, nový login přežije chybu starého účtu a dialog drží správnou adresu při přepnutí. Testy i odebrání testovacích účtů na skutečném serveru prošly.
 - [x] D03 Implementovány nástěnky, sloupce, oprávnění, archivace a sdílení; runtime důkazy zůstávají v T01–T03.
 - [x] D03a Implementováno vytváření a úpravy nástěnek/sloupců, archivace, mazání a obnova nástěnky, oddělená práva edit/manage a řazení sloupců; runtime ověření čeká na T01–T03.
 - [x] D03b Doplněno hledání uživatelů/skupin/týmů a externích příjemců, vytvoření/změna/odebrání ACL, omezení udělovaných práv a vyřazení cache po ztrátě přístupu; 6 metadata scénářů a 1 hledací scénář připraveny pro T01.
@@ -23,27 +23,28 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] D04b Implementován přesun přes nabídku a řazení tažením uvnitř sloupce, archiv/obnova/smazání karty, přiřazení existujících štítků a uživatelů, živý detail a Markdown bez automatického stahování externích obrázků; 5 scénářů akcí připraveno pro T01.
 - [x] D04c Doplněn začátek, volitelná barva, zachování hodnot v konceptu a skrytí nepodporovaných polí; 2 protokolové scénáře připraveny, ověření operací zůstává v T01/T02.
 - [x] D04d Implementováno vytváření, přejmenování, změna barvy a mazání štítků včetně návazné fronty přiřazení a odstranění smazaného štítku z místní kopie karet.
-- [ ] D05 Implementovat komentáře, přílohy a návazné soubory.
+- [x] D05 Komentáře, přílohy a návazné soubory implementované; skutečný Deck ověřil běžné i legacy přílohy.
 - [x] D05a Implementováno stránkované čtení komentářů, odpovědi, úprava/smazání autorem, serverové UID a průběžně uložené koncepty; 4 protokolové a 6 databázových scénářů připraveno pro T01.
-- [ ] D05b Protokol příloh připraven: typované REST 1.1 cesty, multipart upload, stažení, smazání/obnova, připojení existujícího souboru přes share type 12 a ohraničený WebDAV seznam; protokolové testy prošly na `11dc428`; metadata, fronta, trvalé úložiště a UI implementované; na převzatém `56a7446` prošlo 40 mobilních a 51 databázových testů, funkční průchod S21 nad `1dbada7` běží samostatně.
-- [ ] D06 Implementovat místní data, frontu změn, obnovu po restartu a konflikty.
+- [x] D05b REST 1.1 přílohy, multipart, stažení, obnova legacy souboru, share type 12, WebDAV, trvalý staging a UI hotové; skutečný server prošel na `8b0780b`, S21 ověřil picker, offline frontu, restart, SHA a export na `1dbada7`.
+- [x] D06 Místní data, trvalá fronta, obnova, závislosti a konflikty implementované; nejistý POST se automaticky neopakuje.
 - [x] D06a Přidána databáze a místní kopie nástěnek/sloupců/karet, ETag a ochrana proti pozdním odpovědím odebraného účtu; připraveno 6 databázových scénářů pro T01.
 - [x] D06b Implementována trvalá fronta vytvoření/úprav karet, zámek účtu, detekce konfliktu a ruční rozhodnutí, obnova přerušeného zápisu a ochrana před starou odpovědí po potvrzeném zápisu; 6 scénářů připraveno pro T01.
-- [ ] D06c Doplnit automatické uložení rozepsaného editoru, závislosti nových entit, ostatní typy zápisů a obnovu při návratu aplikace či sítě.
+- [x] D06c Autosave konceptů, závislosti nových entit, komentáře/přílohy/metadata a obnova po návratu aplikace či sítě jsou zapojené.
 - [x] D06d Koncept editoru se průběžně ukládá, lze jej obnovit ze seznamu rozepsaných karet a atomicky předat frontě; doplněna obnova při návratu/síti a polling otevřené nástěnky pouze v popředí, 4 scénáře konceptů připraveny pro T01.
 - [x] D06e Fronta respektuje závislosti nové nástěnky, sloupce a karty; po potvrzení převádí místní ID, při zrušení rodiče zachová obsah potomků a označí překážku; připraveno 5 dalších scénářů pro T01.
 - [x] D06f Potvrzené akce karet mají samostatný stav čekání na načtení výsledku; opakuje se pouze GET a další změny stejné karty čekají na vyřešení předchozího zápisu.
-- [ ] D06g Dokončit odložené opakování podle Retry-After a uchování fronty pro komentáře, přílohy a další operace.
-- [ ] D07 Implementovat hledání, přehled vlastních úkolů a odkazy do konkrétních karet.
-- [ ] D08 Integrovat volitelné Sentry a Rybbit: konfigurace přes CI v našich buildech, žádné pevné klíče, funkční build i bez služeb, ochrana obsahu a volba uživatele.
-- [ ] D09 Dokončit české a anglické texty, přístupnost a chybové stavy.
-- [ ] D10 Dokončit kopie, závislosti karet, podporovaný hotový sloupec a přehled oznámení; push posoudit podle skutečných capabilities a infrastruktury.
+- [x] D06g Retry-After se ukládá pro účet, přežije restart a platí i pro přímé čtení souborů; čekající fronta se obnovuje v popředí také z přehledu nástěnek. Testy aktuálního sloučeného stromu běží v T01.
+- [x] D07 Místní i serverové hledání, Moje úkoly, online přehled a webové/ncdeck odkazy hotové; D07 API + web ověřené na `14318f5`, cold/warm a oddělení účtů fyzicky na S21. Serverové hledání poctivě omezeno na 200 výsledků.
+- [x] D08 Volitelné Sentry/Rybbit, konfigurace přes CI, obě služby v našich buildech a oddělené přepínače hotové; doručení ze S9 ověřené, nastavení přežije restart na S9/S21. Sentry zachytává Dart/Flutter chyby, nativní crash/hang sběr není zapnutý.
+- [x] D09 České/anglické texty, srozumitelné chyby, společné přihlášení, vlastní launcher ikony a hlavní přístupnost zapojené; 200% text a malá výška ověřené testy, landscape editor i Cancel fyzicky na S9 v `ba364e0`. Formální TalkBack/VoiceOver audit se netvrdí.
+- [x] D10 Kopie karet, směrované vazby, hotový sloupec a přehled oznámení hotové a ověřené i na Decku 1.18.5. Vazby neblokují dokončení karty. OS push není zapnutý; chybí ověřený mobilní push kanál pro Deck.
 - [ ] T01 Spouštět jednotkové a UI sady neblokujícím způsobem na pozadí, nezávislé sady paralelně; po vývoji dokončit integrační ověření a opravit nálezy.
 - [ ] T02 Ověřit skutečný Nextcloud server, oba buildy a příjem bezpečných telemetrických událostí.
 - [ ] T03 Průběžně provádět fyzické testy S9/S21 na pozadí nad izolovanými kandidáty, nezávisle pro každý telefon, a samostatné ověření iOS; před dokončením doložit finální revizi.
 
-Aktuální krok hlavního vlákna: trvalá pauza podle Retry-After (D06g). Přílohy včetně úložiště/UI jsou implementované a automatické testy na `56a7446` prošly (40 mobilních, 51 databázových); samostatný agent ověřuje kandidáta `1dbada7` na S21. Další agenti paralelně řeší hledání/mé úkoly (D07a) a volitelné Sentry/Rybbit s CI (D08a). Ověření skutečného Nextcloudu a iOS zůstává otevřené v T02/T03.
+Aktuální krok: závěrečné ověření sloučené verze. Skutečný Nextcloud 34.0.4 / Deck 1.18.5 prošel 21 kontrolami CRUD/příloh a 8 kontrolami hledání/odkazů; S9/S21 prošly UI scénáři s odděleným host grantem, S21 navíc cold/warm odkazy. Běží profilové měření 10 sloupců / 1 000 karet. Oficiální Android+iOS sestavení `fe8d724` prošla; běžný Android CI narazil na plný disk, úprava runneru čeká na závěrečný běh. Podrobné revize a meze jsou v `docs/testing.md`.
 
-- [x] N01 Vedlejší chyba cache OwnNotes opravena paralelním agentem; všech 402 mobilních testů a analyzer prošly na `773f941`, TODO a čistý Git potvrzené v `2361779`. Nové vydání neproběhlo; hlavní vlákno zůstává u Decku.
+- [x] N01 Související práce na OwnNotes je dokončená; přesný rozsah a důkazy jsou v jeho vlastním TODO.
 
 - [ ] R01 Při samostatné práci na OwnTalku ověřit také SAN certifikátů a oddělení přístupnosti prvků přihlašovací karty; v Decku a Notes jsou opravené, OwnTalk zde nebyl měněn.
+- [ ] R02 Vydat 0.1.0+1 přes Google Play API do uzavřeného testu alpha včetně ikony a stejných Google skupin jako OwnNotes; API vrací Package not found, první založení aplikace a souhlasy v Play Console zatím blokují vydání.

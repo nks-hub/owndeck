@@ -28,4 +28,11 @@
 - Create, rename, recolor, and delete labels, including dependent offline assignments.
 - Edit and restore card start dates and custom colors on supported servers.
 
-Automated and device acceptance tests are scheduled after feature development. This version has not been distributed.
+- Add file uploads, downloads, exports and links to existing Nextcloud files.
+- Add local and server search, task filters and links to individual cards.
+- Add card copies, related cards, done columns and in-app notifications.
+- Preserve server retry delays across restarts and resume queued changes from the board list.
+- Match suite sign-in screens, add OwnDeck launcher icons and fix keyboard handling in landscape dialogs.
+- Add optional CI-configured Sentry and Rybbit with separate persistent opt-out switches.
+
+Automated and Android device checks run during development. See `docs/testing.md` for tested revisions and limits. This version has not been distributed.
