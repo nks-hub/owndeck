@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:deck_protocol/deck_protocol.dart';
+import 'package:deck_store/deck_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -17,6 +19,16 @@ http.Response jsonResponse(Object value, [int status = 200]) => http.Response(
 );
 
 void main() {
+  const account = StoredAccount(
+    id: 'test-account',
+    server: 'https://cloud.example.com/',
+    loginName: 'test-user',
+    credentialRef: 'test-vault',
+    state: 'reauthRequired',
+    generation: 1,
+    contentEpoch: 0,
+    selected: true,
+  );
   Future<void> mount(WidgetTester tester, LoginScreen screen) async {
     await tester.pumpWidget(
       ProviderScope(child: localizedTestApp(home: screen)),
@@ -31,6 +43,64 @@ void main() {
     await tester.tap(find.text('Continue'));
     await tester.pump();
   }
+
+  testWidgets('server-only QR cannot change a reauthentication address', (
+    tester,
+  ) async {
+    var requests = 0;
+    await mount(
+      tester,
+      LoginScreen(
+        reauthenticateAccount: account,
+        transportFactory: (_, _) => MockClient((_) async {
+          requests++;
+          return jsonResponse({});
+        }),
+        scan: (_) async => QrLoginServerOnly(
+          server: ServerBase.parse('https://other.example.com'),
+        ),
+      ),
+    );
+    final scan = find.byKey(const Key('onboarding-scan-login-code'));
+    await tester.ensureVisible(scan);
+    await tester.tap(scan);
+    await tester.pumpAndSettle();
+    final field = tester.widget<TextField>(find.byType(TextField));
+    expect(field.controller!.text, account.server);
+    expect(field.enabled, isFalse);
+    expect(requests, 0);
+  });
+
+  testWidgets('foreign one-time QR identity is refused before token exchange', (
+    tester,
+  ) async {
+    var requests = 0;
+    await mount(
+      tester,
+      LoginScreen(
+        reauthenticateAccount: account,
+        transportFactory: (_, _) => MockClient((_) async {
+          requests++;
+          return jsonResponse({});
+        }),
+        scan: (_) async => QrLoginCredentials(
+          server: ServerBase.parse(account.server),
+          loginName: 'other-user',
+          secret: 'test-token',
+          isOneTime: true,
+        ),
+      ),
+    );
+    final scan = find.byKey(const Key('onboarding-scan-login-code'));
+    await tester.ensureVisible(scan);
+    await tester.tap(scan);
+    await tester.pumpAndSettle();
+    expect(requests, 0);
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      account.server,
+    );
+  });
 
   testWidgets('suite login uses the shared labels and validates HTTP locally', (
     tester,

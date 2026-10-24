@@ -87,8 +87,8 @@ void main() {
       );
       final credentials = payload! as QrLoginCredentials;
       expect(
-        credentials.server,
-        ServerBase.parse('https://example.com/nextcloud'),
+        credentials.server.uri,
+        ServerBase.parse('https://example.com/nextcloud').uri,
       );
     });
   });
