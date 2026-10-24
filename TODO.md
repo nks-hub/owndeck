@@ -24,6 +24,7 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] D04d Implementováno vytváření, přejmenování, změna barvy a mazání štítků včetně návazné fronty přiřazení a odstranění smazaného štítku z místní kopie karet.
 - [ ] D05 Implementovat komentáře, přílohy a návazné soubory.
 - [x] D05a Implementováno stránkované čtení komentářů, odpovědi, úprava/smazání autorem, serverové UID a průběžně uložené koncepty; 4 protokolové a 6 databázových scénářů připraveno pro T01.
+- [ ] D05b Protokol příloh připraven: typované REST 1.1 cesty, multipart upload, stažení, smazání/obnova, připojení existujícího souboru přes share type 12 a ohraničený WebDAV seznam; dokončit testy, místní úložiště, frontu a UI.
 - [ ] D06 Implementovat místní data, frontu změn, obnovu po restartu a konflikty.
 - [x] D06a Přidána databáze a místní kopie nástěnek/sloupců/karet, ETag a ochrana proti pozdním odpovědím odebraného účtu; připraveno 6 databázových scénářů pro T01.
 - [x] D06b Implementována trvalá fronta vytvoření/úprav karet, zámek účtu, detekce konfliktu a ruční rozhodnutí, obnova přerušeného zápisu a ochrana před starou odpovědí po potvrzeném zápisu; 6 scénářů připraveno pro T01.

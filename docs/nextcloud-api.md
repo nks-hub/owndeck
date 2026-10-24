@@ -58,6 +58,8 @@ Neznámá pole tolerovat. Pole, jejichž vynechání změní význam, rozlišit 
 1. Capabilities v této revizi inzerují API `1.0`, `1.1`, nikoli `1.2`. Dokumentace označuje 1.2 jako nevydanou, přesto `done` zpracovává aktuální controller. Verzi funkce nelze odvodit pouze z tohoto nadpisu.
 2. Docblock capabilities zmiňuje `supportsDoneColumn`, skutečně vracené pole jej ale neobsahuje. Klient nesmí vyžadovat tento údaj jako jediný důkaz podpory.
 3. Dokumentace příloh ukazuje cestu bez typu. Routy 1.1 mají `attachments/{type}/{attachmentId}`. Bez rozlišení typů by se novější přílohy ztratily nebo neotevřely.
+
+Přílohy `file` používají jako ID sdílení, nikoli ID souboru. Nový soubor se nahrává multipart polem `file` s `type=file`. Existující soubor se připojuje přes OCS `apps/files_sharing/api/v1/shares`: cesta souboru, `shareType=12` a `shareWith` jako ID karty. Samotné JSON `data` v create přílohy existující soubor nepřipojí. Smazání `file` odpojí sdílení, zdrojový soubor zachová a nemá obnovu přílohy; `deck_file` má dočasnou obnovu. `extendedData` může být pro čtenáře karty prázdné. Ověřeno ve zdrojích `FilesAppService`, `FileService`, `AttachmentApiController` a `AttachmentList.vue` připnuté verze; funkční ověření serveru zůstává samostatné.
 4. Import schématu má v dokumentaci `/config/system/{schema}`, ve vydaných routách `/config/schema/{name}`. Preferovat vydané routy a ověřit živě před zpřístupněním importu.
 5. Config dokumentace naznačuje `{id}/{key}`, vydaná routa má pouze `{key}`.
 6. `GET /dashboard/due` odkazuje na `CardApiController::findAllWithDue`, která v analyzovaném controlleru není. Pro nový klient nepoužívat jako garantovaný endpoint. Použít OCS overview nebo místní přehled.
