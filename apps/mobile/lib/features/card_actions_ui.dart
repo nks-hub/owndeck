@@ -3,7 +3,7 @@ part of 'card_detail.dart';
 extension _CardDialogs on _CardScreenState {
   Future<void> _copy(DeckCard card) async {
     if (_copying) return;
-    setState(() => _copying = true);
+    _setCopyState(active: true);
     final text = AppLocalizations.of(context)!;
     try {
       final boards =
@@ -53,13 +53,13 @@ extension _CardDialogs on _CardScreenState {
       );
       if (!mounted) return;
       if (stacks.isEmpty) {
-        setState(() => _loadingCopyColumns = true);
+        _setCopyState(loading: true);
         await widget.session.refreshStacks(targetBoard.id);
         stacks = await widget.session.database.stackView(
           widget.session.account.id,
           targetBoard.id,
         );
-        if (mounted) setState(() => _loadingCopyColumns = false);
+        _setCopyState(loading: false);
       }
       if (!mounted) return;
       if (stacks.isEmpty) {
@@ -136,11 +136,7 @@ extension _CardDialogs on _CardScreenState {
         ).showSnackBar(SnackBar(content: Text(text.loadError)));
       }
     } finally {
-      if (mounted)
-        setState(() {
-          _copying = false;
-          _loadingCopyColumns = false;
-        });
+      _setCopyState(active: false, loading: false);
     }
   }
 

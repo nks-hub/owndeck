@@ -33,6 +33,14 @@ class CardScreen extends StatefulWidget {
 class _CardScreenState extends State<CardScreen> {
   bool _copying = false;
   bool _loadingCopyColumns = false;
+  void _setCopyState({bool? active, bool? loading}) {
+    if (!mounted) return;
+    setState(() {
+      if (active != null) _copying = active;
+      if (loading != null) _loadingCopyColumns = loading;
+    });
+  }
+
   late final _card = widget.session.database.watchCard(
     widget.session.account.id,
     widget.board.id,
