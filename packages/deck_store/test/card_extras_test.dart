@@ -177,6 +177,57 @@ void main() {
   });
 
   test(
+    'a deleted destination column cannot receive a copy after it was queued',
+    () async {
+      await copy();
+      var posts = 0;
+      await engine((request) async {
+        if (request.method == 'POST') posts++;
+        if (request.url.path.endsWith('/boards/1')) {
+          return reply(sourceBoard().raw);
+        }
+        if (request.url.path.endsWith('/boards/3')) {
+          return reply(board(3, 'Destination', edit: true).raw);
+        }
+        if (request.url.path.endsWith('/stacks/4')) {
+          return reply({...column(4, 3, []).raw, 'deletedAt': 123});
+        }
+        return reply(source.raw);
+      }).run();
+      expect(posts, 0);
+      expect((await database.writesFor(account.id)).single.state, 'blocked');
+    },
+  );
+
+  test(
+    'a destination already queued for deletion is refused locally',
+    () async {
+      final target = DeckBoard.fromJson({
+        ...board(3, 'Destination', edit: true).raw,
+        'permissions': {
+          'PERMISSION_READ': true,
+          'PERMISSION_EDIT': true,
+          'PERMISSION_MANAGE': true,
+        },
+      });
+      await database.saveBoards(account.id, account.generation, [
+        sourceBoard(),
+        target,
+      ], null);
+      await database.queueStructure(
+        account,
+        'deleteStack',
+        {},
+        boardId: 3,
+        stackId: 4,
+        base: column(4, 3, []).raw,
+      );
+      await expectLater(copy(), throwsStateError);
+      expect((await database.writesFor(account.id)).single.kind, 'deleteStack');
+    },
+  );
+
+  test(
     'a new linked card resolves before its relationship is posted',
     () async {
       await database.saveBoards(account.id, account.generation, [

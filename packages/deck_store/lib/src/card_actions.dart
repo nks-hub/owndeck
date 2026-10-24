@@ -74,7 +74,18 @@ extension CardActions on DeckDatabase {
         account.id,
         targetBoardId,
       )).where((s) => s.id == resolvedStack).firstOrNull;
-      if (targetStack == null) throw StateError('invalid_destination');
+      if (targetStack == null || (targetStack.raw['deletedAt'] ?? 0) != 0) {
+        throw StateError('invalid_destination');
+      }
+      if (clone) {
+        for (final write in await writesFor(account.id)) {
+          if (write.kind != 'deleteStack') continue;
+          final deleting =
+              await resolveId(account.id, write.stackId, 'createStack') ??
+              write.stackId;
+          if (deleting == resolvedStack) throw StateError('pending_decision');
+        }
+      }
       if (!clone) {
         final targetId = intField(proposal, 'dependentCardId');
         final resolvedCard =

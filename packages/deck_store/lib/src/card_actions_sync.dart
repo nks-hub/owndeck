@@ -75,6 +75,7 @@ extension _CardActionSync on DeckSync {
             !targetBoard.permissions.edit ||
             targetBoard.archived ||
             targetBoard.deletedAt != 0 ||
+            (targetStack['deletedAt'] ?? 0) != 0 ||
             targetBoard.id != boardId ||
             intField(targetStack, 'boardId') != boardId ||
             intField(targetStack, 'id') != stackId) {

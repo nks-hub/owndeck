@@ -31,6 +31,8 @@ class CardScreen extends StatefulWidget {
 }
 
 class _CardScreenState extends State<CardScreen> {
+  bool _copying = false;
+  bool _loadingCopyColumns = false;
   late final _card = widget.session.database.watchCard(
     widget.session.account.id,
     widget.board.id,
@@ -144,6 +146,7 @@ class _CardScreenState extends State<CardScreen> {
               actions: [
                 if (board.permissions.read)
                   PopupMenuButton<String>(
+                    enabled: !_copying,
                     tooltip: text.cardActions,
                     onSelected: (action) {
                       switch (action) {
@@ -199,7 +202,10 @@ class _CardScreenState extends State<CardScreen> {
                   ),
               ],
             ),
-            floatingActionButton: canEdit && !card.archived
+            bottomNavigationBar: _loadingCopyColumns
+                ? LinearProgressIndicator(semanticsLabel: text.syncing)
+                : null,
+            floatingActionButton: canEdit && !card.archived && !_copying
                 ? FloatingActionButton.extended(
                     onPressed: () => editCard(
                       context,

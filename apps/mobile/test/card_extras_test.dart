@@ -244,6 +244,50 @@ void main() {
   );
 
   testWidgets(
+    'copying offers stored destination columns without waiting for the network',
+    (tester) async {
+      await db.saveStacks(account.id, account.generation, 3, [
+        DeckStack.fromJson({
+          'id': 4,
+          'boardId': 3,
+          'title': 'Stored column',
+          'order': 0,
+          'cards': [],
+        }),
+      ], null);
+      await tester.pumpWidget(
+        app(CardScreen(session: session, board: board, card: card)),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Copy card'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Writable'));
+      await tester.pumpAndSettle();
+      expect(find.text('Stored column'), findsOneWidget);
+      expect(
+        find.textContaining('Dates, comments and attachments are not copied.'),
+        findsOneWidget,
+      );
+      expect(requests, 0);
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<PopupMenuButton<String>>(
+              find.byType(PopupMenuButton<String>),
+            )
+            .enabled,
+        isTrue,
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+    },
+  );
+
+  testWidgets(
     'linked-card overview explains that links do not block completion',
     (tester) async {
       await tester.pumpWidget(

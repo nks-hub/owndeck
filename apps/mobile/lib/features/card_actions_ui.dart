@@ -2,6 +2,8 @@ part of 'card_detail.dart';
 
 extension _CardDialogs on _CardScreenState {
   Future<void> _copy(DeckCard card) async {
+    if (_copying) return;
+    setState(() => _copying = true);
     final text = AppLocalizations.of(context)!;
     try {
       final boards =
@@ -45,11 +47,20 @@ extension _CardDialogs on _CardScreenState {
         ),
       );
       if (targetBoard == null || !mounted) return;
-      await widget.session.refreshStacks(targetBoard.id);
-      final stacks = await widget.session.database.stackView(
+      var stacks = await widget.session.database.stackView(
         widget.session.account.id,
         targetBoard.id,
       );
+      if (!mounted) return;
+      if (stacks.isEmpty) {
+        setState(() => _loadingCopyColumns = true);
+        await widget.session.refreshStacks(targetBoard.id);
+        stacks = await widget.session.database.stackView(
+          widget.session.account.id,
+          targetBoard.id,
+        );
+        if (mounted) setState(() => _loadingCopyColumns = false);
+      }
       if (!mounted) return;
       if (stacks.isEmpty) {
         ScaffoldMessenger.of(
@@ -124,6 +135,12 @@ extension _CardDialogs on _CardScreenState {
           context,
         ).showSnackBar(SnackBar(content: Text(text.loadError)));
       }
+    } finally {
+      if (mounted)
+        setState(() {
+          _copying = false;
+          _loadingCopyColumns = false;
+        });
     }
   }
 
