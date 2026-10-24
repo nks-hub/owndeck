@@ -122,15 +122,25 @@ final class DeckClient {
     List<String> path, {
     JsonObject? body,
     Map<String, String>? query,
-  }) => _request(method, base.ocs(path, query), body, null, true);
+    bool envelope = true,
+    bool allowNoContent = false,
+  }) => _request(
+    method,
+    base.ocs(path, query),
+    body,
+    null,
+    envelope,
+    allowNoContent: allowNoContent,
+  );
 
   Future<DeckResponse> _request(
     String method,
     Uri uri,
     JsonObject? body,
     String? etag,
-    bool envelope,
-  ) async {
+    bool envelope, {
+    bool allowNoContent = false,
+  }) async {
     final mutation = method != 'GET';
     final response = await _send(
       (abort) {
@@ -150,6 +160,9 @@ final class DeckClient {
     );
     if (response.statusCode == 304) {
       return DeckResponse(null, notModified: true, etag: etag);
+    }
+    if (method == 'GET' && allowNoContent && response.statusCode == 204) {
+      return const DeckResponse([]);
     }
     final data = _json(response, mutation: mutation);
     if (!envelope) return DeckResponse(data, etag: response.headers['etag']);
