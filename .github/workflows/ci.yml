@@ -68,6 +68,13 @@ jobs:
         run: |
           sudo xcode-select --switch /Applications/Xcode_26.3.app/Contents/Developer
           xcodebuild -version
+      - name: Free unused hosted Android runner toolchains
+        if: matrix.platform == 'android' && runner.environment == 'github-hosted'
+        run: |
+          for unused in /usr/share/dotnet /usr/share/swift /opt/ghc; do
+            if [ -d "$unused" ]; then sudo rm --recursive -- "$unused"; fi
+          done
+          df -h .
       - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
         if: matrix.platform == 'android'
         with:
@@ -85,7 +92,7 @@ jobs:
         working-directory: apps/mobile
         env:
           GRADLE_OPTS: '-Dorg.gradle.workers.max=2 -Dorg.gradle.jvmargs=-Xmx4G'
-        run: flutter build apk --debug --no-pub --android-project-arg=candidate=true
+        run: flutter build apk --debug --target-platform android-arm64 --no-pub --android-project-arg=candidate=true
       - name: Compile iOS without telemetry
         if: matrix.platform == 'ios'
         working-directory: apps/mobile

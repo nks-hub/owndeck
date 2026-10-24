@@ -9,6 +9,7 @@ $code = 1
 $apk = $null
 $sha256 = $null
 $failure = $null
+$telemetryConfigured = $false
 try {
     $head = (& git -C $config.sourceRoot rev-parse HEAD).Trim()
     if ($LASTEXITCODE -ne 0 -or $head -ne $config.revision) { throw 'snapshot_revision_changed' }
@@ -29,7 +30,18 @@ try {
     $code = $LASTEXITCODE
     if ($code -eq 0) {
         $phase = 'build'
-        & $config.flutterPath build apk --debug --target-platform android-arm64 --android-project-arg=candidate=true *> $config.buildLog
+        $buildArguments = @('build', 'apk', '--debug', '--target-platform', 'android-arm64', '--android-project-arg=candidate=true')
+        if ($config.telemetryFile) {
+            try { $definitions = Get-Content -LiteralPath $config.telemetryFile -Raw | ConvertFrom-Json }
+            catch { throw 'invalid_telemetry_configuration' }
+            foreach ($key in @('SENTRY_DSN', 'RYBBIT_HOST', 'RYBBIT_SITE_ID')) {
+                if ([string]::IsNullOrWhiteSpace($definitions.$key)) { throw 'missing_telemetry_configuration' }
+            }
+            if ([string]$definitions.TELEMETRY_RELEASE_PROBE -eq 'true') { throw 'probe_build_not_allowed' }
+            $buildArguments += "--dart-define-from-file=$($config.telemetryFile)"
+            $telemetryConfigured = $true
+        }
+        & $config.flutterPath @buildArguments *> $config.buildLog
         $code = $LASTEXITCODE
     }
     if ($code -eq 0) {
@@ -62,6 +74,7 @@ try {
         sha256 = $sha256
         applicationId = 'com.nkshub.nextclouddeck.candidate'
         buildMode = 'debug'
+        telemetryConfigured = $telemetryConfigured
     } | ConvertTo-Json | Set-Content -LiteralPath $config.resultFile -Encoding utf8
 }
 exit $code
