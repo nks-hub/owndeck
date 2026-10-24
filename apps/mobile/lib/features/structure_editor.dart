@@ -212,6 +212,8 @@ Future<void> editStructure(
       barrierDismissible: false,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
+          scrollable: true,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
           title: Text(
             labelItem
                 ? label == null
@@ -225,128 +227,144 @@ Future<void> editStructure(
                 ? text.addBoard
                 : text.editBoard,
           ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: name,
-                  enabled: !saving,
-                  autofocus: true,
-                  decoration: InputDecoration(labelText: text.name),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextField(
+                controller: name,
+                enabled: !saving,
+                autofocus: true,
+                decoration: InputDecoration(labelText: text.name),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: value,
+                enabled: !saving,
+                keyboardType: column
+                    ? TextInputType.number
+                    : TextInputType.text,
+                decoration: InputDecoration(
+                  labelText: column ? text.position : text.color,
                 ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: value,
-                  enabled: !saving,
-                  keyboardType: column
-                      ? TextInputType.number
-                      : TextInputType.text,
-                  decoration: InputDecoration(
-                    labelText: column ? text.position : text.color,
-                  ),
+              ),
+              if (error != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Text(error!),
                 ),
-                if (error != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Text(error!),
+              if (saving) const LinearProgressIndicator(),
+              const SizedBox(height: 24),
+              OverflowBar(
+                alignment: MainAxisAlignment.end,
+                spacing: 8,
+                overflowSpacing: 8,
+                children: [
+                  TextButton(
+                    onPressed: saving
+                        ? null
+                        : () => Navigator.pop(dialogContext),
+                    child: Text(text.cancel),
                   ),
-                if (saving) const LinearProgressIndicator(),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: saving ? null : () => Navigator.pop(dialogContext),
-              child: Text(text.cancel),
-            ),
-            FilledButton(
-              onPressed: saving
-                  ? null
-                  : () async {
-                      final title = name.text.trim();
-                      final rawValue = value.text.trim().replaceFirst('#', '');
-                      if (title.isEmpty || title.runes.length > 100) {
-                        setState(() => error = text.invalidName);
-                        return;
-                      }
-                      if (column
-                          ? int.tryParse(rawValue) == null ||
-                                int.parse(rawValue) < 0
-                          : !RegExp(r'^[0-9a-fA-F]{6}$').hasMatch(rawValue)) {
-                        setState(
-                          () => error = column
-                              ? text.invalidPosition
-                              : text.invalidColor,
-                        );
-                        return;
-                      }
-                      setState(() {
-                        saving = true;
-                        error = null;
-                      });
-                      try {
-                        if (labelItem) {
-                          final changes = <String, Object?>{
-                            if (label == null || label['title'] != title)
-                              'title': title,
-                            if (label == null ||
-                                label['color'] != rawValue.toLowerCase())
-                              'color': rawValue.toLowerCase(),
-                          };
-                          if (changes.isNotEmpty) {
-                            await session.database.queueBoardMetadata(
-                              session.account,
-                              board!.id,
-                              label == null ? 'createLabel' : 'updateLabel',
-                              changes,
-                              original: label,
+                  FilledButton(
+                    onPressed: saving
+                        ? null
+                        : () async {
+                            final title = name.text.trim();
+                            final rawValue = value.text.trim().replaceFirst(
+                              '#',
+                              '',
                             );
-                          }
-                        } else {
-                          await session.database.queueStructure(
-                            session.account,
-                            column
-                                ? stack == null
-                                      ? 'createStack'
-                                      : 'updateStack'
-                                : board == null
-                                ? 'createBoard'
-                                : 'updateBoard',
-                            {
-                              'title': title,
-                              if (column)
-                                'order': int.parse(rawValue)
-                              else
-                                'color': rawValue.toLowerCase(),
-                            },
-                            boardId: board?.id ?? 0,
-                            stackId: stack?.id ?? 0,
-                            base: column ? stack?.raw : board?.raw,
-                          );
-                        }
-                        if (dialogContext.mounted) Navigator.pop(dialogContext);
-                        unawaited(
-                          column || labelItem
-                              ? session.refreshStacks(board!.id)
-                              : session.refreshBoards(),
-                        );
-                      } catch (failure) {
-                        if (dialogContext.mounted) {
-                          setState(() {
-                            saving = false;
-                            error =
-                                failure is StateError &&
-                                    failure.message == 'pending_decision'
-                                ? text.pendingDecision
-                                : text.loadError;
-                          });
-                        }
-                      }
-                    },
-              child: Text(text.save),
-            ),
-          ],
+                            if (title.isEmpty || title.runes.length > 100) {
+                              setState(() => error = text.invalidName);
+                              return;
+                            }
+                            if (column
+                                ? int.tryParse(rawValue) == null ||
+                                      int.parse(rawValue) < 0
+                                : !RegExp(
+                                    r'^[0-9a-fA-F]{6}$',
+                                  ).hasMatch(rawValue)) {
+                              setState(
+                                () => error = column
+                                    ? text.invalidPosition
+                                    : text.invalidColor,
+                              );
+                              return;
+                            }
+                            setState(() {
+                              saving = true;
+                              error = null;
+                            });
+                            try {
+                              if (labelItem) {
+                                final changes = <String, Object?>{
+                                  if (label == null || label['title'] != title)
+                                    'title': title,
+                                  if (label == null ||
+                                      label['color'] != rawValue.toLowerCase())
+                                    'color': rawValue.toLowerCase(),
+                                };
+                                if (changes.isNotEmpty) {
+                                  await session.database.queueBoardMetadata(
+                                    session.account,
+                                    board!.id,
+                                    label == null
+                                        ? 'createLabel'
+                                        : 'updateLabel',
+                                    changes,
+                                    original: label,
+                                  );
+                                }
+                              } else {
+                                await session.database.queueStructure(
+                                  session.account,
+                                  column
+                                      ? stack == null
+                                            ? 'createStack'
+                                            : 'updateStack'
+                                      : board == null
+                                      ? 'createBoard'
+                                      : 'updateBoard',
+                                  {
+                                    'title': title,
+                                    if (column)
+                                      'order': int.parse(rawValue)
+                                    else
+                                      'color': rawValue.toLowerCase(),
+                                  },
+                                  boardId: board?.id ?? 0,
+                                  stackId: stack?.id ?? 0,
+                                  base: column ? stack?.raw : board?.raw,
+                                );
+                              }
+                              if (dialogContext.mounted) {
+                                Navigator.pop(dialogContext);
+                              }
+                              unawaited(
+                                column || labelItem
+                                    ? session.refreshStacks(board!.id)
+                                    : session.refreshBoards(),
+                              );
+                            } catch (failure) {
+                              if (dialogContext.mounted) {
+                                setState(() {
+                                  saving = false;
+                                  error =
+                                      failure is StateError &&
+                                          failure.message == 'pending_decision'
+                                      ? text.pendingDecision
+                                      : text.loadError;
+                                });
+                              }
+                            }
+                          },
+                    child: Text(text.save),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
