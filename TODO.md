@@ -13,7 +13,7 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] A06 Model dat, trvalá fronta, konflikty a bezpečnost v `docs/architecture.md`; limit serverového If-Match výslovně zaznamenán.
 - [x] D01 Založena Flutter aplikace Android/iOS `com.nkshub.nextclouddeck`, SDK 3.44.4, protokol a přihlášení podle OwnNotes; závislosti vyřešeny, runtime ověření zůstává v T01–T03.
 - [x] D02 Implementován Login Flow v2, oddělené reference tokenů, databázové účty, opětovné přihlášení, přepnutí a odebrání s odvoláním tokenu; spuštění testů zůstává v T01–T03.
-- [ ] D02b Sjednotit přihlášení s OwnTalkem: přesné texty, ikony, vzhled, QR možnosti a průběh; současně sjednotit tuto obrazovku v OwnNotes.
+- [x] D02b Přihlášení sjednoceno podle OwnTalku v Decku i Notes: texty, ovládací ikony, vzhled, QR, průběh a certifikáty; Deck ověřen automaticky a na S21, cílené testy Notes prošly, jeho fyzické ověření zatím není dokončené.
 - [x] D03 Implementovány nástěnky, sloupce, oprávnění, archivace a sdílení; runtime důkazy zůstávají v T01–T03.
 - [x] D03a Implementováno vytváření a úpravy nástěnek/sloupců, archivace, mazání a obnova nástěnky, oddělená práva edit/manage a řazení sloupců; runtime ověření čeká na T01–T03.
 - [x] D03b Doplněno hledání uživatelů/skupin/týmů a externích příjemců, vytvoření/změna/odebrání ACL, omezení udělovaných práv a vyřazení cache po ztrátě přístupu; 6 metadata scénářů a 1 hledací scénář připraveny pro T01.
@@ -24,7 +24,7 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] D04d Implementováno vytváření, přejmenování, změna barvy a mazání štítků včetně návazné fronty přiřazení a odstranění smazaného štítku z místní kopie karet.
 - [ ] D05 Implementovat komentáře, přílohy a návazné soubory.
 - [x] D05a Implementováno stránkované čtení komentářů, odpovědi, úprava/smazání autorem, serverové UID a průběžně uložené koncepty; 4 protokolové a 6 databázových scénářů připraveno pro T01.
-- [ ] D05b Protokol příloh připraven: typované REST 1.1 cesty, multipart upload, stažení, smazání/obnova, připojení existujícího souboru přes share type 12 a ohraničený WebDAV seznam; protokolové testy prošly na `11dc428`; metadata a fronta připravené k ověření, dokončit úložiště souborů a UI.
+- [ ] D05b Protokol příloh připraven: typované REST 1.1 cesty, multipart upload, stažení, smazání/obnova, připojení existujícího souboru přes share type 12 a ohraničený WebDAV seznam; protokolové testy prošly na `11dc428`; metadata a fronta ověřeny na `2f1d4ac`, dokončit úložiště souborů a UI.
 - [ ] D06 Implementovat místní data, frontu změn, obnovu po restartu a konflikty.
 - [x] D06a Přidána databáze a místní kopie nástěnek/sloupců/karet, ETag a ochrana proti pozdním odpovědím odebraného účtu; připraveno 6 databázových scénářů pro T01.
 - [x] D06b Implementována trvalá fronta vytvoření/úprav karet, zámek účtu, detekce konfliktu a ruční rozhodnutí, obnova přerušeného zápisu a ochrana před starou odpovědí po potvrzeném zápisu; 6 scénářů připraveno pro T01.
@@ -41,6 +41,8 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [ ] T02 Ověřit skutečný Nextcloud server, oba buildy a příjem bezpečných telemetrických událostí.
 - [ ] T03 Průběžně provádět fyzické testy S9/S21 na pozadí nad izolovanými kandidáty, nezávisle pro každý telefon, a samostatné ověření iOS; před dokončením doložit finální revizi.
 
-Aktuální krok: sjednocení přihlášení s OwnTalkem (D02b). Deck: společné texty, ikony, vzhled, QR, kontrola stavu serveru, certifikáty a zrušení jsou implementované. Protokol 56/56 na `4f6dbc8`, databáze 40/40 na `c5866ce`, UI 24/24 na `1af10e2`. Kandidát `79c1be8` na S21 prošel validací, tokem s lokálním HTTPS testovacím serverem, zrušením, restartem, změnou certifikátu a odmítnutím kamery. Podrobnosti a meze jsou v `docs/testing.md`; ověření Notes ještě běží samostatně. T02 se skutečným Nextcloudem a fyzické iOS zůstávají otevřené.
+Aktuální krok hlavního vlákna: přílohy OwnDecku (D05). Protokol a databázová fronta jsou implementované; navazuje trvalé úložiště souborů a mobilní UI. Na `1943986` prošlo 75 protokolových, 46 databázových a 24 UI testů. Na `2f1d4ac` prošlo všech 49 databázových testů včetně ochrany cache a zrušení před uploadem. Přihlášení Decku fyzicky ověřeno na S21 v kandidátu `79c1be8`, podrobnosti v `docs/testing.md`. Skutečný Nextcloud a fyzické iOS zůstávají v T02/T03.
+
+- [ ] N01 Vedlejší úkol OwnNotes, výslovně zadaný a delegovaný paralelnímu agentovi: opravit Windows chybu `AttachmentCache` při souběžném nahrazení souboru (`File.rename`, `AccessDenied`), reprodukovanou i před sjednocením loginu; podrobný stav a důkazy patří do existujícího TODO Notes. Hlavní vlákno pokračuje Deckem.
 
 - [ ] R01 Při samostatné práci na OwnTalku ověřit také SAN certifikátů a oddělení přístupnosti prvků přihlašovací karty; v Decku a Notes jsou opravené, OwnTalk zde nebyl měněn.
