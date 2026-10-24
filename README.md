@@ -1,5 +1,6 @@
 # OwnDeck
 
+[![CI](https://github.com/nks-hub/owndeck/actions/workflows/ci.yml/badge.svg)](https://github.com/nks-hub/owndeck/actions/workflows/ci.yml)
 ![Version](https://img.shields.io/badge/version-0.1.0--dev-blue)
 ![Flutter](https://img.shields.io/badge/Flutter-3.44.4-blue)
 ![Platforms](https://img.shields.io/badge/platforms-Android%20%7C%20iOS-green)
