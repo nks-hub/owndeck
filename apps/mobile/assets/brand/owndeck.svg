@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <title>OwnDeck</title>
+  <rect id="background" x="0" y="0" width="1024" height="1024" fill="#00679e"/>
+  <rect id="board" x="246" y="246" width="532" height="532" rx="52" fill="#ffffff"/>
+  <rect id="column-one" x="298" y="298" width="104" height="428" rx="24" fill="#00679e"/>
+  <rect id="column-two" x="460" y="298" width="104" height="280" rx="24" fill="#00679e"/>
+  <rect id="column-three" x="622" y="298" width="104" height="352" rx="24" fill="#00679e"/>
+</svg>
