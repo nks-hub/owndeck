@@ -68,6 +68,7 @@ void main() {
     final field = tester.widget<TextField>(find.byType(TextField));
     expect(field.controller!.text, account.server);
     expect(field.enabled, isFalse);
+    expect(find.text('Accounts'), findsOneWidget);
     expect(requests, 0);
   });
 

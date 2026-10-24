@@ -31,6 +31,46 @@ void main() {
   tearDown(() => database.close());
 
   test(
+    'expired authentication preserves drafts and invalidates stale responses',
+    () async {
+      final vault = MemoryVault();
+      final repository = AccountRepository(database, vault);
+      final first = await repository.add(
+        credentials('user'),
+        userId: 'uid',
+        certificateFingerprint: 'a' * 64,
+      );
+      await database.saveBoards(first.id, first.generation, [
+        board(1, 'Saved', edit: true),
+      ], null);
+      await database.saveEditorDraft(first, 'draft', 1, 2, {
+        'title': 'Unsent',
+      }, null);
+      expect(await repository.requireAuthentication(first), isTrue);
+      final expired = (await database.account(first.id))!;
+      expect(expired.state, 'reauthRequired');
+      expect(expired.generation, first.generation + 1);
+      expect(await database.accepts(first.id, first.generation), isFalse);
+      expect(vault.values[first.credentialRef], 'test-password');
+      expect(await database.editorDraft(first.id, 'draft'), isNotNull);
+      final restored = await repository.add(
+        credentials('user', 'new-password'),
+        userId: 'uid',
+        certificateFingerprint: 'a' * 64,
+      );
+      expect(restored.id, first.id);
+      expect(restored.state, 'active');
+      expect(
+        (await database.watchBoards(first.id).first).single.title,
+        'Saved',
+      );
+      expect(await database.editorDraft(first.id, 'draft'), isNotNull);
+      expect(await repository.requireAuthentication(first), isFalse);
+      expect((await database.account(first.id))!.state, 'active');
+    },
+  );
+
+  test(
     'cancelling while saving credentials leaves no account or secret',
     () async {
       final vault = PausingVault();

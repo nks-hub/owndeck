@@ -16,6 +16,7 @@ import 'onboarding/certificate_dialog.dart';
 import 'onboarding/login_view.dart';
 import 'onboarding/qr_login_scanner_screen.dart';
 import 'onboarding/server_address_input.dart';
+import 'accounts.dart';
 
 typedef LoginTransportFactory =
     http.Client Function(ServerBase server, String? fingerprint);
@@ -441,6 +442,25 @@ class _LoginContentState extends ConsumerState<_LoginContent> {
         if (!didPop) _cancel();
       },
       child: Scaffold(
+        bottomNavigationBar: widget.reauthenticateAccount == null
+            ? null
+            : SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: TextButton.icon(
+                    onPressed: _busy
+                        ? null
+                        : () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              settings: const RouteSettings(name: '/accounts'),
+                              builder: (_) => const AccountsScreen(),
+                            ),
+                          ),
+                    icon: const Icon(Icons.account_circle_outlined),
+                    label: Text(text.accounts),
+                  ),
+                ),
+              ),
         body: SafeArea(
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 220),

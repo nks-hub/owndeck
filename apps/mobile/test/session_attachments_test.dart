@@ -86,7 +86,10 @@ void main() {
     if (await root.exists()) await root.delete(recursive: true);
   });
 
-  DeckSession connect(http.Client transport) => session = DeckSession(
+  DeckSession connect(
+    http.Client transport, {
+    Future<void> Function()? onAuthenticationRequired,
+  }) => session = DeckSession(
     database,
     account,
     DeckClient(
@@ -96,6 +99,34 @@ void main() {
       transport: transport,
     ),
     files: () async => files,
+    onAuthenticationRequired: onAuthenticationRequired,
+  );
+
+  test(
+    'HTTP 401 requests reauthentication and stops further calls from that session',
+    () async {
+      var requests = 0;
+      var callbacks = 0;
+      final active = connect(
+        MockClient((_) async {
+          requests++;
+          return http.Response('', 401);
+        }),
+        onAuthenticationRequired: () async {
+          callbacks++;
+          await accounts.requireAuthentication(account);
+        },
+      );
+      await active.refreshBoards();
+      expect(callbacks, 1);
+      expect((await database.account(account.id))!.state, 'reauthRequired');
+      await active.refreshBoards();
+      expect(requests, 1);
+      expect(
+        (await database.watchBoards(account.id).first).single.title,
+        'Board',
+      );
+    },
   );
 
   test(

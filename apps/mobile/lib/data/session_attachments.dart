@@ -154,15 +154,21 @@ extension SessionAttachments on DeckSession {
   });
 
   Future<List<CloudFile>> cloudFiles(List<String> path) async {
-    if (_disposed) throw StateError('account_unavailable');
-    final uid = await client.currentUserId();
-    await database.saveUserIdentity(account, uid);
-    if (_disposed || !await database.accepts(account.id, account.generation)) {
-      throw StateError('account_unavailable');
+    try {
+      if (_disposed) throw StateError('account_unavailable');
+      final uid = await client.currentUserId();
+      await database.saveUserIdentity(account, uid);
+      if (_disposed ||
+          !await database.accepts(account.id, account.generation)) {
+        throw StateError('account_unavailable');
+      }
+      final files = await client.files(uid, path);
+      if (_disposed) throw StateError('account_unavailable');
+      return files;
+    } on DeckException catch (error) {
+      await _authenticationFailed(error);
+      rethrow;
     }
-    final files = await client.files(uid, path);
-    if (_disposed) throw StateError('account_unavailable');
-    return files;
   }
 
   Future<DownloadedAttachment> downloadAttachment(
@@ -183,6 +189,7 @@ extension SessionAttachments on DeckSession {
         await files.cache(account.id, boardId, attachment, bytes),
       );
     } on DeckException catch (error) {
+      await _authenticationFailed(error);
       if ({401, 403, 404}.contains(error.status)) {
         await files.forgetCached(account.id, boardId, attachment);
       }

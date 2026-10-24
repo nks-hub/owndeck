@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:deck_protocol/deck_protocol.dart';
 import 'package:deck_store/deck_store.dart';
@@ -25,6 +26,55 @@ void main() {
     await database.saveCardDraft(account, 1, 2, {'title': 'Deferred'});
   });
   tearDown(() => database.close());
+
+  test(
+    'the pause and queued card survive closing and reopening the database',
+    () async {
+      final folder = await Directory.systemTemp.createTemp(
+        'owndeck-backoff-test-',
+      );
+      addTearDown(() => folder.delete(recursive: true));
+      final path = File('${folder.path}/store.sqlite');
+      final original = DeckDatabase(NativeDatabase(path));
+      late StoredAccount stored;
+      try {
+        stored = await AccountRepository(
+          original,
+          MemoryVault(),
+        ).add(credentials('disk-user'));
+        await original.saveBoards(stored.id, stored.generation, [
+          board(1, 'Board', edit: true),
+        ], null);
+        await original.saveCardDraft(stored, 1, 2, {'title': 'Pending'});
+        await original.deferSync(
+          stored,
+          DateTime.now().add(const Duration(minutes: 2)),
+        );
+      } finally {
+        await original.close();
+      }
+      final reopened = DeckDatabase(NativeDatabase(path));
+      try {
+        final restored = (await reopened.account(stored.id))!;
+        var requests = 0;
+        final client = DeckClient(
+          base: ServerBase.parse(restored.server),
+          loginName: restored.loginName,
+          appPassword: 'test-password',
+          transport: MockClient((_) async {
+            requests++;
+            return http.Response('', 500);
+          }),
+        );
+        await DeckSync(reopened, restored, client).run();
+        expect(requests, 0);
+        expect((await reopened.writesFor(stored.id)).single.state, 'queued');
+        expect(restored.syncNotBefore!.isAfter(DateTime.now()), isTrue);
+      } finally {
+        await reopened.close();
+      }
+    },
+  );
 
   DeckSync sync(http.Client transport) => DeckSync(
     database,

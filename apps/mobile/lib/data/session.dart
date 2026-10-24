@@ -16,6 +16,7 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
     this.account,
     this.client, {
     Future<AttachmentFiles> Function()? files,
+    this.onAuthenticationRequired,
   }) : _files = files {
     sync = DeckSync(
       database,
@@ -49,6 +50,13 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
   final StoredAccount account;
   final DeckClient client;
   final Future<AttachmentFiles> Function()? _files;
+  final Future<void> Function()? onAuthenticationRequired;
+
+  Future<void> _authenticationFailed(DeckException error) async {
+    if (!_disposed && error.status == 401)
+      await onAuthenticationRequired?.call();
+  }
+
   late final DeckSync sync;
   late final StreamSubscription<List<ConnectivityResult>> _connection;
   late final Timer _timer;
@@ -210,13 +218,26 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> _perform(String scope, Future<void> Function() operation) async {
     _errors.remove(scope);
     try {
-      client.deferUntil((await database.account(account.id))?.syncNotBefore);
-      if (_disposed) return;
+      final current = await database.account(account.id);
+      if (_disposed ||
+          current == null ||
+          current.state != 'active' ||
+          current.generation != account.generation) {
+        return;
+      }
+      client.deferUntil(current.syncNotBefore);
       await operation();
       if (_files != null && !_disposed) await _cleanAttachmentFiles();
     } catch (error) {
       // The view displays the error beside cached content, never raw exception text.
       _errors[scope] = error;
+      if (error is DeckException) {
+        try {
+          await _authenticationFailed(error);
+        } catch (storageError) {
+          _errors[scope] = storageError;
+        }
+      }
     } finally {
       if (!_disposed) {
         try {

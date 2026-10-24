@@ -142,7 +142,25 @@ final class Accounts extends ChangeNotifier {
         retryUntil: account.syncNotBefore,
       ),
       files: _files,
+      onAuthenticationRequired: () => _requireAuthentication(account),
     );
+  }
+
+  Future<void> _requireAuthentication(StoredAccount account) async {
+    if (_disposed || !await repository.requireAuthentication(account)) return;
+    if (_disposed ||
+        busy ||
+        session?.account.id != account.id ||
+        session?.account.generation != account.generation) {
+      return;
+    }
+    try {
+      await _reload();
+    } catch (_) {
+      loadError = 'storage_unavailable';
+    } finally {
+      if (!_disposed) notifyListeners();
+    }
   }
 
   Future<T> _change<T>(Future<T> Function() operation) async {
@@ -155,6 +173,19 @@ final class Accounts extends ChangeNotifier {
     try {
       return await operation();
     } finally {
+      final active = session;
+      if (!_disposed && active != null) {
+        try {
+          final current = await database.account(active.account.id);
+          if (current == null ||
+              current.state != 'active' ||
+              current.generation != active.account.generation) {
+            await _reload();
+          }
+        } catch (_) {
+          loadError = 'storage_unavailable';
+        }
+      }
       busy = false;
       if (!_disposed) notifyListeners();
     }

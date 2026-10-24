@@ -109,6 +109,29 @@ final class AccountRepository {
     }),
   );
 
+  Future<bool> requireAuthentication(StoredAccount account) =>
+      _serialize(() async {
+        final current = await database.account(account.id);
+        if (current == null ||
+            current.generation != account.generation ||
+            current.state != 'active') {
+          return false;
+        }
+        return await (database.update(database.storedAccounts)..where(
+                  (a) =>
+                      a.id.equals(account.id) &
+                      a.generation.equals(account.generation) &
+                      a.state.equals('active'),
+                ))
+                .write(
+                  StoredAccountsCompanion(
+                    state: const Value('reauthRequired'),
+                    generation: Value(account.generation + 1),
+                  ),
+                ) ==
+            1;
+      });
+
   Future<void> remove(String id) => _serialize(() async {
     final current = await database.account(id);
     if (current == null) return;
