@@ -78,7 +78,9 @@ final class DeckSync {
           final resolved = await database.resolveWrite(applied);
           attemptedReadbacks.add(applied.id);
           if (resolved != null) {
-            if (attachmentKinds.contains(resolved.kind)) {
+            if (resolved.kind == 'setDoneStack') {
+              await _finishDoneStack(resolved);
+            } else if (attachmentKinds.contains(resolved.kind)) {
               await _finishAttachment(resolved);
             } else if (boardMetadataKinds.contains(resolved.kind)) {
               await _finishBoardMetadata(resolved);
@@ -140,7 +142,8 @@ final class DeckSync {
         final board = DeckBoard.fromJson(object(boardResponse.data));
         if (_closed || !await database.acquireLease(account, _owner)) return;
         if (!await database.startWrite(account, _owner, queued.id)) continue;
-        final allowed = queued.kind.endsWith('Comment')
+        final allowed =
+            queued.kind.endsWith('Comment') || queued.kind == 'cloneCard'
             ? board.permissions.read && board.deletedAt == 0
             : board.permissions.edit && !board.archived && board.deletedAt == 0;
         if (!allowed) {

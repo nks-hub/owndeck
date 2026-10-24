@@ -66,6 +66,11 @@ extension DeckViews on DeckDatabase {
     for (final field in const {
       'labelId': 'createLabel',
       'aclId': 'createAcl',
+      'destinationBoardId': 'createBoard',
+      'destinationStackId': 'createStack',
+      'dependentBoardId': 'createBoard',
+      'dependentStackId': 'createStack',
+      'dependentCardId': 'createCard',
     }.entries) {
       if (metadata[field.key] is int && (metadata[field.key] as int) < 0) {
         final id = await resolveId(
@@ -95,7 +100,15 @@ extension DeckViews on DeckDatabase {
           write.stackId < 0)
         -write.stackId,
       if (write.cardId != null && write.cardId! < 0) -write.cardId!,
-      for (final key in ['labelId', 'aclId'])
+      for (final key in [
+        'labelId',
+        'aclId',
+        'destinationBoardId',
+        'destinationStackId',
+        'dependentBoardId',
+        'dependentStackId',
+        'dependentCardId',
+      ])
         if (data[key] is int && (data[key] as int) < 0) -(data[key] as int),
       if (write.kind.endsWith('Comment'))
         for (final key in ['commentId', 'parentId'])
@@ -359,6 +372,24 @@ extension DeckViews on DeckDatabase {
           } else {
             if (write.kind == 'archiveCard') projected['archived'] = true;
             if (write.kind == 'unarchiveCard') projected['archived'] = false;
+            if (write.kind == 'addCardLink' || write.kind == 'removeCardLink') {
+              final targetId =
+                  await resolveId(
+                    accountId,
+                    intField(data, 'dependentCardId'),
+                    'createCard',
+                  ) ??
+                  data['dependentCardId'];
+              final links = (current['dependentCards'] as List? ?? [])
+                  .whereType<int>()
+                  .toSet();
+              if (write.kind == 'addCardLink') {
+                links.add(targetId! as int);
+              } else {
+                links.remove(targetId);
+              }
+              projected['dependentCards'] = links.toList();
+            }
             if (write.kind == 'assignLabel' || write.kind == 'removeLabel') {
               final labels = (current['labels'] as List? ?? [])
                   .whereType<JsonObject>()
