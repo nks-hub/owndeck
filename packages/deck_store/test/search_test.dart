@@ -236,13 +236,16 @@ void main() {
   test(
     'pending edits and new cards are searchable without waiting for upload',
     () async {
-      final original = testCard(8, title: 'Original');
+      final original = testCard(8, title: 'Before rename');
       await seed(account, testBoard(1), [original]);
       await database.saveCardDraft(account, 1, 2, {
         'title': 'Changed',
       }, original: DeckCard.fromJson(original));
       await database.saveCardDraft(account, 1, 2, {'title': 'Offline task'});
-      expect(await ids(const CardSearchOptions(query: 'original')), isEmpty);
+      expect(
+        await ids(const CardSearchOptions(query: 'before rename')),
+        isEmpty,
+      );
       expect(await ids(const CardSearchOptions(query: 'changed')), [8]);
       final pending = await database.searchCards(
         account.id,

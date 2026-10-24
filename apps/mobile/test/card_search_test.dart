@@ -159,6 +159,7 @@ void main() {
       expect(find.text('Beta card'), findsOneWidget);
       expect(requests, 0);
       await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
     },
   );
 
@@ -174,6 +175,7 @@ void main() {
       expect(find.byType(CardScreen), findsOneWidget);
       expect(requests, 0);
       await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
     },
   );
 
@@ -191,6 +193,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
     },
   );
 }
