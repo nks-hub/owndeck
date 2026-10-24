@@ -187,6 +187,9 @@ class _AttachmentListState extends State<_AttachmentList> {
           widget.card.stackId,
           attachment,
         );
+        final bytes = save ? await downloaded.file.readAsBytes() : null;
+        if (!mounted) return;
+        await widget.session.ensureAttachmentAccess(widget.board.id);
         if (!mounted) return;
         final text = AppLocalizations.of(context)!;
         if (downloaded.offline) _message(text.offlineAttachment);
@@ -195,7 +198,7 @@ class _AttachmentListState extends State<_AttachmentList> {
         if (save) {
           final result = await FilePicker.saveFile(
             fileName: safeAttachmentName(attachment.name),
-            bytes: await downloaded.file.readAsBytes(),
+            bytes: bytes!,
             mimeType: mime,
           );
           if (result != null) _message(text.fileSaved);

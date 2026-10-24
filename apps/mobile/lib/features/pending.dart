@@ -17,6 +17,17 @@ class PendingScreen extends StatefulWidget {
 }
 
 class _PendingScreenState extends State<PendingScreen> {
+  String _attachmentSummary(JsonObject value) {
+    final name = (value['name'] ?? value['data'] ?? '').toString();
+    final modified = value['lastModified'];
+    if (modified is! int || modified <= 0 || modified > 253402300799) {
+      return name;
+    }
+    final date = DateTime.fromMillisecondsSinceEpoch(modified * 1000).toLocal();
+    final local = MaterialLocalizations.of(context);
+    return '$name\n${local.formatMediumDate(date)} ${local.formatTimeOfDay(TimeOfDay.fromDateTime(date))}';
+  }
+
   late final _writes = widget.session.database.watchWrites(
     widget.session.account.id,
   );
@@ -103,6 +114,7 @@ class _PendingScreenState extends State<PendingScreen> {
             itemBuilder: (context, index) {
               final write = writes[index];
               final changes = object(jsonDecode(write.proposal));
+              final attachment = attachmentKinds.contains(write.kind);
               final base = write.base == null
                   ? <String, Object?>{}
                   : object(jsonDecode(write.base!));
@@ -145,18 +157,25 @@ class _PendingScreenState extends State<PendingScreen> {
                       const SizedBox(height: 12),
                       Text(text.localVersion),
                       SelectableText(
-                        (changes['message'] ??
-                                changes['description'] ??
-                                base['message'] ??
-                                base['description'] ??
-                                '')
-                            .toString(),
+                        attachment
+                            ? _attachmentSummary({...base, ...changes})
+                            : (changes['message'] ??
+                                      changes['description'] ??
+                                      base['message'] ??
+                                      base['description'] ??
+                                      '')
+                                  .toString(),
                       ),
-                      if (remote != null) ...[
+                      if (remote != null &&
+                          (!attachment ||
+                              remote['data'] is String ||
+                              remote['name'] is String)) ...[
                         const Divider(),
                         Text(text.serverVersion),
                         SelectableText(
-                          '${remote['title'] ?? ''}\n${remote['message'] ?? remote['description'] ?? ''}',
+                          attachment
+                              ? _attachmentSummary(remote)
+                              : '${remote['title'] ?? ''}\n${remote['message'] ?? remote['description'] ?? ''}',
                         ),
                       ],
                       if (write.state != 'sending')

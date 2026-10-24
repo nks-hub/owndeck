@@ -1,6 +1,18 @@
 part of 'database.dart';
 
 extension AttachmentStore on DeckDatabase {
+  Future<List<DeckAttachment>> attachmentsFor(
+    String accountId,
+    int cardId,
+  ) async =>
+      (await (select(storedAttachments)..where(
+                (a) => a.accountId.equals(accountId) & a.cardId.equals(cardId),
+              ))
+              .get())
+          .map(
+            (row) => DeckAttachment.fromJson(object(jsonDecode(row.payload))),
+          )
+          .toList();
   Future<bool> _canCacheAttachments(String accountId, int boardId) async {
     final row =
         await (select(storedBoards)..where(

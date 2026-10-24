@@ -254,12 +254,13 @@ final class AttachmentFiles {
     String accountId,
     int boardId,
     int cardId,
-    List<DeckAttachment> attachments,
+    Future<List<DeckAttachment>> Function() retained,
   ) => _serial(() async {
     _available(accountId);
     if (boardId <= 0 || cardId <= 0) {
       throw ArgumentError('invalid_cache_identity');
     }
+    final attachments = await retained();
     final keep = {
       for (final item in attachments)
         if (item.deletedAt == 0) '${item.type}-${item.id}-${item.modified}',
@@ -275,19 +276,22 @@ final class AttachmentFiles {
     }
   });
 
-  Future<void> pruneBoards(String accountId, Set<int> keep) =>
-      _serial(() async {
-        _available(accountId);
-        final folder = Directory('${_account(accountId).path}/downloads');
-        if (!await folder.exists()) return;
-        await for (final entry in folder.list(followLinks: false)) {
-          if (entry is! Directory) continue;
-          final id = int.tryParse(
-            entry.uri.pathSegments.where((part) => part.isNotEmpty).last,
-          );
-          if (!keep.contains(id)) await entry.delete(recursive: true);
-        }
-      });
+  Future<void> pruneBoards(
+    String accountId,
+    Future<Set<int>> Function() retained,
+  ) => _serial(() async {
+    _available(accountId);
+    final keep = await retained();
+    final folder = Directory('${_account(accountId).path}/downloads');
+    if (!await folder.exists()) return;
+    await for (final entry in folder.list(followLinks: false)) {
+      if (entry is! Directory) continue;
+      final id = int.tryParse(
+        entry.uri.pathSegments.where((part) => part.isNotEmpty).last,
+      );
+      if (!keep.contains(id)) await entry.delete(recursive: true);
+    }
+  });
 
   Future<void> removeAccount(String accountId) {
     _removed.add(accountId);

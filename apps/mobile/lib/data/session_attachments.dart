@@ -7,16 +7,20 @@ final class DownloadedAttachment {
 }
 
 extension SessionAttachments on DeckSession {
+  Future<void> ensureAttachmentAccess(int boardId) =>
+      _checkAttachmentBoard(boardId);
   Future<void> _cleanAttachmentFiles() async {
     final files = await _attachmentFiles();
     if (_disposed || !await database.accepts(account.id, account.generation)) {
       return;
     }
-    final boards = await database.boardView(account.id);
-    await files.pruneBoards(account.id, {
-      for (final board in boards)
-        if (board.permissions.read && board.deletedAt == 0) board.id,
-    });
+    await files.pruneBoards(
+      account.id,
+      () async => {
+        for (final board in await database.boardView(account.id))
+          if (board.permissions.read && board.deletedAt == 0) board.id,
+      },
+    );
     await _cleanUploads(files);
   }
 
@@ -32,7 +36,10 @@ extension SessionAttachments on DeckSession {
     final board = (await database.boardView(
       account.id,
     )).where((board) => board.id == boardId).firstOrNull;
-    if (board == null || !board.permissions.read || board.deletedAt != 0) {
+    if (_disposed ||
+        board == null ||
+        !board.permissions.read ||
+        board.deletedAt != 0) {
       throw StateError('permission_denied');
     }
   }
@@ -138,7 +145,12 @@ extension SessionAttachments on DeckSession {
     await database.saveAttachments(account, board, card, items, epoch);
     await _checkAttachmentBoard(board);
     final files = await _attachmentFiles();
-    await files.pruneCard(account.id, board, card, items);
+    await files.pruneCard(
+      account.id,
+      board,
+      card,
+      () => database.attachmentsFor(account.id, card),
+    );
   });
 
   Future<List<CloudFile>> cloudFiles(List<String> path) async {
