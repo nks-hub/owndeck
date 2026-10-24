@@ -31,9 +31,12 @@ final class SecureVault implements CredentialVault {
 }
 
 final class Accounts extends ChangeNotifier {
-  Accounts({FlutterSecureStorage? storage, DeckDatabase? database})
-    : _storage = storage ?? const FlutterSecureStorage(),
-      database = database ?? DeckDatabase(driftDatabase(name: 'owndeck')) {
+  Accounts({
+    FlutterSecureStorage? storage,
+    DeckDatabase? database,
+    this.transportFactory,
+  }) : _storage = storage ?? const FlutterSecureStorage(),
+       database = database ?? DeckDatabase(driftDatabase(name: 'owndeck')) {
     vault = SecureVault(_storage);
     repository = AccountRepository(
       this.database,
@@ -44,6 +47,7 @@ final class Accounts extends ChangeNotifier {
   }
 
   final FlutterSecureStorage _storage;
+  final http.Client Function(Uri server, String? fingerprint)? transportFactory;
   final DeckDatabase database;
   late final CredentialVault vault;
   late final AccountRepository repository;
@@ -55,6 +59,7 @@ final class Accounts extends ChangeNotifier {
   http.Client? _transport;
   DeckSession? session;
   int _generation = 0;
+  int _onboarding = 0;
   Future<AttachmentFiles>? _fileStore;
 
   Future<AttachmentFiles> _files() async {
@@ -126,10 +131,7 @@ final class Accounts extends ChangeNotifier {
     final password = await vault.read(account.credentialRef);
     if (_disposed || generation != _generation) return;
     if (password == null) return;
-    final transport = CertificateHttpClient(
-      server: ServerBase.parse(account.server).uri,
-      fingerprint: account.certificateFingerprint,
-    );
+    final transport = _client(account);
     _transport = transport;
     session = DeckSession(
       database,
@@ -150,6 +152,7 @@ final class Accounts extends ChangeNotifier {
     if (_disposed || !await repository.requireAuthentication(account)) return;
     if (_disposed ||
         busy ||
+        _onboarding != 0 ||
         session?.account.id != account.id ||
         session?.account.generation != account.generation) {
       return;
@@ -163,6 +166,40 @@ final class Accounts extends ChangeNotifier {
     }
   }
 
+  http.Client _client(StoredAccount account) {
+    final uri = ServerBase.parse(account.server).uri;
+    return transportFactory?.call(uri, account.certificateFingerprint) ??
+        CertificateHttpClient(
+          server: uri,
+          fingerprint: account.certificateFingerprint,
+        );
+  }
+
+  void beginOnboarding() => _onboarding++;
+
+  Future<void> endOnboarding() async {
+    if (_onboarding > 0) _onboarding--;
+    if (_disposed || busy || _onboarding != 0) return;
+    await _reloadInvalidSession();
+    if (!_disposed) notifyListeners();
+  }
+
+  Future<void> _reloadInvalidSession() async {
+    final active = session;
+    if (_disposed || active == null) return;
+    try {
+      final current = await database.account(active.account.id);
+      if (_disposed || !identical(session, active)) return;
+      if (current == null ||
+          current.state != 'active' ||
+          current.generation != active.account.generation) {
+        await _reload();
+      }
+    } catch (_) {
+      loadError = 'storage_unavailable';
+    }
+  }
+
   Future<T> _change<T>(Future<T> Function() operation) async {
     await ready;
     if (busy || loadError != null || _disposed) {
@@ -173,19 +210,7 @@ final class Accounts extends ChangeNotifier {
     try {
       return await operation();
     } finally {
-      final active = session;
-      if (!_disposed && active != null) {
-        try {
-          final current = await database.account(active.account.id);
-          if (current == null ||
-              current.state != 'active' ||
-              current.generation != active.account.generation) {
-            await _reload();
-          }
-        } catch (_) {
-          loadError = 'storage_unavailable';
-        }
-      }
+      if (_onboarding == 0) await _reloadInvalidSession();
       busy = false;
       if (!_disposed) notifyListeners();
     }
@@ -236,10 +261,7 @@ final class Accounts extends ChangeNotifier {
       await _reload();
     }
     if (password == null) return false;
-    final transport = CertificateHttpClient(
-      server: ServerBase.parse(account.server).uri,
-      fingerprint: account.certificateFingerprint,
-    );
+    final transport = _client(account);
     try {
       await DeckClient(
         base: ServerBase.parse(account.server),

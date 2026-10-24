@@ -95,13 +95,20 @@ class AccountsScreen extends ConsumerWidget {
                   title: Text(text.addAccount),
                   onTap: accounts.busy
                       ? null
-                      : () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            settings: const RouteSettings(name: '/login'),
-                            builder: (_) =>
-                                const LoginScreen(closeOnSuccess: true),
-                          ),
-                        ),
+                      : () async {
+                          accounts.beginOnboarding();
+                          try {
+                            await Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                settings: const RouteSettings(name: '/login'),
+                                builder: (_) =>
+                                    const LoginScreen(closeOnSuccess: true),
+                              ),
+                            );
+                          } finally {
+                            await accounts.endOnboarding();
+                          }
+                        },
                 ),
               ],
             ),

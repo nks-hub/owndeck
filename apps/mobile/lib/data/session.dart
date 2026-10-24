@@ -52,9 +52,45 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
   final Future<AttachmentFiles> Function()? _files;
   final Future<void> Function()? onAuthenticationRequired;
 
+  Future<void> _prepareRequest() async {
+    final current = await database.account(account.id);
+    if (_disposed ||
+        current == null ||
+        current.state != 'active' ||
+        current.generation != account.generation) {
+      throw StateError('account_unavailable');
+    }
+    client.deferUntil(current.syncNotBefore);
+  }
+
+  Future<void> _persistBackoff() async {
+    if (!_disposed && client.retryUntil != null) {
+      await database.deferSync(account, client.retryUntil);
+    }
+  }
+
   Future<void> _authenticationFailed(DeckException error) async {
-    if (!_disposed && error.status == 401)
+    if (!_disposed && error.status == 401) {
       await onAuthenticationRequired?.call();
+    }
+  }
+
+  /// Reads stay bound to this account; mutations belong in the durable outbox.
+  Future<T> readServer<T>(
+    Future<T> Function(DeckClient client) operation,
+  ) async {
+    await _prepareRequest();
+    late T result;
+    try {
+      result = await operation(client);
+    } on DeckException catch (error) {
+      await _authenticationFailed(error);
+      rethrow;
+    } finally {
+      await _persistBackoff();
+    }
+    await _prepareRequest();
+    return result;
   }
 
   late final DeckSync sync;
@@ -218,14 +254,7 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> _perform(String scope, Future<void> Function() operation) async {
     _errors.remove(scope);
     try {
-      final current = await database.account(account.id);
-      if (_disposed ||
-          current == null ||
-          current.state != 'active' ||
-          current.generation != account.generation) {
-        return;
-      }
-      client.deferUntil(current.syncNotBefore);
+      await _prepareRequest();
       await operation();
       if (_files != null && !_disposed) await _cleanAttachmentFiles();
     } catch (error) {
@@ -241,7 +270,7 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
     } finally {
       if (!_disposed) {
         try {
-          await database.deferSync(account, client.retryUntil);
+          await _persistBackoff();
         } catch (error) {
           _errors.putIfAbsent(scope, () => error);
         }

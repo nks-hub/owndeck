@@ -28,6 +28,18 @@ void main() {
   tearDown(() => database.close());
 
   test(
+    'persisting a deadline rounds up instead of shortening the server pause',
+    () async {
+      final until = DateTime.utc(2030, 1, 1, 12, 0, 0, 0, 900);
+      await database.deferSync(account, until);
+      expect(
+        (await database.account(account.id))!.syncNotBefore!.toUtc(),
+        DateTime.utc(2030, 1, 1, 12, 0, 1),
+      );
+    },
+  );
+
+  test(
     'the pause and queued card survive closing and reopening the database',
     () async {
       final folder = await Directory.systemTemp.createTemp(

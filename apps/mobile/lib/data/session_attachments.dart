@@ -153,43 +153,36 @@ extension SessionAttachments on DeckSession {
     );
   });
 
-  Future<List<CloudFile>> cloudFiles(List<String> path) async {
-    try {
-      if (_disposed) throw StateError('account_unavailable');
-      final uid = await client.currentUserId();
-      await database.saveUserIdentity(account, uid);
-      if (_disposed ||
-          !await database.accepts(account.id, account.generation)) {
-        throw StateError('account_unavailable');
-      }
-      final files = await client.files(uid, path);
-      if (_disposed) throw StateError('account_unavailable');
-      return files;
-    } on DeckException catch (error) {
-      await _authenticationFailed(error);
-      rethrow;
+  Future<List<CloudFile>> cloudFiles(List<String> path) => readServer((
+    client,
+  ) async {
+    await _prepareRequest();
+    final uid = await client.currentUserId();
+    await database.saveUserIdentity(account, uid);
+    if (_disposed || !await database.accepts(account.id, account.generation)) {
+      throw StateError('account_unavailable');
     }
-  }
+    final files = await client.files(uid, path);
+    return files;
+  });
 
   Future<DownloadedAttachment> downloadAttachment(
     int boardId,
     int stackId,
     DeckAttachment attachment,
   ) async {
+    await _prepareRequest();
     await _checkAttachmentBoard(boardId);
     final files = await _attachmentFiles();
     try {
-      final bytes = await client.downloadAttachment(
-        boardId,
-        stackId,
-        attachment,
+      final bytes = await readServer(
+        (client) => client.downloadAttachment(boardId, stackId, attachment),
       );
       await _checkAttachmentBoard(boardId);
       return DownloadedAttachment(
         await files.cache(account.id, boardId, attachment, bytes),
       );
     } on DeckException catch (error) {
-      await _authenticationFailed(error);
       if ({401, 403, 404}.contains(error.status)) {
         await files.forgetCached(account.id, boardId, attachment);
       }

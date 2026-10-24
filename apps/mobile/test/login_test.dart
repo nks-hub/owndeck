@@ -44,6 +44,35 @@ void main() {
     await tester.pump();
   }
 
+  testWidgets(
+    'switching expired accounts resets the locked server and expected identity together',
+    (tester) async {
+      Uri? requested;
+      LoginScreen screen(StoredAccount selected) => LoginScreen(
+        reauthenticateAccount: selected,
+        transportFactory: (_, _) => MockClient((request) async {
+          requested = request.url;
+          return http.Response('', 503);
+        }),
+      );
+      await mount(tester, screen(account));
+      final other = account.copyWith(
+        id: 'other-account',
+        server: 'https://other.example.com/',
+        generation: 2,
+      );
+      await mount(tester, screen(other));
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        other.server,
+      );
+      await tester.ensureVisible(find.byType(FilledButton));
+      await tester.tap(find.byType(FilledButton));
+      await tester.pumpAndSettle();
+      expect(requested?.host, 'other.example.com');
+    },
+  );
+
   testWidgets('server-only QR cannot change a reauthentication address', (
     tester,
   ) async {
@@ -129,7 +158,10 @@ void main() {
     final semantics = tester.ensureSemantics();
     try {
       await tester.pumpAndSettle();
-      expect(find.text('Enter a valid HTTPS Nextcloud address.'), findsOneWidget);
+      expect(
+        find.text('Enter a valid HTTPS Nextcloud address.'),
+        findsOneWidget,
+      );
       expect(
         find.bySemanticsLabel('Enter a valid HTTPS Nextcloud address.'),
         findsOneWidget,

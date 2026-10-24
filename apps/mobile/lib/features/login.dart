@@ -44,6 +44,11 @@ class LoginScreen extends StatelessWidget {
         ? OnboardingTheme.dark()
         : OnboardingTheme.light(),
     child: _LoginContent(
+      key: ValueKey((
+        reauthenticateAccount?.id,
+        reauthenticateAccount?.generation,
+        initialServer,
+      )),
       closeOnSuccess: closeOnSuccess,
       initialServer: initialServer,
       reauthenticateAccount: reauthenticateAccount,
@@ -56,6 +61,7 @@ class LoginScreen extends StatelessWidget {
 
 class _LoginContent extends ConsumerStatefulWidget {
   const _LoginContent({
+    super.key,
     required this.closeOnSuccess,
     this.initialServer,
     this.reauthenticateAccount,

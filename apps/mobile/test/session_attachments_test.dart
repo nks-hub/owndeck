@@ -129,6 +129,56 @@ void main() {
     },
   );
 
+  for (final operation in ['dav', 'download']) {
+    test(
+      '$operation persists backoff before the session is recreated',
+      () async {
+        var requests = 0;
+        Future<void> request(DeckSession session) async {
+          if (operation == 'dav') {
+            await session.cloudFiles([]);
+          } else {
+            await session.downloadAttachment(1, 2, attachment(10));
+          }
+        }
+
+        final first = connect(
+          MockClient((request) async {
+            requests++;
+            if (request.url.path.endsWith('/cloud/user')) {
+              return http.Response(
+                jsonEncode({
+                  'ocs': {
+                    'meta': {'status': 'ok', 'statuscode': 200},
+                    'data': {'id': 'user'},
+                  },
+                }),
+                200,
+                headers: {'content-type': 'application/json'},
+              );
+            }
+            return http.Response('', 429, headers: {'retry-after': '120'});
+          }),
+        );
+        await expectLater(request(first), throwsA(isA<DeckException>()));
+        expect((await database.account(account.id))!.syncNotBefore, isNotNull);
+        first.dispose();
+        final before = requests;
+        final next = connect(
+          MockClient((_) async {
+            requests++;
+            return http.Response('', 500);
+          }),
+        );
+        await expectLater(
+          request(next),
+          throwsA(isA<DeckException>().having((e) => e.status, 'status', 429)),
+        );
+        expect(requests, before);
+      },
+    );
+  }
+
   test(
     'a stale attachment GET cannot prune a newer locally confirmed file',
     () async {

@@ -3,7 +3,7 @@ import 'package:deck_protocol/deck_protocol.dart';
 import '../l10n/app_localizations.dart';
 
 String errorMessage(Object error, AppLocalizations text) {
-  if (error is FormatException) return text.invalidServer;
+  if (error is FormatException) return text.invalidResponse;
   final code = switch (error) {
     DeckException() => error.code,
     LoginException() => error.code,
@@ -14,6 +14,7 @@ String errorMessage(Object error, AppLocalizations text) {
     'permission_denied' => text.permissionError,
     'deck_unavailable' => text.deckError,
     'tls_failed' => text.certError,
+    'rate_limited' => text.rateLimited,
     'timeout' || 'transport_failed' => text.networkError,
     _ => error is LoginException ? text.loginError : text.loadError,
   };
