@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' show IOException;
 
 import 'package:deck_protocol/deck_protocol.dart';
 import 'package:drift/drift.dart' show Value;

@@ -1,6 +1,19 @@
 part of 'database.dart';
 
 extension AttachmentStore on DeckDatabase {
+  Future<bool> _canCacheAttachments(String accountId, int boardId) async {
+    final row =
+        await (select(storedBoards)..where(
+              (board) =>
+                  board.accountId.equals(accountId) &
+                  board.remoteId.equals(boardId),
+            ))
+            .getSingleOrNull();
+    if (row == null) return false;
+    final board = DeckBoard.fromJson(object(jsonDecode(row.payload)));
+    return board.permissions.read && board.deletedAt == 0;
+  }
+
   Stream<List<DeckAttachment>> watchAttachments(String accountId, int cardId) =>
       (select(storedAttachments)..where(
             (a) => a.accountId.equals(accountId) & a.cardId.equals(cardId),
@@ -56,6 +69,7 @@ extension AttachmentStore on DeckDatabase {
         (await this.account(account.id))?.contentEpoch != epoch) {
       return;
     }
+    if (!await _canCacheAttachments(account.id, boardId)) return;
     await _replaceAttachments(account.id, boardId, cardId, attachments);
   });
 
@@ -150,6 +164,7 @@ extension AttachmentStore on DeckDatabase {
             ))
             .getSingleOrNull();
     if (current?.state != 'applied') return;
+    if (!await _canCacheAttachments(account.id, write.boardId)) return;
     await _replaceAttachments(
       account.id,
       write.boardId,

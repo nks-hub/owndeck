@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:deck_protocol/deck_protocol.dart';
 import 'package:deck_store/deck_store.dart';
@@ -38,6 +40,17 @@ void main() {
   });
   tearDown(() => database.close());
 
+  test(
+    'a missing board clears attachments and rejects a late listing',
+    () async {
+      await database.saveAttachments(account, 1, 8, [attachment('file')], 0);
+      await database.saveBoards(account.id, account.generation, [], null);
+      expect(await database.watchAttachments(account.id, 8).first, isEmpty);
+      await database.saveAttachments(account, 1, 8, [attachment('file')], 0);
+      expect(await database.watchAttachments(account.id, 8).first, isEmpty);
+    },
+  );
+
   DeckSync sync(
     http.Client transport, {
     Future<AttachmentUploadSource> Function(String)? readUpload,
@@ -62,9 +75,69 @@ void main() {
   }
 
   test(
+    'an unavailable staged file blocks the upload before any POST',
+    () async {
+      await database.queueAttachment(account, 1, 2, 8, 'uploadAttachment', {
+        'uploadId': 'test-upload',
+        'name': 'file.txt',
+      });
+      var uploads = 0;
+      await sync(
+        MockClient((request) async {
+          if (request.method == 'POST') uploads++;
+          return reads(request);
+        }),
+        readUpload: (_) async => throw const FileSystemException('unavailable'),
+      ).run();
+      expect((await database.writesFor(account.id)).single.state, 'blocked');
+      expect(uploads, 0);
+    },
+  );
+
+  test(
+    'closing while preparing the file leaves an unsent upload queued',
+    () async {
+      await database.queueAttachment(account, 1, 2, 8, 'uploadAttachment', {
+        'uploadId': 'test-upload',
+        'name': 'file.txt',
+      });
+      final preparing = Completer<void>();
+      final ready = Completer<AttachmentUploadSource>();
+      var uploads = 0;
+      final sender = sync(
+        MockClient((request) async {
+          if (request.method == 'POST') uploads++;
+          return reads(request);
+        }),
+        readUpload: (_) {
+          preparing.complete();
+          return ready.future;
+        },
+      );
+      final running = sender.run();
+      await preparing.future;
+      sender.close();
+      ready.complete(
+        AttachmentUploadSource(
+          filename: 'file.txt',
+          mime: 'text/plain',
+          length: 0,
+          bytes: const Stream.empty(),
+        ),
+      );
+      await running;
+      expect((await database.writesFor(account.id)).single.state, 'queued');
+      expect(uploads, 0);
+    },
+  );
+
+  test(
     'cache keys include account and attachment type, and removal rejects late results',
     () async {
       final other = await accounts.add(credentials('other'));
+      await database.saveBoards(other.id, other.generation, [
+        board(1, 'Other board'),
+      ], null);
       await database.saveAttachments(account, 1, 8, [
         attachment('file'),
         attachment('deck_file'),

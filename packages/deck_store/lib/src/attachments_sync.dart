@@ -92,7 +92,11 @@ extension _AttachmentSync on DeckSync {
           return true;
         }
       }
-      if (_closed || !await database.acquireLease(account, _owner)) {
+      if (_closed) {
+        await database.markWrite(account, _owner, write.id, 'queued');
+        return false;
+      }
+      if (!await database.acquireLease(account, _owner)) {
         return false;
       }
       mutationStarted = true;
@@ -158,6 +162,15 @@ extension _AttachmentSync on DeckSync {
         write.id,
         mutationStarted ? 'uncertain' : 'blocked',
         error: 'invalid_response',
+      );
+      return false;
+    } on IOException {
+      await database.markWrite(
+        account,
+        _owner,
+        write.id,
+        mutationStarted ? 'uncertain' : 'blocked',
+        error: 'attachment_storage_unavailable',
       );
       return false;
     } on StateError {

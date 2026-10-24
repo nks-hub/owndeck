@@ -241,6 +241,12 @@ class DeckDatabase extends _$DeckDatabase {
         payload: jsonEncode(board.raw),
       ),
     );
+    if (!board.permissions.read || board.deletedAt != 0) {
+      await (delete(storedAttachments)..where(
+            (a) => a.accountId.equals(account.id) & a.boardId.equals(board.id),
+          ))
+          .go();
+    }
   });
 
   Future<SyncCheckpoint?> checkpoint(String accountId, String scope) =>
@@ -262,6 +268,13 @@ class DeckDatabase extends _$DeckDatabase {
       return;
     }
     final ids = boards.map((b) => b.id).toSet();
+    final readableIds = boards
+        .where((board) => board.permissions.read && board.deletedAt == 0)
+        .map((board) => board.id);
+    await (delete(storedAttachments)..where(
+          (a) => a.accountId.equals(accountId) & a.boardId.isNotIn(readableIds),
+        ))
+        .go();
     final previous = await (select(
       storedBoards,
     )..where((b) => b.accountId.equals(accountId))).get();
