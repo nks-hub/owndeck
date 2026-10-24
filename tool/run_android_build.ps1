@@ -23,14 +23,13 @@ try {
         throw 'pub_cache_volume_mismatch'
     }
     New-Item -ItemType Directory -Path $env:PUB_CACHE -Force | Out-Null
-    $env:ORG_GRADLE_PROJECT_candidate = 'true'
     $env:GRADLE_OPTS = '-Dorg.gradle.workers.max=2 -Dorg.gradle.jvmargs=-Xmx3G -Dorg.gradle.daemon=false'
     Set-Location -LiteralPath (Join-Path $config.sourceRoot 'apps\mobile')
     & $config.flutterPath pub get --enforce-lockfile *> $config.setupLog
     $code = $LASTEXITCODE
     if ($code -eq 0) {
         $phase = 'build'
-        & $config.flutterPath build apk --debug --target-platform android-arm64 *> $config.buildLog
+        & $config.flutterPath build apk --debug --target-platform android-arm64 --android-project-arg=candidate=true *> $config.buildLog
         $code = $LASTEXITCODE
     }
     if ($code -eq 0) {
