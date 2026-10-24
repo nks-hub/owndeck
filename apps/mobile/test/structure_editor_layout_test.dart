@@ -41,16 +41,19 @@ void main() {
           contentEpoch: 0,
           selected: true,
         );
-        final session = DeckSession(
-          database,
-          account,
-          DeckClient(
-            base: ServerBase.parse(account.server),
-            loginName: 'user',
-            appPassword: 'test-password',
-            transport: MockClient((_) async => http.Response('', 500)),
-          ),
-        );
+        final session = (await tester.runAsync(() async {
+          await database.accounts();
+          return DeckSession(
+            database,
+            account,
+            DeckClient(
+              base: ServerBase.parse(account.server),
+              loginName: 'user',
+              appPassword: 'test-password',
+              transport: MockClient((_) async => http.Response('', 500)),
+            ),
+          );
+        }))!;
         try {
           await tester.pumpWidget(
             MaterialApp(
@@ -96,12 +99,15 @@ void main() {
           expect(tester.takeException(), isNull);
         } finally {
           await tester.pumpWidget(const SizedBox());
-          session.dispose();
-          await database.close();
+          await tester.runAsync(() async {
+            session.dispose();
+            await database.close();
+          });
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(connectivity, null);
         }
       },
+      timeout: const Timeout(Duration(seconds: 30)),
     );
   }
 }
