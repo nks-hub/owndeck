@@ -7,8 +7,8 @@ abstract interface class TelemetryPreferenceStore {
 }
 
 final class SharedTelemetryPreferenceStore implements TelemetryPreferenceStore {
-  SharedTelemetryPreferenceStore() : _preferences = SharedPreferencesAsync();
-  final SharedPreferencesAsync _preferences;
+  SharedTelemetryPreferenceStore();
+  late final SharedPreferencesAsync _preferences = SharedPreferencesAsync();
   @override
   Future<bool?> read(String key) => _preferences.getBool(key);
   @override
