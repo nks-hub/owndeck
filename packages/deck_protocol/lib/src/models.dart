@@ -102,7 +102,7 @@ final class DeckStack {
       order = intField(json, 'order'),
       raw = Map.unmodifiable(json),
       cards = objects(
-        json['cards'] ?? const <Object?>[],
+        json.containsKey('cards') ? json['cards'] : const <Object?>[],
       ).map(DeckCard.fromJson).toList(growable: false);
 
   final int id;

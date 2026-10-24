@@ -13,6 +13,46 @@ DeckClient client(http.Client transport) => DeckClient(
 );
 
 void main() {
+  test('an empty stack omits cards in the Nextcloud response', () async {
+    final api = client(
+      MockClient(
+        (_) async => http.Response(
+          jsonEncode([
+            {'id': 2, 'boardId': 1, 'title': 'Empty', 'order': 0},
+          ]),
+          200,
+          headers: {'content-type': 'application/json'},
+        ),
+      ),
+    );
+    final stacks = await api.stacks(1);
+    expect(stacks.single.cards, isEmpty);
+    expect(stacks.single.title, 'Empty');
+  });
+
+  test(
+    'an invalid cards value is not accepted as an empty deletion census',
+    () async {
+      final api = client(
+        MockClient(
+          (_) async => http.Response(
+            jsonEncode([
+              {
+                'id': 2,
+                'boardId': 1,
+                'title': 'Invalid',
+                'order': 0,
+                'cards': null,
+              },
+            ]),
+            200,
+            headers: {'content-type': 'application/json'},
+          ),
+        ),
+      );
+      await expectLater(api.stacks(1), throwsA(isA<DeckException>()));
+    },
+  );
   test('extended fields are offered only for a verified release family', () {
     DeckCapabilities capabilities(String version) => DeckCapabilities(
       version: version,
