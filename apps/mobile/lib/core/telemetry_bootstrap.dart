@@ -24,6 +24,7 @@ abstract interface class TelemetryBackend {
   Future<void> stopAnalytics();
   void screen(String route);
   void event(TelemetryEvent event);
+  Future<void> probeCrash();
 }
 
 final class TelemetrySdkBackend implements TelemetryBackend {
@@ -87,6 +88,18 @@ final class TelemetrySdkBackend implements TelemetryBackend {
   void event(TelemetryEvent event) {
     if (Rybbit.isInitialized) Rybbit.instance.event(event.eventName);
   }
+
+  @override
+  Future<void> probeCrash() async {
+    await Sentry.captureException(
+      const TelemetryReleaseProbe(),
+      stackTrace: StackTrace.current,
+    );
+  }
+}
+
+final class TelemetryReleaseProbe implements Exception {
+  const TelemetryReleaseProbe();
 }
 
 final class TelemetryRuntime extends ChangeNotifier {
@@ -106,6 +119,8 @@ final class TelemetryRuntime extends ChangeNotifier {
   bool analyticsReady = false;
   String? _lastScreen;
   String? _currentScreen;
+  bool _crashProbed = false;
+  bool _analyticsProbed = false;
 
   Future<void> initialize() => _initializing ??= _initialize();
   Future<void> _initialize() async {
@@ -181,6 +196,18 @@ final class TelemetryRuntime extends ChangeNotifier {
       try {
         await _backend.stopAnalytics();
       } catch (_) {}
+    }
+    if (config.releaseProbe && !_closed) {
+      if (crashesReady && preferences.crashReporting && !_crashProbed) {
+        _crashProbed = true;
+        try {
+          await _backend.probeCrash();
+        } catch (_) {}
+      }
+      if (analyticsReady && preferences.analytics && !_analyticsProbed) {
+        _analyticsProbed = true;
+        event(TelemetryEvent.releaseProbe);
+      }
     }
     if (!_closed) notifyListeners();
   }

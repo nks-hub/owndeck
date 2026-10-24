@@ -5,6 +5,7 @@ final class TelemetryConfig {
     this.rybbitSiteId = '',
     this.environment = 'development',
     this.release = '',
+    this.releaseProbe = false,
   });
 
   factory TelemetryConfig.fromEnvironment() => const TelemetryConfig(
@@ -16,6 +17,7 @@ final class TelemetryConfig {
       defaultValue: 'development',
     ),
     release: String.fromEnvironment('TELEMETRY_RELEASE'),
+    releaseProbe: bool.fromEnvironment('TELEMETRY_RELEASE_PROBE'),
   );
 
   final String sentryDsn;
@@ -23,6 +25,7 @@ final class TelemetryConfig {
   final String rybbitSiteId;
   final String environment;
   final String release;
+  final bool releaseProbe;
 
   bool get crashReportingAvailable {
     final uri = Uri.tryParse(sentryDsn);

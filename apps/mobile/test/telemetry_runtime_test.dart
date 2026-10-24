@@ -33,6 +33,7 @@ class MemoryPreferences implements TelemetryPreferenceStore {
 }
 
 class FakeBackend implements TelemetryBackend {
+  int probes = 0;
   int crashStarts = 0, crashStops = 0, analyticsStarts = 0, analyticsStops = 0;
   bool crashFailure = false, analyticsFailure = false;
   Completer<void>? analyticsGate;
@@ -71,9 +72,39 @@ class FakeBackend implements TelemetryBackend {
   void screen(String route) => screens.add(route);
   @override
   void event(TelemetryEvent event) => events.add(event);
+  @override
+  Future<void> probeCrash() async {
+    probes++;
+  }
 }
 
 void main() {
+  test(
+    'delivery probes require an explicit build flag and enabled services',
+    () async {
+      final backend = FakeBackend();
+      final runtime = TelemetryRuntime(
+        config: TelemetryConfig(
+          sentryDsn: configured.sentryDsn,
+          rybbitHost: configured.rybbitHost,
+          rybbitSiteId: configured.rybbitSiteId,
+          releaseProbe: true,
+        ),
+        preferences: TelemetryPreferences(store: MemoryPreferences()),
+        backend: backend,
+      );
+      await runtime.initialize();
+      await runtime.synchronize();
+      expect(backend.probes, 1);
+      expect(
+        backend.events
+            .where((event) => event == TelemetryEvent.releaseProbe)
+            .length,
+        1,
+      );
+      await runtime.close();
+    },
+  );
   test(
     'unconfigured builds never load preferences or initialize SDKs',
     () async {
