@@ -168,7 +168,13 @@ def main():
         if field is None:
             raise RuntimeError("server_input_missing")
         device.tap(field)
+        time.sleep(1)
         device.adb("shell", "input", "text", "http://invalid.example")
+        time.sleep(0.3)
+        entered = device.hierarchy("entered-input")
+        value = next((node.get("text", "") for node in entered.iter("node") if node.get("class") == "android.widget.EditText"), None)
+        if value != "http://invalid.example":
+            raise Blocked("test_input_not_delivered_exactly")
         device.adb("shell", "input", "keyevent", "KEYCODE_BACK")
         tree = device.hierarchy("invalid-input")
         button = next((node for node in tree.iter("node") if node.get("text") in ("Připojit", "Connect") or node.get("content-desc") in ("Připojit", "Connect")), None)
