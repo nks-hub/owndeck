@@ -4,7 +4,7 @@
   "connectTitle": "Connect Nextcloud",
   "connectDescription": "Sign in through your server in the browser. Your account password stays on the server.",
   "serverLabel": "Server address",
-  "connect": "Connect",
+  "connect": "Continue",
   "waiting": "Finish signing in through your browser.",
   "cancel": "Cancel",
   "retry": "Retry",
@@ -19,7 +19,7 @@
   "readOnly": "Read only",
   "noDescription": "No description",
   "storageError": "Secure storage is unavailable. Unlock the device and try again.",
-  "invalidServer": "Enter a valid Nextcloud HTTPS address.",
+  "invalidServer": "Enter a valid HTTPS Nextcloud address.",
   "loginError": "Sign-in could not be completed. Start a new attempt.",
   "networkError": "The server is unavailable. Check your connection and try again.",
   "authError": "Your session expired. Add the same account again.",
@@ -142,5 +142,61 @@
   "startDate": "Start date",
   "cardColor": "Card color",
   "optionalColor": "Leave empty for no custom color.",
-  "invalidDateRange": "The start date must not be after the due date."
+  "invalidDateRange": "The start date must not be after the due date.",
+  "certificateFingerprintLabel": "SHA-256 fingerprint",
+  "scanLoginCodeCameraUnavailable": "This device has no camera that can read a login code.",
+  "secureTitle": "Credentials stay on this device",
+  "serverAddressHint": "cloud.example.com",
+  "reauthenticateAccountMismatch": "Sign in with the same account. The stored account was not changed.",
+  "scanLoginCodeCameraDenied": "Camera access is turned off. Allow it in system settings to scan a login code.",
+  "waitingForLogin": "Finish signing in in your browser",
+  "close": "Close",
+  "certificateChangedTitle": "Server certificate changed",
+  "unexpectedError": "Something went wrong. No account data was changed.",
+  "openingLogin": "Opening secure sign-in…",
+  "serverMaintenance": "This server is currently in maintenance mode.",
+  "reauthenticateAccountTitle": "Sign in to this account again",
+  "certificateTrustAction": "Trust and continue",
+  "scannedLoginRejected": "The scanned login code could not be used. Create a new one on the server.",
+  "browserUnavailable": "The sign-in page could not be opened.",
+  "multiServerBody": "Add personal and work accounts without rebuilding the app or sharing their data.",
+  "serverNotInstalled": "Nextcloud is not installed on this server yet.",
+  "checkingServer": "Checking the server…",
+  "waitingForLoginBody": "This screen will continue automatically after Nextcloud approves the app.",
+  "serverUnavailable": "The server could not be reached. Check the address and your connection.",
+  "secureBody": "App passwords are stored in the system Keychain or Keystore, never in the card database.",
+  "onboardingTitle": "Your boards, one app",
+  "certificateChangedBody": "{host} now presents a different certificate than the one this account trusts. If you replaced the certificate yourself, remove the account and add it again.",
+  "@certificateChangedBody": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "scanLoginCode": "Scan a login code",
+  "@scanLoginCode": {
+    "description": "Button that opens the camera to scan a Nextcloud login QR code"
+  },
+  "loginTimedOut": "The sign-in request expired. Start it again.",
+  "scanLoginCodeUnreadable": "This is not a Nextcloud login code.",
+  "reauthenticateAccountAction": "Sign in again",
+  "multiServerTitle": "Built for multiple servers",
+  "scanLoginCodeHint": "Point the camera at the QR code your server shows under Settings, Security, Create new app password.",
+  "invalidResponse": "The server returned a response this app cannot safely use.",
+  "certificateUnverifiedTitle": "Unverified server certificate",
+  "certificateUnverifiedBody": "{host} presented a certificate this device cannot verify. Continue only if the fingerprint below is the one your server shows.",
+  "@certificateUnverifiedBody": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "localPersistenceFailed": "The account could not be stored securely on this device.",
+  "serverUpgrade": "The server must finish its database upgrade first.",
+  "addServerTitle": "Add a Nextcloud server",
+  "openAppSettings": "Open settings",
+  "onboardingBody": "Connect any supported Nextcloud server. Accounts, their stored data and background work stay strictly separated.",
+  "serverAddressLabel": "Server address"
 }

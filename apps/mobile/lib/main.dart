@@ -80,7 +80,7 @@ class _AccountGate extends ConsumerWidget {
         }
         final session = accounts.session;
         if (session == null) {
-          return LoginScreen(initialServer: accounts.selected?.server);
+          return LoginScreen(reauthenticateAccount: accounts.selected);
         }
         return Navigator(
           key: ObjectKey(session),

@@ -100,7 +100,10 @@ final class Accounts extends ChangeNotifier {
     final password = await vault.read(account.credentialRef);
     if (_disposed || generation != _generation) return;
     if (password == null) return;
-    final transport = http.Client();
+    final transport = CertificateHttpClient(
+      server: ServerBase.parse(account.server).uri,
+      fingerprint: account.certificateFingerprint,
+    );
     _transport = transport;
     session = DeckSession(
       database,
@@ -140,11 +143,20 @@ final class Accounts extends ChangeNotifier {
     }
   }
 
-  Future<void> add(LoginCredentials credentials, {String? userId}) =>
-      _change(() async {
-        await repository.add(credentials, userId: userId);
-        await _reload();
-      });
+  Future<void> add(
+    LoginCredentials credentials, {
+    String? userId,
+    String? certificateFingerprint,
+    bool Function()? canCommit,
+  }) => _change(() async {
+    await repository.add(
+      credentials,
+      userId: userId,
+      certificateFingerprint: certificateFingerprint,
+      canCommit: canCommit,
+    );
+    await _reload();
+  });
 
   Future<void> select(String id) => _change(() async {
     await repository.select(id);
@@ -165,7 +177,10 @@ final class Accounts extends ChangeNotifier {
       await _reload();
     }
     if (password == null) return false;
-    final transport = http.Client();
+    final transport = CertificateHttpClient(
+      server: ServerBase.parse(account.server).uri,
+      fingerprint: account.certificateFingerprint,
+    );
     try {
       await DeckClient(
         base: ServerBase.parse(account.server),

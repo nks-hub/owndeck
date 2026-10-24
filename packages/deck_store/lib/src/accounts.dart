@@ -27,7 +27,14 @@ final class AccountRepository {
   Future<StoredAccount> add(
     LoginCredentials credentials, {
     String? userId,
+    String? certificateFingerprint,
+    bool Function()? canCommit,
   }) => _serialize(() async {
+    void ensureCommit() {
+      if (canCommit?.call() == false) throw StateError('onboarding_cancelled');
+    }
+
+    ensureCommit();
     final existing =
         await (database.select(database.storedAccounts)..where(
               (a) =>
@@ -41,29 +48,46 @@ final class AccountRepository {
         existing!.userId != userId) {
       throw StateError('identity_mismatch');
     }
+    if (existing?.certificateFingerprint != null &&
+        existing!.certificateFingerprint != certificateFingerprint) {
+      throw StateError('certificate_changed');
+    }
     final id = existing?.id ?? const Uuid().v4();
     final reference = 'owndeck.account.${const Uuid().v4()}';
     // A new reference keeps the old account usable until the database commits.
-    await vault.write(reference, credentials.appPassword);
-    await database.transaction(() async {
-      await database
-          .update(database.storedAccounts)
-          .write(const StoredAccountsCompanion(selected: Value(false)));
-      await database
-          .into(database.storedAccounts)
-          .insertOnConflictUpdate(
-            StoredAccountsCompanion.insert(
-              id: id,
-              server: credentials.server.uri.toString(),
-              loginName: credentials.loginName,
-              userId: userId == null ? const Value.absent() : Value(userId),
-              credentialRef: reference,
-              generation: Value((existing?.generation ?? 0) + 1),
-              state: const Value('active'),
-              selected: const Value(true),
-            ),
-          );
-    });
+    ensureCommit();
+    try {
+      await vault.write(reference, credentials.appPassword);
+      await database.transaction(() async {
+        ensureCommit();
+        await database
+            .update(database.storedAccounts)
+            .write(const StoredAccountsCompanion(selected: Value(false)));
+        await database
+            .into(database.storedAccounts)
+            .insertOnConflictUpdate(
+              StoredAccountsCompanion.insert(
+                id: id,
+                server: credentials.server.uri.toString(),
+                loginName: credentials.loginName,
+                userId: userId == null ? const Value.absent() : Value(userId),
+                credentialRef: reference,
+                certificateFingerprint: Value(certificateFingerprint),
+                generation: Value((existing?.generation ?? 0) + 1),
+                state: const Value('active'),
+                selected: const Value(true),
+              ),
+            );
+        ensureCommit();
+      });
+    } catch (_) {
+      try {
+        await vault.delete(reference);
+      } catch (_) {
+        /* A locked vault is repaired by startup orphan recovery. */
+      }
+      rethrow;
+    }
     // Orphaned references after a failed transaction or cleanup are removed by recover.
     if (existing != null) await vault.delete(existing.credentialRef);
     return (await database.account(id))!;

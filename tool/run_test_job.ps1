@@ -15,11 +15,12 @@ try {
     $env:CI = 'true'
     $env:FLUTTER_SUPPRESS_ANALYTICS = 'true'
     Set-Location -LiteralPath $config.packageRoot
-    & $config.dartPath pub get --enforce-lockfile *> $config.setupLog
+    $runner = if ($config.flutterPath) { $config.flutterPath } else { $config.dartPath }
+    & $runner pub get --enforce-lockfile *> $config.setupLog
     $code = $LASTEXITCODE
     if ($code -eq 0) {
         $phase = 'tests'
-        & $config.dartPath test --reporter=json --timeout=60s *> $config.testLog
+        & $runner test --reporter=json --timeout=60s *> $config.testLog
         $code = $LASTEXITCODE
     }
 } catch {

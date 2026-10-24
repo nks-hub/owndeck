@@ -22,7 +22,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get serverLabel => 'Adresa serveru';
 
   @override
-  String get connect => 'Připojit';
+  String get connect => 'Pokračovat';
 
   @override
   String get waiting => 'Dokončete přihlášení v prohlížeči.';
@@ -69,7 +69,7 @@ class AppLocalizationsCs extends AppLocalizations {
       'Bezpečné úložiště není dostupné. Odemkněte zařízení a zkuste to znovu.';
 
   @override
-  String get invalidServer => 'Zadejte platnou HTTPS adresu Nextcloudu.';
+  String get invalidServer => 'Zadejte platnou HTTPS adresu Nextcloud serveru.';
 
   @override
   String get loginError =>
@@ -463,4 +463,142 @@ class AppLocalizationsCs extends AppLocalizations {
   @override
   String get invalidDateRange =>
       'Začátek musí být nejpozději v termínu dokončení.';
+
+  @override
+  String get certificateFingerprintLabel => 'Otisk SHA-256';
+
+  @override
+  String get scanLoginCodeCameraUnavailable =>
+      'Toto zařízení nemá fotoaparát, kterým by šlo kód načíst.';
+
+  @override
+  String get secureTitle => 'Přihlašovací údaje zůstávají v zařízení';
+
+  @override
+  String get serverAddressHint => 'cloud.example.com';
+
+  @override
+  String get reauthenticateAccountMismatch =>
+      'Přihlaste se ke stejnému účtu. Uložený účet nebyl změněn.';
+
+  @override
+  String get scanLoginCodeCameraDenied =>
+      'Přístup k fotoaparátu je vypnutý. Povolte jej v nastavení systému, aby šlo kód načíst.';
+
+  @override
+  String get waitingForLogin => 'Dokončete přihlášení v prohlížeči';
+
+  @override
+  String get close => 'Zavřít';
+
+  @override
+  String get certificateChangedTitle => 'Certifikát serveru se změnil';
+
+  @override
+  String get unexpectedError => 'Něco se nepodařilo. Data účtu nebyla změněna.';
+
+  @override
+  String get openingLogin => 'Otevírá se bezpečné přihlášení…';
+
+  @override
+  String get serverMaintenance => 'Server je právě v režimu údržby.';
+
+  @override
+  String get reauthenticateAccountTitle => 'Znovu se přihlásit k tomuto účtu';
+
+  @override
+  String get certificateTrustAction => 'Důvěřovat a pokračovat';
+
+  @override
+  String get scannedLoginRejected =>
+      'Načtený přihlašovací kód se nepodařilo použít. Vytvořte na serveru nový.';
+
+  @override
+  String get browserUnavailable =>
+      'Přihlašovací stránku se nepodařilo otevřít.';
+
+  @override
+  String get multiServerBody =>
+      'Přidejte osobní i pracovní účty bez nového sestavení aplikace a bez sdílení jejich dat.';
+
+  @override
+  String get serverNotInstalled =>
+      'Nextcloud na tomto serveru zatím není nainstalovaný.';
+
+  @override
+  String get checkingServer => 'Kontrola serveru…';
+
+  @override
+  String get waitingForLoginBody =>
+      'Po schválení aplikace v Nextcloudu bude tato obrazovka automaticky pokračovat.';
+
+  @override
+  String get serverUnavailable =>
+      'Server se nepodařilo kontaktovat. Zkontrolujte adresu a připojení.';
+
+  @override
+  String get secureBody =>
+      'Hesla aplikace se ukládají do systémového Keychainu nebo Keystoru, nikdy do databáze karet.';
+
+  @override
+  String get onboardingTitle => 'Všechny nástěnky v jedné aplikaci';
+
+  @override
+  String certificateChangedBody(String host) {
+    return 'Server $host nyní předkládá jiný certifikát, než kterému tento účet důvěřuje. Pokud jste certifikát vyměnili vy, účet odeberte a přidejte znovu.';
+  }
+
+  @override
+  String get scanLoginCode => 'Načíst přihlašovací kód';
+
+  @override
+  String get loginTimedOut =>
+      'Požadavek na přihlášení vypršel. Spusťte jej znovu.';
+
+  @override
+  String get scanLoginCodeUnreadable =>
+      'Tohle není přihlašovací kód Nextcloudu.';
+
+  @override
+  String get reauthenticateAccountAction => 'Přihlásit se znovu';
+
+  @override
+  String get multiServerTitle => 'Připraveno pro více serverů';
+
+  @override
+  String get scanLoginCodeHint =>
+      'Namiřte fotoaparát na QR kód, který server ukáže v Nastavení, Zabezpečení, Vytvořit nové heslo aplikace.';
+
+  @override
+  String get invalidResponse =>
+      'Server vrátil odpověď, kterou aplikace nemůže bezpečně použít.';
+
+  @override
+  String get certificateUnverifiedTitle => 'Neověřený certifikát serveru';
+
+  @override
+  String certificateUnverifiedBody(String host) {
+    return 'Server $host předložil certifikát, který zařízení neumí ověřit. Pokračujte jen tehdy, když otisk níže odpovídá tomu, co ukazuje váš server.';
+  }
+
+  @override
+  String get localPersistenceFailed =>
+      'Účet se nepodařilo bezpečně uložit do tohoto zařízení.';
+
+  @override
+  String get serverUpgrade =>
+      'Server musí nejdřív dokončit aktualizaci databáze.';
+
+  @override
+  String get addServerTitle => 'Přidat Nextcloud server';
+
+  @override
+  String get openAppSettings => 'Otevřít nastavení';
+
+  @override
+  String get onboardingBody =>
+      'Připojte libovolný podporovaný Nextcloud server. Účty, jejich uložená data i práce na pozadí zůstávají přísně oddělené.';
+
+  @override
+  String get serverAddressLabel => 'Adresa serveru';
 }

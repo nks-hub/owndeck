@@ -27,6 +27,7 @@ class StoredAccounts extends Table {
   TextColumn get server => text()();
   TextColumn get loginName => text()();
   TextColumn get userId => text().nullable()();
+  TextColumn get certificateFingerprint => text().nullable()();
   TextColumn get credentialRef => text().unique()();
   TextColumn get state => text().withDefault(const Constant('active'))();
   IntColumn get generation => integer().withDefault(const Constant(1))();
@@ -150,7 +151,7 @@ class DeckDatabase extends _$DeckDatabase {
   DeckDatabase(super.executor);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -171,6 +172,12 @@ class DeckDatabase extends _$DeckDatabase {
         await m.addColumn(storedAccounts, storedAccounts.userId);
         await m.addColumn(editorDrafts, editorDrafts.kind);
         await m.createTable(storedComments);
+      }
+      if (from < 7) {
+        await m.addColumn(
+          storedAccounts,
+          storedAccounts.certificateFingerprint,
+        );
       }
     },
     beforeOpen: (_) => customStatement('PRAGMA foreign_keys = ON'),

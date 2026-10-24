@@ -13,6 +13,7 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] A06 Model dat, trvalá fronta, konflikty a bezpečnost v `docs/architecture.md`; limit serverového If-Match výslovně zaznamenán.
 - [x] D01 Založena Flutter aplikace Android/iOS `com.nkshub.nextclouddeck`, SDK 3.44.4, protokol a přihlášení podle OwnNotes; závislosti vyřešeny, runtime ověření zůstává v T01–T03.
 - [x] D02 Implementován Login Flow v2, oddělené reference tokenů, databázové účty, opětovné přihlášení, přepnutí a odebrání s odvoláním tokenu; spuštění testů zůstává v T01–T03.
+- [ ] D02b Sjednotit přihlášení s OwnTalkem: přesné texty, ikony, vzhled, QR možnosti a průběh; současně sjednotit tuto obrazovku v OwnNotes.
 - [x] D03 Implementovány nástěnky, sloupce, oprávnění, archivace a sdílení; runtime důkazy zůstávají v T01–T03.
 - [x] D03a Implementováno vytváření a úpravy nástěnek/sloupců, archivace, mazání a obnova nástěnky, oddělená práva edit/manage a řazení sloupců; runtime ověření čeká na T01–T03.
 - [x] D03b Doplněno hledání uživatelů/skupin/týmů a externích příjemců, vytvoření/změna/odebrání ACL, omezení udělovaných práv a vyřazení cache po ztrátě přístupu; 6 metadata scénářů a 1 hledací scénář připraveny pro T01.
@@ -39,4 +40,4 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [ ] T02 Ověřit skutečný Nextcloud server, oba buildy a příjem bezpečných telemetrických událostí.
 - [ ] T03 Průběžně provádět fyzické testy S9/S21 na pozadí nad izolovanými kandidáty, nezávisle pro každý telefon, a samostatné ověření iOS; před dokončením doložit finální revizi.
 
-Aktuální krok: přílohy (D05) a další otevřené D body. Průběžné paralelní testy na pozadí nad izolovanou revizí `95b19ed` prošly: protokol 13/13, databáze a fronta 38/38, bez přeskočení. Nepokrývají UI ani skutečný server a zařízení. Nástěnky/sloupce, sdílení, štítky, akce karet, komentáře a koncepty jsou implementované. Statické kontroly jsou bez nálezů. Fyzické testy zatím neproběhly.
+Aktuální krok: sjednocení přihlášení s OwnTalkem (D02b). Implementovány společné texty, ikony, vzhled, QR, kontrola stavu serveru, certifikáty a zrušení. Nové testy čekají na běh v izolované revizi. Předchozí protokol 13/13 a databáze 38/38 prošly na `95b19ed`. Android kandidát `9134c05` prošel na S9+ a S21: start, HTTPS validace a kontrola runtime chyb; S21 vstup byl znovu ověřen opraveným ovladačem `18b0730`. Tyto výsledky nepokrývají nové přihlášení ani serverové operace.

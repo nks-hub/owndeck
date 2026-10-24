@@ -161,14 +161,27 @@ def main():
         tree = device.hierarchy("launch")
         labels = device.labels(tree)
         device.screenshot("launch")
-        if "Připojit Nextcloud" not in labels and "Connect Nextcloud" not in labels:
+        if "Všechny nástěnky v jedné aplikaci" not in labels and "Your boards, one app" not in labels:
             raise RuntimeError("expected_login_screen_missing")
         result["checks"].append({"name": "cold_start_login_screen", "status": "passed"})
         field = next((node for node in tree.iter("node") if node.get("class") == "android.widget.EditText"), None)
+        for attempt in range(3):
+            if field is not None:
+                break
+            size = device.text("shell", "wm", "size")
+            width, height = map(int, re.findall(r"(\d+)x(\d+)", size)[-1])
+            device.adb("shell", "input", "swipe", str(width // 2), str(height * 3 // 4), str(width // 2), str(height // 3), "350")
+            tree = device.hierarchy(f"form-scroll-{attempt}")
+            field = next((node for node in tree.iter("node") if node.get("class") == "android.widget.EditText"), None)
         if field is None:
             raise RuntimeError("server_input_missing")
         device.tap(field)
         time.sleep(1)
+        device.adb("shell", "input", "keyevent", "KEYCODE_MOVE_END")
+        device.adb("shell", "input", "keyevent", "--longpress", "KEYCODE_DEL")
+        # Clear the known initial field without changing other application data.
+        for _ in range(len(field.get("text", "")) + 2):
+            device.adb("shell", "input", "keyevent", "KEYCODE_DEL")
         device.adb("shell", "input", "text", "http://invalid.example")
         time.sleep(0.3)
         entered = device.hierarchy("entered-input")
@@ -177,14 +190,14 @@ def main():
             raise Blocked("test_input_not_delivered_exactly")
         device.adb("shell", "input", "keyevent", "KEYCODE_BACK")
         tree = device.hierarchy("invalid-input")
-        button = next((node for node in tree.iter("node") if node.get("text") in ("Připojit", "Connect") or node.get("content-desc") in ("Připojit", "Connect")), None)
+        button = next((node for node in tree.iter("node") if node.get("text") in ("Pokračovat", "Continue") or node.get("content-desc") in ("Pokračovat", "Continue")), None)
         if button is None:
             raise RuntimeError("connect_button_missing")
         device.tap(button)
         time.sleep(1)
         labels = device.labels(device.hierarchy("validation"))
         device.screenshot("validation")
-        if "Zadejte platnou HTTPS" not in labels and "Enter a valid Nextcloud HTTPS" not in labels:
+        if "Zadejte platnou HTTPS" not in labels and "Enter a valid HTTPS Nextcloud" not in labels:
             raise RuntimeError("invalid_http_url_not_rejected_in_ui")
         result["checks"].append({"name": "invalid_http_url_validation", "status": "passed"})
         device.logs()

@@ -109,6 +109,30 @@ final class LoginClient {
   final http.Client transport;
   final Duration timeout;
 
+  Future<void> checkServer() async {
+    final response = await _request('GET', base.uri.resolve('status.php'), {});
+    if (response.statusCode != 200) {
+      throw const LoginException('invalid_response');
+    }
+    final status = _decode(response);
+    if ([
+      'installed',
+      'maintenance',
+      'needsDbUpgrade',
+    ].any((key) => status[key] is! bool)) {
+      throw const LoginException('invalid_response');
+    }
+    if (status['maintenance'] == true) {
+      throw const LoginException('server_maintenance');
+    }
+    if (status['needsDbUpgrade'] == true) {
+      throw const LoginException('server_upgrade');
+    }
+    if (status['installed'] != true) {
+      throw const LoginException('server_not_installed');
+    }
+  }
+
   Future<LoginSession> start() async {
     final response = await _post(base.uri.resolve('index.php/login/v2'), {});
     if (response.statusCode != 200) {
@@ -150,16 +174,23 @@ final class LoginClient {
     return uri;
   }
 
-  Future<http.Response> _post(Uri uri, Map<String, String> fields) async {
+  Future<http.Response> _post(Uri uri, Map<String, String> fields) =>
+      _request('POST', uri, fields);
+
+  Future<http.Response> _request(
+    String method,
+    Uri uri,
+    Map<String, String> fields,
+  ) async {
     final abort = Completer<void>();
     final request =
-        http.AbortableRequest('POST', uri, abortTrigger: abort.future)
+        http.AbortableRequest(method, uri, abortTrigger: abort.future)
           ..followRedirects = false
           ..headers.addAll({
             'Accept': 'application/json',
             'User-Agent': 'OwnDeck',
-          })
-          ..bodyFields = fields;
+          });
+    if (method == 'POST') request.bodyFields = fields;
     try {
       return await (() async {
         final response = await transport.send(request);

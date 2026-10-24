@@ -22,7 +22,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get serverLabel => 'Server address';
 
   @override
-  String get connect => 'Connect';
+  String get connect => 'Continue';
 
   @override
   String get waiting => 'Finish signing in through your browser.';
@@ -68,7 +68,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Secure storage is unavailable. Unlock the device and try again.';
 
   @override
-  String get invalidServer => 'Enter a valid Nextcloud HTTPS address.';
+  String get invalidServer => 'Enter a valid HTTPS Nextcloud address.';
 
   @override
   String get loginError =>
@@ -461,4 +461,141 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get invalidDateRange =>
       'The start date must not be after the due date.';
+
+  @override
+  String get certificateFingerprintLabel => 'SHA-256 fingerprint';
+
+  @override
+  String get scanLoginCodeCameraUnavailable =>
+      'This device has no camera that can read a login code.';
+
+  @override
+  String get secureTitle => 'Credentials stay on this device';
+
+  @override
+  String get serverAddressHint => 'cloud.example.com';
+
+  @override
+  String get reauthenticateAccountMismatch =>
+      'Sign in with the same account. The stored account was not changed.';
+
+  @override
+  String get scanLoginCodeCameraDenied =>
+      'Camera access is turned off. Allow it in system settings to scan a login code.';
+
+  @override
+  String get waitingForLogin => 'Finish signing in in your browser';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String get certificateChangedTitle => 'Server certificate changed';
+
+  @override
+  String get unexpectedError =>
+      'Something went wrong. No account data was changed.';
+
+  @override
+  String get openingLogin => 'Opening secure sign-in…';
+
+  @override
+  String get serverMaintenance =>
+      'This server is currently in maintenance mode.';
+
+  @override
+  String get reauthenticateAccountTitle => 'Sign in to this account again';
+
+  @override
+  String get certificateTrustAction => 'Trust and continue';
+
+  @override
+  String get scannedLoginRejected =>
+      'The scanned login code could not be used. Create a new one on the server.';
+
+  @override
+  String get browserUnavailable => 'The sign-in page could not be opened.';
+
+  @override
+  String get multiServerBody =>
+      'Add personal and work accounts without rebuilding the app or sharing their data.';
+
+  @override
+  String get serverNotInstalled =>
+      'Nextcloud is not installed on this server yet.';
+
+  @override
+  String get checkingServer => 'Checking the server…';
+
+  @override
+  String get waitingForLoginBody =>
+      'This screen will continue automatically after Nextcloud approves the app.';
+
+  @override
+  String get serverUnavailable =>
+      'The server could not be reached. Check the address and your connection.';
+
+  @override
+  String get secureBody =>
+      'App passwords are stored in the system Keychain or Keystore, never in the card database.';
+
+  @override
+  String get onboardingTitle => 'Your boards, one app';
+
+  @override
+  String certificateChangedBody(String host) {
+    return '$host now presents a different certificate than the one this account trusts. If you replaced the certificate yourself, remove the account and add it again.';
+  }
+
+  @override
+  String get scanLoginCode => 'Scan a login code';
+
+  @override
+  String get loginTimedOut => 'The sign-in request expired. Start it again.';
+
+  @override
+  String get scanLoginCodeUnreadable => 'This is not a Nextcloud login code.';
+
+  @override
+  String get reauthenticateAccountAction => 'Sign in again';
+
+  @override
+  String get multiServerTitle => 'Built for multiple servers';
+
+  @override
+  String get scanLoginCodeHint =>
+      'Point the camera at the QR code your server shows under Settings, Security, Create new app password.';
+
+  @override
+  String get invalidResponse =>
+      'The server returned a response this app cannot safely use.';
+
+  @override
+  String get certificateUnverifiedTitle => 'Unverified server certificate';
+
+  @override
+  String certificateUnverifiedBody(String host) {
+    return '$host presented a certificate this device cannot verify. Continue only if the fingerprint below is the one your server shows.';
+  }
+
+  @override
+  String get localPersistenceFailed =>
+      'The account could not be stored securely on this device.';
+
+  @override
+  String get serverUpgrade =>
+      'The server must finish its database upgrade first.';
+
+  @override
+  String get addServerTitle => 'Add a Nextcloud server';
+
+  @override
+  String get openAppSettings => 'Open settings';
+
+  @override
+  String get onboardingBody =>
+      'Connect any supported Nextcloud server. Accounts, their stored data and background work stay strictly separated.';
+
+  @override
+  String get serverAddressLabel => 'Server address';
 }
