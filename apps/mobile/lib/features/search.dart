@@ -156,6 +156,7 @@ class _CardSearchViewState extends State<CardSearchView> {
       ),
       const SizedBox(height: 8),
       DropdownButtonFormField<CardDueFilter>(
+        isExpanded: true,
         key: ValueKey(_due),
         initialValue: _due,
         decoration: InputDecoration(labelText: text.dueDate),
