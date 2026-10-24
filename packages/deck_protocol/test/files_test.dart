@@ -56,6 +56,17 @@ void main() {
     },
   );
 
+  test('R permits sharing while S only marks an existing share', () async {
+    for (final permissions in ['GR', 'SG']) {
+      final body = listing(
+        entry('${parent}report.txt'),
+      ).replaceAll('GRS', permissions);
+      final files = await api(body).files('user@example.com', []);
+      expect(files.single.shareable, permissions == 'GR');
+      expect(files.single.readable, isTrue);
+    }
+  });
+
   for (final href in [
     'https://other.example.com${parent}secret.txt',
     '/nextcloud/remote.php/dav/files/other/secret.txt',

@@ -107,7 +107,7 @@ extension DeckFilesClient on DeckClient {
             segments: List.unmodifiable(segments.skip(prefix.length)),
             directory: type.childElements.isNotEmpty,
             readable: permissions.contains('G'),
-            shareable: permissions.contains('S'),
+            shareable: permissions.contains('R'),
             size: length != null && length >= 0 ? length : null,
             mime: props[('DAV:', 'getcontenttype')]?.innerText.trim(),
             id: int.tryParse(

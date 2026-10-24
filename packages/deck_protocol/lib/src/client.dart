@@ -207,15 +207,15 @@ final class DeckClient {
                     response.statusCode >= 300 && response.statusCode < 400),
           );
         }
-        final bytes = <int>[];
+        final bytes = BytesBuilder(copy: false);
         await for (final chunk in response.stream) {
           if (bytes.length + chunk.length > maxBytes) {
             throw DeckException('response_too_large', uncertain: mutation);
           }
-          bytes.addAll(chunk);
+          bytes.add(chunk);
         }
         return http.Response.bytes(
-          bytes,
+          bytes.takeBytes(),
           response.statusCode,
           headers: response.headers,
         );
