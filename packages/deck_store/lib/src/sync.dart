@@ -14,6 +14,13 @@ part 'comments_sync.dart';
 part 'board_metadata_sync.dart';
 part 'attachments_sync.dart';
 
+bool _shouldRetry(DeckException error, bool mutationStarted) =>
+    error.status == 401 ||
+    error.status == 429 ||
+    !mutationStarted &&
+        ({'transport_failed', 'timeout'}.contains(error.code) ||
+            {500, 502, 503, 504}.contains(error.status));
+
 final class AttachmentUploadSource {
   const AttachmentUploadSource({
     required this.filename,
@@ -55,6 +62,8 @@ final class DeckSync {
   }
 
   Future<void> _run() async {
+    client.deferUntil((await database.account(account.id))?.syncNotBefore);
+    if (client.retryUntil?.isAfter(DateTime.now().toUtc()) == true) return;
     if (!await database.acquireLease(account, _owner)) return;
     try {
       await database.recoverWrites(account, _owner);
@@ -154,7 +163,11 @@ final class DeckSync {
         if (!shouldContinue) return;
       }
     } finally {
-      await database.releaseLease(account.id, _owner);
+      try {
+        await database.deferSync(account, client.retryUntil);
+      } finally {
+        await database.releaseLease(account.id, _owner);
+      }
     }
   }
 
@@ -237,22 +250,19 @@ final class DeckSync {
       return true;
     } on DeckException catch (error) {
       final uncertain = mutationStarted && error.uncertain;
-      final retryableRead =
-          !mutationStarted &&
-          (error.code == 'transport_failed' || error.code == 'timeout');
-      final retryableStatus = error.status == 401 || error.status == 429;
+      final retryable = _shouldRetry(error, mutationStarted);
       await database.markWrite(
         account,
         _owner,
         write.id,
         uncertain
             ? 'uncertain'
-            : retryableRead || retryableStatus
+            : retryable
             ? 'queued'
             : 'blocked',
         error: error.code,
       );
-      if (retryableRead || retryableStatus) rethrow;
+      if (retryable) rethrow;
       return !uncertain;
     } on FormatException {
       await database.markWrite(

@@ -171,7 +171,7 @@ extension _BoardMetadataSync on DeckSync {
         if (error.status != 403 && error.status != 404) rethrow;
         started = await database.startWrite(account, _owner, write.id);
       }
-      final retry = error.status == 401 || error.status == 429;
+      final retry = _shouldRetry(error, mutationStarted);
       if (started) {
         await database.markWrite(
           account,

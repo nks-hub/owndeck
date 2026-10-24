@@ -58,6 +58,18 @@ class $StoredAccountsTable extends StoredAccounts
         type: DriftSqlType.string,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _syncNotBeforeMeta = const VerificationMeta(
+    'syncNotBefore',
+  );
+  @override
+  late final GeneratedColumn<DateTime> syncNotBefore =
+      GeneratedColumn<DateTime>(
+        'sync_not_before',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _credentialRefMeta = const VerificationMeta(
     'credentialRef',
   );
@@ -137,6 +149,7 @@ class $StoredAccountsTable extends StoredAccounts
     loginName,
     userId,
     certificateFingerprint,
+    syncNotBefore,
     credentialRef,
     state,
     generation,
@@ -189,6 +202,15 @@ class $StoredAccountsTable extends StoredAccounts
         certificateFingerprint.isAcceptableOrUnknown(
           data['certificate_fingerprint']!,
           _certificateFingerprintMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sync_not_before')) {
+      context.handle(
+        _syncNotBeforeMeta,
+        syncNotBefore.isAcceptableOrUnknown(
+          data['sync_not_before']!,
+          _syncNotBeforeMeta,
         ),
       );
     }
@@ -272,6 +294,10 @@ class $StoredAccountsTable extends StoredAccounts
         DriftSqlType.string,
         data['${effectivePrefix}certificate_fingerprint'],
       ),
+      syncNotBefore: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}sync_not_before'],
+      ),
       credentialRef: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}credential_ref'],
@@ -311,6 +337,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
   final String loginName;
   final String? userId;
   final String? certificateFingerprint;
+  final DateTime? syncNotBefore;
   final String credentialRef;
   final String state;
   final int generation;
@@ -323,6 +350,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
     required this.loginName,
     this.userId,
     this.certificateFingerprint,
+    this.syncNotBefore,
     required this.credentialRef,
     required this.state,
     required this.generation,
@@ -341,6 +369,9 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
     }
     if (!nullToAbsent || certificateFingerprint != null) {
       map['certificate_fingerprint'] = Variable<String>(certificateFingerprint);
+    }
+    if (!nullToAbsent || syncNotBefore != null) {
+      map['sync_not_before'] = Variable<DateTime>(syncNotBefore);
     }
     map['credential_ref'] = Variable<String>(credentialRef);
     map['state'] = Variable<String>(state);
@@ -364,6 +395,9 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
       certificateFingerprint: certificateFingerprint == null && nullToAbsent
           ? const Value.absent()
           : Value(certificateFingerprint),
+      syncNotBefore: syncNotBefore == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncNotBefore),
       credentialRef: Value(credentialRef),
       state: Value(state),
       generation: Value(generation),
@@ -388,6 +422,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
       certificateFingerprint: serializer.fromJson<String?>(
         json['certificateFingerprint'],
       ),
+      syncNotBefore: serializer.fromJson<DateTime?>(json['syncNotBefore']),
       credentialRef: serializer.fromJson<String>(json['credentialRef']),
       state: serializer.fromJson<String>(json['state']),
       generation: serializer.fromJson<int>(json['generation']),
@@ -407,6 +442,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
       'certificateFingerprint': serializer.toJson<String?>(
         certificateFingerprint,
       ),
+      'syncNotBefore': serializer.toJson<DateTime?>(syncNotBefore),
       'credentialRef': serializer.toJson<String>(credentialRef),
       'state': serializer.toJson<String>(state),
       'generation': serializer.toJson<int>(generation),
@@ -422,6 +458,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
     String? loginName,
     Value<String?> userId = const Value.absent(),
     Value<String?> certificateFingerprint = const Value.absent(),
+    Value<DateTime?> syncNotBefore = const Value.absent(),
     String? credentialRef,
     String? state,
     int? generation,
@@ -436,6 +473,9 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
     certificateFingerprint: certificateFingerprint.present
         ? certificateFingerprint.value
         : this.certificateFingerprint,
+    syncNotBefore: syncNotBefore.present
+        ? syncNotBefore.value
+        : this.syncNotBefore,
     credentialRef: credentialRef ?? this.credentialRef,
     state: state ?? this.state,
     generation: generation ?? this.generation,
@@ -452,6 +492,9 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
       certificateFingerprint: data.certificateFingerprint.present
           ? data.certificateFingerprint.value
           : this.certificateFingerprint,
+      syncNotBefore: data.syncNotBefore.present
+          ? data.syncNotBefore.value
+          : this.syncNotBefore,
       credentialRef: data.credentialRef.present
           ? data.credentialRef.value
           : this.credentialRef,
@@ -477,6 +520,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
           ..write('loginName: $loginName, ')
           ..write('userId: $userId, ')
           ..write('certificateFingerprint: $certificateFingerprint, ')
+          ..write('syncNotBefore: $syncNotBefore, ')
           ..write('credentialRef: $credentialRef, ')
           ..write('state: $state, ')
           ..write('generation: $generation, ')
@@ -494,6 +538,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
     loginName,
     userId,
     certificateFingerprint,
+    syncNotBefore,
     credentialRef,
     state,
     generation,
@@ -510,6 +555,7 @@ class StoredAccount extends DataClass implements Insertable<StoredAccount> {
           other.loginName == this.loginName &&
           other.userId == this.userId &&
           other.certificateFingerprint == this.certificateFingerprint &&
+          other.syncNotBefore == this.syncNotBefore &&
           other.credentialRef == this.credentialRef &&
           other.state == this.state &&
           other.generation == this.generation &&
@@ -524,6 +570,7 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
   final Value<String> loginName;
   final Value<String?> userId;
   final Value<String?> certificateFingerprint;
+  final Value<DateTime?> syncNotBefore;
   final Value<String> credentialRef;
   final Value<String> state;
   final Value<int> generation;
@@ -537,6 +584,7 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
     this.loginName = const Value.absent(),
     this.userId = const Value.absent(),
     this.certificateFingerprint = const Value.absent(),
+    this.syncNotBefore = const Value.absent(),
     this.credentialRef = const Value.absent(),
     this.state = const Value.absent(),
     this.generation = const Value.absent(),
@@ -551,6 +599,7 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
     required String loginName,
     this.userId = const Value.absent(),
     this.certificateFingerprint = const Value.absent(),
+    this.syncNotBefore = const Value.absent(),
     required String credentialRef,
     this.state = const Value.absent(),
     this.generation = const Value.absent(),
@@ -568,6 +617,7 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
     Expression<String>? loginName,
     Expression<String>? userId,
     Expression<String>? certificateFingerprint,
+    Expression<DateTime>? syncNotBefore,
     Expression<String>? credentialRef,
     Expression<String>? state,
     Expression<int>? generation,
@@ -583,6 +633,7 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
       if (userId != null) 'user_id': userId,
       if (certificateFingerprint != null)
         'certificate_fingerprint': certificateFingerprint,
+      if (syncNotBefore != null) 'sync_not_before': syncNotBefore,
       if (credentialRef != null) 'credential_ref': credentialRef,
       if (state != null) 'state': state,
       if (generation != null) 'generation': generation,
@@ -599,6 +650,7 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
     Value<String>? loginName,
     Value<String?>? userId,
     Value<String?>? certificateFingerprint,
+    Value<DateTime?>? syncNotBefore,
     Value<String>? credentialRef,
     Value<String>? state,
     Value<int>? generation,
@@ -614,6 +666,7 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
       userId: userId ?? this.userId,
       certificateFingerprint:
           certificateFingerprint ?? this.certificateFingerprint,
+      syncNotBefore: syncNotBefore ?? this.syncNotBefore,
       credentialRef: credentialRef ?? this.credentialRef,
       state: state ?? this.state,
       generation: generation ?? this.generation,
@@ -643,6 +696,9 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
       map['certificate_fingerprint'] = Variable<String>(
         certificateFingerprint.value,
       );
+    }
+    if (syncNotBefore.present) {
+      map['sync_not_before'] = Variable<DateTime>(syncNotBefore.value);
     }
     if (credentialRef.present) {
       map['credential_ref'] = Variable<String>(credentialRef.value);
@@ -676,6 +732,7 @@ class StoredAccountsCompanion extends UpdateCompanion<StoredAccount> {
           ..write('loginName: $loginName, ')
           ..write('userId: $userId, ')
           ..write('certificateFingerprint: $certificateFingerprint, ')
+          ..write('syncNotBefore: $syncNotBefore, ')
           ..write('credentialRef: $credentialRef, ')
           ..write('state: $state, ')
           ..write('generation: $generation, ')
@@ -4410,6 +4467,7 @@ typedef $$StoredAccountsTableCreateCompanionBuilder =
       required String loginName,
       Value<String?> userId,
       Value<String?> certificateFingerprint,
+      Value<DateTime?> syncNotBefore,
       required String credentialRef,
       Value<String> state,
       Value<int> generation,
@@ -4425,6 +4483,7 @@ typedef $$StoredAccountsTableUpdateCompanionBuilder =
       Value<String> loginName,
       Value<String?> userId,
       Value<String?> certificateFingerprint,
+      Value<DateTime?> syncNotBefore,
       Value<String> credentialRef,
       Value<String> state,
       Value<int> generation,
@@ -4642,6 +4701,11 @@ class $$StoredAccountsTableFilterComposer
 
   ColumnFilters<String> get certificateFingerprint => $composableBuilder(
     column: $table.certificateFingerprint,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get syncNotBefore => $composableBuilder(
+    column: $table.syncNotBefore,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4935,6 +4999,11 @@ class $$StoredAccountsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get syncNotBefore => $composableBuilder(
+    column: $table.syncNotBefore,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get credentialRef => $composableBuilder(
     column: $table.credentialRef,
     builder: (column) => ColumnOrderings(column),
@@ -4989,6 +5058,11 @@ class $$StoredAccountsTableAnnotationComposer
 
   GeneratedColumn<String> get certificateFingerprint => $composableBuilder(
     column: $table.certificateFingerprint,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get syncNotBefore => $composableBuilder(
+    column: $table.syncNotBefore,
     builder: (column) => column,
   );
 
@@ -5290,6 +5364,7 @@ class $$StoredAccountsTableTableManager
                 Value<String> loginName = const Value.absent(),
                 Value<String?> userId = const Value.absent(),
                 Value<String?> certificateFingerprint = const Value.absent(),
+                Value<DateTime?> syncNotBefore = const Value.absent(),
                 Value<String> credentialRef = const Value.absent(),
                 Value<String> state = const Value.absent(),
                 Value<int> generation = const Value.absent(),
@@ -5303,6 +5378,7 @@ class $$StoredAccountsTableTableManager
                 loginName: loginName,
                 userId: userId,
                 certificateFingerprint: certificateFingerprint,
+                syncNotBefore: syncNotBefore,
                 credentialRef: credentialRef,
                 state: state,
                 generation: generation,
@@ -5318,6 +5394,7 @@ class $$StoredAccountsTableTableManager
                 required String loginName,
                 Value<String?> userId = const Value.absent(),
                 Value<String?> certificateFingerprint = const Value.absent(),
+                Value<DateTime?> syncNotBefore = const Value.absent(),
                 required String credentialRef,
                 Value<String> state = const Value.absent(),
                 Value<int> generation = const Value.absent(),
@@ -5331,6 +5408,7 @@ class $$StoredAccountsTableTableManager
                 loginName: loginName,
                 userId: userId,
                 certificateFingerprint: certificateFingerprint,
+                syncNotBefore: syncNotBefore,
                 credentialRef: credentialRef,
                 state: state,
                 generation: generation,

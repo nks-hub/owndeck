@@ -1,6 +1,20 @@
 part of 'database.dart';
 
 extension DeckWrites on DeckDatabase {
+  Future<void> deferSync(
+    StoredAccount account,
+    DateTime? until,
+  ) => transaction(() async {
+    if (until == null || !await accepts(account.id, account.generation)) return;
+    final current = await this.account(account.id);
+    if (current?.syncNotBefore != null &&
+        !until.isAfter(current!.syncNotBefore!)) {
+      return;
+    }
+    await (update(storedAccounts)..where((a) => a.id.equals(account.id))).write(
+      StoredAccountsCompanion(syncNotBefore: Value(until.toUtc())),
+    );
+  });
   Future<List<PendingWrite>> writesFor(String accountId, {int? boardId}) =>
       (select(pendingWrites)
             ..where(

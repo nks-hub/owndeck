@@ -36,6 +36,7 @@ class StoredAccounts extends Table {
   TextColumn get loginName => text()();
   TextColumn get userId => text().nullable()();
   TextColumn get certificateFingerprint => text().nullable()();
+  DateTimeColumn get syncNotBefore => dateTime().nullable()();
   TextColumn get credentialRef => text().unique()();
   TextColumn get state => text().withDefault(const Constant('active'))();
   IntColumn get generation => integer().withDefault(const Constant(1))();
@@ -172,12 +173,15 @@ class DeckDatabase extends _$DeckDatabase {
   DeckDatabase(super.executor);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) => m.createAll(),
     onUpgrade: (m, from, to) async {
+      if (from < 9) {
+        await m.addColumn(storedAccounts, storedAccounts.syncNotBefore);
+      }
       if (from < 8) await m.createTable(storedAttachments);
       if (from < 2) {
         await m.createTable(pendingWrites);

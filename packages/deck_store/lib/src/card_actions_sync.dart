@@ -98,11 +98,7 @@ extension _CardActionSync on DeckSync {
       await database.markApplied(account, _owner, write, receipt);
       return _finishApplied(write.copyWith(remote: Value(jsonEncode(receipt))));
     } on DeckException catch (error) {
-      final retry =
-          !mutationStarted &&
-              {'transport_failed', 'timeout'}.contains(error.code) ||
-          error.status == 401 ||
-          error.status == 429;
+      final retry = _shouldRetry(error, mutationStarted);
       await database.markWrite(
         account,
         _owner,

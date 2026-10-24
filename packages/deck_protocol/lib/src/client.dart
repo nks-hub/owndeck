@@ -15,11 +15,17 @@ part 'attachment_client.dart';
 part 'dav_client.dart';
 
 final class DeckException implements Exception {
-  const DeckException(this.code, {this.status, this.uncertain = false});
+  const DeckException(
+    this.code, {
+    this.status,
+    this.uncertain = false,
+    this.retryAt,
+  });
 
   final String code;
   final int? status;
   final bool uncertain;
+  final DateTime? retryAt;
 
   @override
   String toString() => 'DeckException($code, $status, uncertain: $uncertain)';
@@ -40,7 +46,11 @@ final class DeckClient {
     required this.transport,
     this.apiVersion = '1.1',
     this.timeout = const Duration(seconds: 30),
-  }) : _authorization =
+    DateTime? retryUntil,
+    DateTime Function()? now,
+  }) : _retryUntil = retryUntil?.toUtc(),
+       _now = now ?? DateTime.now,
+       _authorization =
            'Basic ${base64Encode(utf8.encode('$loginName:$appPassword'))}' {
     if (loginName.isEmpty || loginName.contains(':') || appPassword.isEmpty) {
       throw ArgumentError('invalid_credentials');
@@ -55,6 +65,15 @@ final class DeckClient {
   final String apiVersion;
   final Duration timeout;
   final String _authorization;
+  final DateTime Function() _now;
+  DateTime? _retryUntil;
+  DateTime? get retryUntil => _retryUntil;
+
+  void deferUntil(DateTime? until) {
+    if (until != null && (_retryUntil == null || until.isAfter(_retryUntil!))) {
+      _retryUntil = until.toUtc();
+    }
+  }
 
   Future<DeckCapabilities> capabilities() async {
     final response = await ocs('GET', ['cloud', 'capabilities']);
@@ -170,6 +189,10 @@ final class DeckClient {
     Future<void>? cancelled,
     Duration? requestTimeout,
   }) async {
+    final deadline = _retryUntil;
+    if (deadline != null && deadline.isAfter(_now().toUtc())) {
+      throw DeckException('rate_limited', status: 429, retryAt: deadline);
+    }
     final abort = Completer<void>();
     final request = create(abort.future)
       ..followRedirects = false
@@ -192,6 +215,15 @@ final class DeckClient {
           return http.Response.bytes(const [], 304, headers: response.headers);
         }
         if (response.statusCode < 200 || response.statusCode >= 300) {
+          if (response.statusCode == 429 || response.statusCode == 503) {
+            final now = _now().toUtc();
+            final until =
+                _retryDeadline(response.headers['retry-after'], now) ??
+                (response.statusCode == 429
+                    ? now.add(const Duration(seconds: 30))
+                    : null);
+            deferUntil(until);
+          }
           throw DeckException(
             switch (response.statusCode) {
               401 => 'authentication_required',
@@ -201,6 +233,7 @@ final class DeckClient {
               _ => 'request_rejected',
             },
             status: response.statusCode,
+            retryAt: _retryUntil,
             uncertain:
                 mutation &&
                 (response.statusCode >= 500 ||
@@ -237,5 +270,19 @@ final class DeckClient {
     } finally {
       if (!abort.isCompleted) abort.complete();
     }
+  }
+}
+
+DateTime? _retryDeadline(String? value, DateTime now) {
+  if (value == null) return null;
+  final input = value.trim();
+  if (RegExp(r'^[0-9]{1,10}$').hasMatch(input)) {
+    return now.add(Duration(seconds: int.parse(input)));
+  }
+  try {
+    final parsed = parseHttpDate(input).toUtc();
+    return parsed.isBefore(now) ? now : parsed;
+  } on FormatException {
+    return null;
   }
 }

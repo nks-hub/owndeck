@@ -126,7 +126,7 @@ extension _StructureSync on DeckSync {
         started = await database.startWrite(account, _owner, write.id);
       }
       if (started) {
-        final retry = error.status == 401 || error.status == 429;
+        final retry = _shouldRetry(error, mutationStarted);
         await database.markWrite(
           account,
           _owner,

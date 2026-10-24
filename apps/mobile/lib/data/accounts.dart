@@ -139,6 +139,7 @@ final class Accounts extends ChangeNotifier {
         loginName: account.loginName,
         appPassword: password,
         transport: transport,
+        retryUntil: account.syncNotBefore,
       ),
       files: _files,
     );

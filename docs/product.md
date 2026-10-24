@@ -50,4 +50,4 @@ Zdroje: [Android: přístupnost](https://developer.android.com/guide/topics/ui/a
 
 Cíle pro závěrečné měření: použitelný uložený seznam do 2 s na S21 a do 3 s na S9; 95. percentil snímku při scrollování do 16,7 ms při 60 Hz. Testovací nástěnka: 10 sloupců a 1 000 karet, bez hromadného načítání příloh. Časy jsou přijímací cíle, nikoli dosažené výsledky. Zaznamenat profil/release režim, OS, teplotu a opakování.
 
-Vývoj nejprve dokončí funkce. Následují automatické testy a test serveru. Závěrem fyzický S9, S21 a samostatně iOS. Přesné scénáře a důkazy jsou v [testovacím plánu](testing.md).
+Automatické i fyzické testy S9/S21 probíhají průběžně na pozadí nad izolovanými revizemi a neblokují další vývoj. iOS se ověřuje samostatně; před dokončením musí důkazy pokrývat finální verzi. Přesné scénáře a důkazy jsou v [testovacím plánu](testing.md).

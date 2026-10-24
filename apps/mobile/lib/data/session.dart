@@ -210,12 +210,21 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> _perform(String scope, Future<void> Function() operation) async {
     _errors.remove(scope);
     try {
+      client.deferUntil((await database.account(account.id))?.syncNotBefore);
+      if (_disposed) return;
       await operation();
       if (_files != null && !_disposed) await _cleanAttachmentFiles();
     } catch (error) {
       // The view displays the error beside cached content, never raw exception text.
       _errors[scope] = error;
     } finally {
+      if (!_disposed) {
+        try {
+          await database.deferSync(account, client.retryUntil);
+        } catch (error) {
+          _errors.putIfAbsent(scope, () => error);
+        }
+      }
       _running.remove(scope);
       if (!_disposed) notifyListeners();
     }
