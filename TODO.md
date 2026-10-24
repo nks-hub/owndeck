@@ -35,8 +35,8 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [ ] D08 Integrovat volitelné Sentry a Rybbit: konfigurace přes CI v našich buildech, žádné pevné klíče, funkční build i bez služeb, ochrana obsahu a volba uživatele.
 - [ ] D09 Dokončit české a anglické texty, přístupnost a chybové stavy.
 - [ ] D10 Dokončit kopie, závislosti karet, podporovaný hotový sloupec a přehled oznámení; push posoudit podle skutečných capabilities a infrastruktury.
-- [ ] T01 Po vývoji spustit jednotkové, UI a integrační testy a opravit nálezy.
+- [ ] T01 Spouštět jednotkové a UI sady neblokujícím způsobem na pozadí, nezávislé sady paralelně; po vývoji dokončit integrační ověření a opravit nálezy.
 - [ ] T02 Ověřit skutečný Nextcloud server, oba buildy a příjem bezpečných telemetrických událostí.
-- [ ] T03 Provést závěrečné fyzické testy S9 a S21 a samostatné ověření iOS; uložit důkazy s revizí.
+- [ ] T03 Průběžně provádět fyzické testy S9/S21 na pozadí nad izolovanými kandidáty, nezávisle pro každý telefon, a samostatné ověření iOS; před dokončením doložit finální revizi.
 
-Aktuální krok: přílohy (D05) a další otevřené D body. Nástěnky/sloupce, sdílení, štítky, akce karet, komentáře a koncepty jsou implementované. Statické kontroly dotčených částí jsou bez nálezů. Běhové testy protokolu a databáze jsou připravené, dosud nespouštěné. Zaškrtnutí D bodů znamená dokončenou implementaci, nikoli úspěch testů; ty mají vlastní T body. Aplikace ani cílová zařízení zatím nebyly testované.
+Aktuální krok: přílohy (D05) a další otevřené D body. Průběžné paralelní testy na pozadí nad izolovanou revizí `95b19ed` prošly: protokol 13/13, databáze a fronta 38/38, bez přeskočení. Nepokrývají UI ani skutečný server a zařízení. Nástěnky/sloupce, sdílení, štítky, akce karet, komentáře a koncepty jsou implementované. Statické kontroly jsou bez nálezů. Fyzické testy zatím neproběhly.

@@ -11,8 +11,8 @@ Zadání: mobilní klient Nextcloud Deck pro Android a iOS po vzoru OwnTalk a Ow
 5. Vybrat převzatelné části, připnout závislosti a vytvořit aplikaci pro obě platformy.
 6. Implementovat přihlášení, účty, nástěnky, sloupce, karty, spolupráci, přílohy a synchronizaci.
 7. Integrovat Sentry a Rybbit včetně nastavení soukromí a ověření doručení událostí.
-8. Po vývoji spustit automatické a integrační testy, opravit nálezy a ověřit sestavení obou platforem.
-9. Jako poslední krok ověřit hotového kandidáta na fyzických Samsung Galaxy S9 a S21; iOS ověřit zvlášť na dostupném cílovém zařízení.
+8. Automatické testy spouštět neblokujícím způsobem na pozadí a nezávislé sady souběžně nad neměnnou revizí; po vývoji dokončit integrační testy a ověřit sestavení obou platforem.
+9. Průběžně ověřovat kandidáty z odděleného pracovního stromu na fyzických Samsung Galaxy S9 a S21, na pozadí samostatně pro každý telefon. iOS ověřovat zvlášť na dostupném cílovém zařízení. Před dokončením musí výsledky pokrývat finální revizi.
 
 ## Důkazy dokončení
 

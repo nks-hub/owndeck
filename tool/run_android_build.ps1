@@ -1,0 +1,62 @@
+param([Parameter(Mandatory)][string]$ConfigFile)
+
+$ErrorActionPreference = 'Stop'
+$PSNativeCommandUseErrorActionPreference = $false
+$config = Get-Content -LiteralPath $ConfigFile -Raw | ConvertFrom-Json
+$started = [DateTime]::UtcNow.ToString('o')
+$phase = 'setup'
+$code = 1
+$apk = $null
+$sha256 = $null
+$failure = $null
+try {
+    $head = (& git -C $config.sourceRoot rev-parse HEAD).Trim()
+    if ($LASTEXITCODE -ne 0 -or $head -ne $config.revision) { throw 'snapshot_revision_changed' }
+    $env:CI = 'true'
+    $env:FLUTTER_SUPPRESS_ANALYTICS = 'true'
+    $env:ANDROID_HOME = $config.androidHome
+    $env:ANDROID_SDK_ROOT = $config.androidHome
+    $env:JAVA_HOME = $config.javaHome
+    $env:ORG_GRADLE_PROJECT_candidate = 'true'
+    $env:GRADLE_OPTS = '-Dorg.gradle.workers.max=2 -Dorg.gradle.jvmargs=-Xmx3G -Dorg.gradle.daemon=false'
+    Set-Location -LiteralPath (Join-Path $config.sourceRoot 'apps\mobile')
+    & $config.flutterPath pub get --enforce-lockfile *> $config.setupLog
+    $code = $LASTEXITCODE
+    if ($code -eq 0) {
+        $phase = 'build'
+        & $config.flutterPath build apk --debug --target-platform android-arm64 *> $config.buildLog
+        $code = $LASTEXITCODE
+    }
+    if ($code -eq 0) {
+        $phase = 'artifact'
+        $apk = Join-Path (Get-Location).Path 'build\app\outputs\flutter-apk\app-debug.apk'
+        if (-not (Test-Path -LiteralPath $apk)) { throw 'apk_missing' }
+        $badging = & $config.aaptPath dump badging $apk
+        if ($LASTEXITCODE -ne 0 -or -not ($badging -match "package: name='com.nkshub.nextclouddeck.candidate'")) {
+            throw 'unexpected_application_id'
+        }
+        $changes = @(& git -C $config.sourceRoot diff --name-only)
+        if ($LASTEXITCODE -ne 0 -or $changes.Count -ne 0) { throw 'tracked_source_changed_during_build' }
+        $sha256 = (Get-FileHash -LiteralPath $apk -Algorithm SHA256).Hash.ToLowerInvariant()
+        $phase = 'built'
+    }
+} catch {
+    $code = 1
+    $failure = $_.Exception.Message
+} finally {
+    [ordered]@{
+        revision = $config.revision
+        sourceRoot = $config.sourceRoot
+        pid = $PID
+        startedUtc = $started
+        finishedUtc = [DateTime]::UtcNow.ToString('o')
+        phase = $phase
+        exitCode = $code
+        failure = $failure
+        apk = $apk
+        sha256 = $sha256
+        applicationId = 'com.nkshub.nextclouddeck.candidate'
+        buildMode = 'debug'
+    } | ConvertTo-Json | Set-Content -LiteralPath $config.resultFile -Encoding utf8
+}
+exit $code

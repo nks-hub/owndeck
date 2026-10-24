@@ -1,13 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="OwnDeck"
+        android:label="${appLabel}"
         android:allowBackup="false"
         android:usesCleartextTraffic="false"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
-            android:name=".MainActivity"
+            android:name="com.nkshub.nextclouddeck.MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
             android:taskAffinity=""

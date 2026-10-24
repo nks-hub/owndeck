@@ -1,8 +1,12 @@
 # Testovací plán
 
-Testy se připravují při vývoji a spustí až po jeho dokončení podle zadání. Fyzické S9/S21 jsou poslední ověřovací etapa. Běhové testy OwnDecku zatím nebyly spuštěné. Během implementace probíhá statická kontrola typů a stylu; ta neprokazuje funkčnost na serveru ani zařízení.
+Podle upřesnění zadání se automatické testy smějí spouštět během vývoje pouze neblokujícím způsobem na pozadí. Nezávislé sady běží souběžně v izolovaném pracovním stromu s přesnou revizí. Hlavní pracovní strom se během testů může měnit. Každý proces má uložené ID, log a konečný návratový kód; samotné spuštění není výsledek.
+
+Podle dalšího upřesnění zadání jsou také fyzické S9/S21 součástí průběžných testů na pozadí, nikoli až krokem po vývoji. Každý telefon má vlastní proces a kandidáta z odděleného pracovního stromu. Stejné zařízení nesmějí řídit dva procesy současně. Během implementace probíhá statická kontrola typů a stylu; ta neprokazuje funkčnost na serveru ani zařízení.
 
 ## Automatické ověření po vývoji
+
+První průběžný běh na izolované revizi `95b19ed4f1a500ff512d4c57fe77b42769ccdfa6` dne 24. 10. 2026: protokol 13/13, databáze a fronta 38/38, bez přeskočení. Obě sady běžely na pozadí souběžně a skončily kódem 0. Tento výsledek nepokrývá UI, skutečný server, telemetrii ani telefony. Další změny vyžadují ověření nové revize.
 
 - Přihlášení: podadresář, zrušený tok, poll 404/200, timeout, neplatný certifikát, cizí poll/login URL, HTML odpověď a jednorázové předání hesla.
 - Protokol: REST/OCS obálky, 304, null versus chybějící pole, `done` jako datum, přílohy 1.0/1.1, zachování popisu/termínu/pořadí při přejmenování, bezpečné chyby.
@@ -35,7 +39,7 @@ Použít ověřený testovací účet a vlastní dočasnou nástěnku. Osobní a
 
 Testované kombinace verzí se doplní podle dostupného prostředí. Jedna zelená kombinace není důkaz podpory všech verzí. Nepoužívat tvrzení „kompletní API ověřeno“ na základě několika GET požadavků.
 
-## Poslední etapa: cílová zařízení
+## Průběžné testy na cílových zařízeních
 
 | Zařízení | Stav | Povinné scénáře |
 |---|---|---|

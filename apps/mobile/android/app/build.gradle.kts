@@ -4,6 +4,8 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+val isCandidate = project.findProperty("candidate") == "true"
+
 android {
     namespace = "com.nkshub.nextclouddeck"
     compileSdk = flutter.compileSdkVersion
@@ -15,7 +17,8 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.nkshub.nextclouddeck"
+        applicationId = if (isCandidate) "com.nkshub.nextclouddeck.candidate" else "com.nkshub.nextclouddeck"
+        manifestPlaceholders["appLabel"] = if (isCandidate) "OwnDeck Candidate" else "OwnDeck"
         minSdk = 24
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
