@@ -6,6 +6,7 @@ import 'package:deck_protocol/deck_protocol.dart';
 import 'package:deck_store/deck_store.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -100,6 +101,93 @@ void main() {
     ),
     files: () async => files,
     onAuthenticationRequired: onAuthenticationRequired,
+  );
+
+  test(
+    'queued changes resume in the foreground without an open board',
+    () async {
+      final binding = WidgetsBinding.instance;
+      final previous = binding.lifecycleState;
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      final board = (await database.boardView(account.id)).single.raw;
+      await database.saveCardDraft(account, 1, 2, {'title': 'Pending'});
+      var posts = 0;
+      final settled = Completer<void>();
+      http.Response response(Object data, {bool ocs = false}) => http.Response(
+        jsonEncode(
+          ocs
+              ? {
+                  'ocs': {
+                    'meta': {'status': 'ok', 'statuscode': 200},
+                    'data': data,
+                  },
+                }
+              : data,
+        ),
+        200,
+        headers: {'content-type': 'application/json'},
+      );
+      final transport = MockClient((request) async {
+        if (request.url.path.endsWith('/cloud/user')) {
+          return response({'id': 'user'}, ocs: true);
+        }
+        if (request.url.path.endsWith('/cloud/capabilities')) {
+          return response({
+            'capabilities': {
+              'deck': {
+                'version': '1.18.5',
+                'apiVersions': ['1.1'],
+                'canCreateBoards': true,
+              },
+            },
+          }, ocs: true);
+        }
+        if (request.method == 'POST') {
+          posts++;
+          return response({
+            'id': 8,
+            'stackId': 2,
+            'title': 'Pending',
+            'description': '',
+            'type': 'plain',
+            'order': 0,
+            'owner': 'user',
+            'archived': false,
+          });
+        }
+        return response(
+          request.url.path.endsWith('/boards/1') ? board : [board],
+        );
+      });
+      final active = session = DeckSession(
+        database,
+        account,
+        DeckClient(
+          base: ServerBase.parse(account.server),
+          loginName: account.loginName,
+          appPassword: 'test-password',
+          transport: transport,
+        ),
+        pollInterval: const Duration(milliseconds: 20),
+      );
+      void changed() {
+        if (posts == 1 && !active.loading('boards') && !settled.isCompleted) {
+          settled.complete();
+        }
+      }
+
+      active.addListener(changed);
+      try {
+        await settled.future.timeout(const Duration(seconds: 5));
+        expect(posts, 1);
+        expect(await database.writesFor(account.id), isEmpty);
+      } finally {
+        active.removeListener(changed);
+        active.dispose();
+        session = null;
+        if (previous != null) binding.handleAppLifecycleStateChanged(previous);
+      }
+    },
   );
 
   test(

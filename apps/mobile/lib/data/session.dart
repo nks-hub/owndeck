@@ -17,7 +17,11 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
     this.client, {
     Future<AttachmentFiles> Function()? files,
     this.onAuthenticationRequired,
+    Duration pollInterval = const Duration(seconds: 30),
   }) : _files = files {
+    if (pollInterval <= Duration.zero) {
+      throw ArgumentError('invalid_poll_interval');
+    }
     sync = DeckSync(
       database,
       account,
@@ -42,8 +46,27 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
         // Connectivity is advisory; manual refresh and foreground polling still work.
       },
     );
-    _timer = Timer.periodic(const Duration(seconds: 30), (_) {
-      if (_foreground && _openBoards.isNotEmpty) _refreshVisible();
+    _pending = database
+        .watchWrites(account.id)
+        .listen(
+          (writes) {
+            _hasPending = writes.any(
+              (write) => write.state == 'queued' || write.state == 'applied',
+            );
+          },
+          onError: (Object error) {
+            if (!_disposed) {
+              _errors['boards'] = error;
+              notifyListeners();
+            }
+          },
+        );
+    _timer = Timer.periodic(pollInterval, (_) {
+      if (_foreground &&
+          (_openBoards.isNotEmpty || _hasPending) &&
+          !(client.retryUntil?.isAfter(DateTime.now().toUtc()) ?? false)) {
+        _refreshVisible();
+      }
     });
   }
   final DeckDatabase database;
@@ -95,9 +118,11 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
 
   late final DeckSync sync;
   late final StreamSubscription<List<ConnectivityResult>> _connection;
+  late final StreamSubscription<List<PendingWrite>> _pending;
   late final Timer _timer;
   final _openBoards = <int>{};
   bool _foreground = true;
+  bool _hasPending = false;
   final _running = <String, Future<void>>{};
   final _errors = <String, Object>{};
   bool _disposed = false;
@@ -286,6 +311,7 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
     sync.close();
     _timer.cancel();
     unawaited(_connection.cancel());
+    unawaited(_pending.cancel());
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
