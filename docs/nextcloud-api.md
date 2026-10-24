@@ -65,6 +65,7 @@ Neznámá pole tolerovat. Pole, jejichž vynechání změní význam, rozlišit 
 8. `done` se v update čte zvlášť pomocí přítomnosti klíče. Vynechání, null a čas nejsou zaměnitelné. Nastavení `done` a webová akce done nemusí mít stejné vedlejší účinky přesunu do hotového sloupce; ověřit v T02.
 9. ETag slouží k podmíněnému čtení. V analyzované cestě aktualizace není kontrola `If-Match`; samotné odeslání této hlavičky nezaručí ochranu před přepsáním souběžné změny.
 10. Název boardId/stackId v URL není dostačující důkaz oprávnění. Server má vlastní kontroly nad kartou a cílem. Klient musí správně reagovat na odmítnutí i po dříve úspěšné synchronizaci.
+11. `CardService::reorder` vrací seznam přerovnaných karet. Cílový `stackId` patří do URL i těla. Obecná mutace nemusí vracet detail karty; například přiřazení může vrátit vazbu. Po přijetí zápisu načíst aktuální kartu a neopakovat mutaci při selhání tohoto následného GET.
 
 Tyto nálezy vycházejí ze zdrojů, nikoli ze spuštění exploitu či měření. Otevřené serverové scénáře jsou přímo v [testing.md](testing.md).
 

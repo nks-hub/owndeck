@@ -17,5 +17,9 @@
 - Create, edit, archive, delete, and restore boards through the durable outbox.
 - Create, rename, reorder, and delete columns with board management permission.
 - Resolve offline parent-child creation dependencies without guessing server IDs.
+- Move cards through a destination picker, reorder them with drag handles, and archive, restore, or delete cards.
+- Assign existing board labels and users from a live card detail view.
+- Render Markdown without fetching external images automatically.
+- Persist accepted card actions before reading their results, so read-back failures do not resend mutations.
 
 Automated and device acceptance tests are scheduled after feature development. This version has not been distributed.

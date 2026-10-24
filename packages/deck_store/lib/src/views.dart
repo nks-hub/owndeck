@@ -31,7 +31,27 @@ extension DeckViews on DeckDatabase {
       'createStack',
     );
     if (stackId == null) return null;
-    return write.copyWith(boardId: boardId, stackId: stackId);
+    final cardId = write.cardId == null
+        ? null
+        : await resolveId(write.accountId, write.cardId!, 'createCard');
+    if (write.cardId != null && cardId == null) return null;
+    var proposal = write.proposal;
+    if (write.kind == 'moveCard') {
+      final data = object(jsonDecode(proposal));
+      final targetId = await resolveId(
+        write.accountId,
+        intField(data, 'stackId'),
+        'createStack',
+      );
+      if (targetId == null) return null;
+      proposal = jsonEncode({...data, 'stackId': targetId});
+    }
+    return write.copyWith(
+      boardId: boardId,
+      stackId: stackId,
+      cardId: Value(cardId),
+      proposal: proposal,
+    );
   }
 
   Future<bool> dependencyUnavailable(PendingWrite write) async {
@@ -41,6 +61,10 @@ extension DeckViews on DeckDatabase {
           write.kind != 'createStack' &&
           write.stackId < 0)
         -write.stackId,
+      if (write.cardId != null && write.cardId! < 0) -write.cardId!,
+      if (write.kind == 'moveCard' &&
+          intField(object(jsonDecode(write.proposal)), 'stackId') < 0)
+        -intField(object(jsonDecode(write.proposal)), 'stackId'),
     ];
     for (final sequence in parents) {
       final parent =
@@ -76,6 +100,17 @@ extension DeckViews on DeckDatabase {
         return (await boardView(
           accountId,
         )).where((b) => b.id == resolved).firstOrNull;
+      });
+
+  Stream<DeckCard?> watchCard(String accountId, int boardId, int cardId) =>
+      _viewChanges(accountId).asyncMap((_) async {
+        final resolved =
+            await resolveId(accountId, cardId, 'createCard') ?? cardId;
+        for (final stack in await stackView(accountId, boardId)) {
+          final card = stack.cards.where((c) => c.id == resolved).firstOrNull;
+          if (card != null && (card.raw['deletedAt'] ?? 0) == 0) return card;
+        }
+        return null;
       });
 
   Future<List<DeckBoard>> boardView(String accountId) async {
@@ -196,7 +231,11 @@ extension DeckViews on DeckDatabase {
           'syncState': write.state,
         });
       } else if (write.kind == 'updateCard') {
-        final index = entries.indexWhere((c) => c['id'] == write.cardId);
+        final cardId = write.cardId == null
+            ? null
+            : await resolveId(accountId, write.cardId!, 'createCard') ??
+                  write.cardId;
+        final index = entries.indexWhere((c) => c['id'] == cardId);
         final original = index < 0
             ? object(jsonDecode(write.base!))
             : entries[index];
@@ -205,6 +244,74 @@ extension DeckViews on DeckDatabase {
           entries.add(projected);
         } else {
           entries[index] = projected;
+        }
+      } else if (write.cardId != null) {
+        final id =
+            await resolveId(accountId, write.cardId!, 'createCard') ??
+            write.cardId;
+        for (final sourceStack in stacks.values) {
+          final sourceCards = sourceStack['cards'] as List<JsonObject>;
+          final index = sourceCards.indexWhere((c) => c['id'] == id);
+          if (index < 0) continue;
+          final current = sourceCards[index];
+          final projected = <String, Object?>{
+            ...current,
+            'syncState': write.state,
+          };
+          if (write.kind == 'moveCard') {
+            final targetId =
+                await resolveId(
+                  accountId,
+                  intField(data, 'stackId'),
+                  'createStack',
+                ) ??
+                data['stackId'];
+            final target = stacks[targetId];
+            if (target != null) {
+              sourceCards.removeAt(index);
+              final targetCards = target['cards'] as List<JsonObject>;
+              final position = intField(
+                data,
+                'order',
+              ).clamp(0, targetCards.length);
+              targetCards.insert(position, {...projected, 'stackId': targetId});
+              for (var i = 0; i < targetCards.length; i++) {
+                targetCards[i] = {...targetCards[i], 'order': i};
+              }
+            }
+          } else {
+            if (write.kind == 'archiveCard') projected['archived'] = true;
+            if (write.kind == 'unarchiveCard') projected['archived'] = false;
+            if (write.kind == 'assignLabel' || write.kind == 'removeLabel') {
+              final labels = (current['labels'] as List? ?? [])
+                  .whereType<JsonObject>()
+                  .where((label) => label['id'] != data['labelId'])
+                  .toList();
+              if (write.kind == 'assignLabel')
+                labels.add(object(data['label']));
+              projected['labels'] = labels;
+            }
+            if (write.kind == 'assignUser' || write.kind == 'unassignUser') {
+              final assigned = (current['assignedUsers'] as List? ?? [])
+                  .whereType<JsonObject>()
+                  .where((assignment) {
+                    final participant = assignment['participant'];
+                    return (participant is JsonObject
+                            ? participant['uid']
+                            : participant) !=
+                        data['userId'];
+                  })
+                  .toList();
+              if (write.kind == 'assignUser')
+                assigned.add({
+                  'participant': data['user'],
+                  'type': data['type'] ?? 0,
+                });
+              projected['assignedUsers'] = assigned;
+            }
+            sourceCards[index] = projected;
+          }
+          break;
         }
       }
     }

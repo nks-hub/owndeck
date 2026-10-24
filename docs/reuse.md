@@ -22,6 +22,8 @@ Flutter doporučuji kvůli již existujícím komponentám, testům a postupům 
 
 Verze Flutteru se před založením ověří proti skutečnému SDK a připne do `.flutter-version`. Závislosti se převezmou pouze tam, kde je má první implementace používat. Aktualizace knihoven není samostatným cílem.
 
+Pro náhled Markdownu je použit `flutter_markdown_plus`, udržovaný nástupce původního rendereru. Volbu potvrzuje [stránka balíčku](https://pub.dev/packages/flutter_markdown_plus); původní `flutter_markdown` je označený jako ukončený. Externí obrázky se bez klepnutí nestahují.
+
 ## Hranice převzetí
 
 Převzít vlastní vhodné komponenty v malém rozsahu a zaznamenat jejich původ. Před převzetím ověřit licenci konkrétního repozitáře. Kód serveru Deck a cizích klientů slouží jako dokumentace chování; nepřebírat AGPL/GPL zdroje do klienta bez rozhodnutí o licenci. Designové vzory lze realizovat samostatně. Názvy produktů a jejich značky nekopírovat.

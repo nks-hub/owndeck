@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import '../data/session.dart';
 import '../l10n/app_localizations.dart';
 import 'accounts.dart';
-import 'card_editor.dart';
+import 'card_column.dart';
 import 'pending.dart';
 import 'sync_notice.dart';
 import 'structure_editor.dart';
@@ -201,6 +201,7 @@ class BoardScreen extends StatefulWidget {
 class _BoardScreenState extends State<BoardScreen> {
   late DeckBoard _board = widget.board;
   bool _unavailable = false;
+  bool _showArchived = false;
   StreamSubscription<DeckBoard?>? _boardChanges;
   late final Stream<List<DeckStack>> _stacks = widget.session.watchStacks(
     widget.board.id,
@@ -248,6 +249,13 @@ class _BoardScreenState extends State<BoardScreen> {
       appBar: AppBar(
         title: Text(_board.title),
         actions: [
+          IconButton(
+            tooltip: _showArchived ? text.activeCards : text.archivedCards,
+            icon: Icon(
+              _showArchived ? Icons.unarchive_outlined : Icons.archive_outlined,
+            ),
+            onPressed: () => setState(() => _showArchived = !_showArchived),
+          ),
           if (_board.permissions.manage && !_board.archived)
             IconButton(
               tooltip: text.addStack,
@@ -270,7 +278,21 @@ class _BoardScreenState extends State<BoardScreen> {
           builder: (context, snapshot) {
             if (snapshot.hasError)
               return Center(child: Text(text.storageError));
-            final stacks = snapshot.data ?? [];
+            final stacks = (snapshot.data ?? <DeckStack>[])
+                .map(
+                  (stack) => DeckStack.fromJson({
+                    ...stack.raw,
+                    'cards': stack.cards
+                        .where(
+                          (card) =>
+                              card.archived == _showArchived &&
+                              (card.raw['deletedAt'] ?? 0) == 0,
+                        )
+                        .map((card) => card.raw)
+                        .toList(),
+                  }),
+                )
+                .toList();
             return Column(
               children: [
                 SyncNotice(
@@ -302,167 +324,11 @@ class _BoardScreenState extends State<BoardScreen> {
                                 child: TabBarView(
                                   children: [
                                     for (final stack in stacks)
-                                      RefreshIndicator(
-                                        onRefresh: _refresh,
-                                        child: ListView.builder(
-                                          physics:
-                                              const AlwaysScrollableScrollPhysics(),
-                                          padding: const EdgeInsets.all(16),
-                                          itemCount: stack.cards.length + 1,
-                                          itemBuilder: (context, index) {
-                                            if (index == stack.cards.length) {
-                                              return Column(
-                                                children: [
-                                                  if (_board
-                                                          .permissions
-                                                          .manage &&
-                                                      !_board.archived)
-                                                    StackActions(
-                                                      session: session,
-                                                      board: _board,
-                                                      stack: stack,
-                                                    ),
-                                                  if (stack.cards.isEmpty)
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                            24,
-                                                          ),
-                                                      child: Text(
-                                                        text.emptyStack,
-                                                      ),
-                                                    ),
-                                                  if (widget
-                                                          .board
-                                                          .permissions
-                                                          .edit &&
-                                                      !_board.archived)
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.symmetric(
-                                                            vertical: 16,
-                                                          ),
-                                                      child: FilledButton.icon(
-                                                        icon: const Icon(
-                                                          Icons.add,
-                                                        ),
-                                                        label: Text(
-                                                          text.addCard,
-                                                        ),
-                                                        onPressed: () =>
-                                                            editCard(
-                                                              context,
-                                                              session,
-                                                              widget.board.id,
-                                                              stack.id,
-                                                            ),
-                                                      ),
-                                                    ),
-                                                ],
-                                              );
-                                            }
-                                            final card = stack.cards[index];
-                                            return Card(
-                                              key: ValueKey(card.id),
-                                              child: ListTile(
-                                                title: Text(card.title),
-                                                trailing:
-                                                    card.raw['syncState'] ==
-                                                        null
-                                                    ? null
-                                                    : IconButton(
-                                                        tooltip:
-                                                            text.pendingChanges,
-                                                        icon: const Icon(
-                                                          Icons
-                                                              .cloud_upload_outlined,
-                                                        ),
-                                                        onPressed: () =>
-                                                            Navigator.of(
-                                                              context,
-                                                            ).push(
-                                                              MaterialPageRoute<
-                                                                void
-                                                              >(
-                                                                settings:
-                                                                    const RouteSettings(
-                                                                      name:
-                                                                          '/sync',
-                                                                    ),
-                                                                builder: (_) =>
-                                                                    PendingScreen(
-                                                                      session:
-                                                                          session,
-                                                                    ),
-                                                              ),
-                                                            ),
-                                                      ),
-                                                subtitle:
-                                                    card.description.isEmpty
-                                                    ? null
-                                                    : Text(
-                                                        card.description,
-                                                        maxLines: 2,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                      ),
-                                                onTap: () => Navigator.of(context).push(
-                                                  MaterialPageRoute<void>(
-                                                    settings:
-                                                        const RouteSettings(
-                                                          name: '/card',
-                                                        ),
-                                                    builder: (_) => Scaffold(
-                                                      appBar: AppBar(
-                                                        title: Text(card.title),
-                                                        actions: [
-                                                          if (widget
-                                                                  .board
-                                                                  .permissions
-                                                                  .edit &&
-                                                              !widget
-                                                                  .board
-                                                                  .archived)
-                                                            IconButton(
-                                                              tooltip:
-                                                                  text.editCard,
-                                                              icon: const Icon(
-                                                                Icons
-                                                                    .edit_outlined,
-                                                              ),
-                                                              onPressed: () =>
-                                                                  editCard(
-                                                                    context,
-                                                                    session,
-                                                                    widget
-                                                                        .board
-                                                                        .id,
-                                                                    stack.id,
-                                                                    card: card,
-                                                                  ),
-                                                            ),
-                                                        ],
-                                                      ),
-                                                      body: SingleChildScrollView(
-                                                        padding:
-                                                            const EdgeInsets.all(
-                                                              24,
-                                                            ),
-                                                        child: SelectableText(
-                                                          card
-                                                                  .description
-                                                                  .isEmpty
-                                                              ? text.noDescription
-                                                              : card.description,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        ),
+                                      CardColumn(
+                                        session: session,
+                                        board: _board,
+                                        stack: stack,
+                                        archivedView: _showArchived,
                                       ),
                                   ],
                                 ),

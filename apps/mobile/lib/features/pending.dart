@@ -110,6 +110,7 @@ class _PendingScreenState extends State<PendingScreen> {
               final state = switch (write.state) {
                 'queued' => text.queued,
                 'sending' => text.sending,
+                'applied' => text.awaitingReadback,
                 'conflict' => text.conflict,
                 'uncertain' => text.uncertain,
                 _ => text.blocked,
@@ -148,7 +149,8 @@ class _PendingScreenState extends State<PendingScreen> {
                         Wrap(
                           spacing: 8,
                           children: [
-                            if (write.state != 'queued')
+                            if (write.state != 'queued' &&
+                                write.state != 'applied')
                               TextButton(
                                 onPressed: () => _decide(write, false),
                                 child: Text(text.retryWrite),

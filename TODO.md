@@ -17,6 +17,8 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] D03a Implementováno vytváření a úpravy nástěnek/sloupců, archivace, mazání a obnova nástěnky, oddělená práva edit/manage a řazení sloupců; sdílení zůstává otevřené, runtime ověření čeká na T01–T03.
 - [ ] D04 Implementovat karty, popis, termíny, štítky, přiřazení, dokončení a přesuny.
 - [x] D04a Přidán editor názvu, popisu a termínu, volba dokončení u karet s podporovaným polem a lokálně uložené vytvoření/úprava; ověření běhu čeká na T01.
+- [x] D04b Implementován přesun přes nabídku a řazení tažením uvnitř sloupce, archiv/obnova/smazání karty, přiřazení existujících štítků a uživatelů, živý detail a Markdown bez automatického stahování externích obrázků; 5 scénářů akcí připraveno pro T01.
+- [ ] D04c Dokončit správu štítků a doplňková pole karty (začátek a barva), ověřit všechny podporované operace v T01/T02.
 - [ ] D05 Implementovat komentáře, přílohy a návazné soubory.
 - [ ] D06 Implementovat místní data, frontu změn, obnovu po restartu a konflikty.
 - [x] D06a Přidána databáze a místní kopie nástěnek/sloupců/karet, ETag a ochrana proti pozdním odpovědím odebraného účtu; připraveno 6 databázových scénářů pro T01.
@@ -24,6 +26,8 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [ ] D06c Doplnit automatické uložení rozepsaného editoru, závislosti nových entit, ostatní typy zápisů a obnovu při návratu aplikace či sítě.
 - [x] D06d Koncept editoru se průběžně ukládá, lze jej obnovit ze seznamu rozepsaných karet a atomicky předat frontě; doplněna obnova při návratu/síti a polling otevřené nástěnky pouze v popředí, 4 scénáře konceptů připraveny pro T01.
 - [x] D06e Fronta respektuje závislosti nové nástěnky, sloupce a karty; po potvrzení převádí místní ID, při zrušení rodiče zachová obsah potomků a označí překážku; připraveno 5 dalších scénářů pro T01.
+- [x] D06f Potvrzené akce karet mají samostatný stav čekání na načtení výsledku; opakuje se pouze GET a další změny stejné karty čekají na vyřešení předchozího zápisu.
+- [ ] D06g Dokončit odložené opakování podle Retry-After a uchování fronty pro komentáře, přílohy a další operace.
 - [ ] D07 Implementovat hledání, přehled vlastních úkolů a odkazy do konkrétních karet.
 - [ ] D08 Integrovat volitelné Sentry a Rybbit: konfigurace přes CI v našich buildech, žádné pevné klíče, funkční build i bez služeb, ochrana obsahu a volba uživatele.
 - [ ] D09 Dokončit české a anglické texty, přístupnost a chybové stavy.
@@ -32,4 +36,4 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [ ] T02 Ověřit skutečný Nextcloud server, oba buildy a příjem bezpečných telemetrických událostí.
 - [ ] T03 Provést závěrečné fyzické testy S9 a S21 a samostatné ověření iOS; uložit důkazy s revizí.
 
-Aktuální krok: další operace s kartami (D04), sdílení (D03) a přílohy/komentáře (D05). Základní správa nástěnek/sloupců, koncepty a fronta s rodičovskými závislostmi jsou implementované. Závislosti a generování databázových typů proběhly. Testy protokolu a databáze jsou připravené, dosud nespouštěné. Zaškrtnutí D bodů znamená dokončenou implementaci, nikoli úspěch testů; ty mají vlastní T body. Aplikace ani cílová zařízení zatím nebyly testované.
+Aktuální krok: sdílení a správa štítků (D03/D04c), komentáře a přílohy (D05). Základní správa nástěnek/sloupců, akce karet, koncepty a fronta s rodičovskými závislostmi jsou implementované. Závislosti a generování databázových typů proběhly. Testy protokolu a databáze jsou připravené, dosud nespouštěné. Zaškrtnutí D bodů znamená dokončenou implementaci, nikoli úspěch testů; ty mají vlastní T body. Aplikace ani cílová zařízení zatím nebyly testované.

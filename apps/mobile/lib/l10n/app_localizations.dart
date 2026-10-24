@@ -625,6 +625,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The parent board or column was discarded. Your local content has been preserved.'**
   String get dependencyUnavailable;
+
+  /// No description provided for @awaitingReadback.
+  ///
+  /// In en, this message translates to:
+  /// **'The server accepted this change. Waiting to read the result.'**
+  String get awaitingReadback;
+
+  /// No description provided for @moveCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Move card'**
+  String get moveCard;
+
+  /// No description provided for @destinationColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Destination column'**
+  String get destinationColumn;
+
+  /// No description provided for @deleteCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete card'**
+  String get deleteCard;
+
+  /// No description provided for @deleteCardQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this card from the server?'**
+  String get deleteCardQuestion;
+
+  /// No description provided for @cardUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This card is no longer available. Unsent changes remain in Pending changes.'**
+  String get cardUnavailable;
+
+  /// No description provided for @labels.
+  ///
+  /// In en, this message translates to:
+  /// **'Labels'**
+  String get labels;
+
+  /// No description provided for @assignees.
+  ///
+  /// In en, this message translates to:
+  /// **'Assignees'**
+  String get assignees;
+
+  /// No description provided for @noLabels.
+  ///
+  /// In en, this message translates to:
+  /// **'This board has no labels.'**
+  String get noLabels;
+
+  /// No description provided for @noUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'No users are available on this board.'**
+  String get noUsers;
+
+  /// No description provided for @cardActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Card actions'**
+  String get cardActions;
+
+  /// No description provided for @externalImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to open this image in your browser.'**
+  String get externalImage;
+
+  /// No description provided for @archivedCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived cards'**
+  String get archivedCards;
+
+  /// No description provided for @activeCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Active cards'**
+  String get activeCards;
+
+  /// No description provided for @reorderCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold and drag the card; Move is also available in the card menu.'**
+  String get reorderCard;
 }
 
 class _AppLocalizationsDelegate

@@ -9,18 +9,6 @@ import 'package:test/test.dart';
 
 import 'fixtures.dart';
 
-JsonObject cardJson({int id = 8, String description = 'Original'}) => {
-  'id': id,
-  'stackId': 2,
-  'title': 'Task',
-  'description': description,
-  'type': 'plain',
-  'owner': 'user',
-  'order': 0,
-  'archived': false,
-  'duedate': null,
-};
-
 http.Response response(Object? json) => http.Response(
   jsonEncode(json),
   200,

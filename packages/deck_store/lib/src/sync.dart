@@ -1,11 +1,13 @@
 import 'dart:convert';
 
 import 'package:deck_protocol/deck_protocol.dart';
+import 'package:drift/drift.dart' show Value;
 import 'package:uuid/uuid.dart';
 
 import 'database.dart';
 
 part 'structure_sync.dart';
+part 'card_actions_sync.dart';
 
 final class DeckSync {
   DeckSync(this.database, this.account, this.client);
@@ -35,7 +37,19 @@ final class DeckSync {
     if (!await database.acquireLease(account, _owner)) return;
     try {
       await database.recoverWrites(account, _owner);
+      final attemptedReadbacks = <String>{};
       while (!_closed) {
+        final applied = (await database.writesFor(account.id))
+            .where(
+              (w) => w.state == 'applied' && !attemptedReadbacks.contains(w.id),
+            )
+            .firstOrNull;
+        if (applied != null) {
+          final resolved = await database.resolveWrite(applied);
+          attemptedReadbacks.add(applied.id);
+          if (resolved != null) await _finishApplied(resolved);
+          continue;
+        }
         PendingWrite? queued;
         for (final candidate in (await database.writesFor(
           account.id,
@@ -52,6 +66,7 @@ final class DeckSync {
             }
             continue;
           }
+          if (await database.hasEarlierCardWrite(candidate)) continue;
           queued = await database.resolveWrite(candidate);
           if (queued != null) break;
         }
@@ -93,7 +108,10 @@ final class DeckSync {
           );
           continue;
         }
-        final shouldContinue = await _send(queued);
+        final shouldContinue =
+            {'createCard', 'updateCard'}.contains(queued.kind)
+            ? await _send(queued)
+            : await _sendCardAction(queued);
         if (!shouldContinue) return;
       }
     } finally {

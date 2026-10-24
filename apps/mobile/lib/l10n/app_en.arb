@@ -87,5 +87,20 @@
   "invalidPosition": "Position must be a non-negative integer.",
   "boardActions": "Board actions",
   "stackActions": "Column actions",
-  "dependencyUnavailable": "The parent board or column was discarded. Your local content has been preserved."
+  "dependencyUnavailable": "The parent board or column was discarded. Your local content has been preserved.",
+  "awaitingReadback": "The server accepted this change. Waiting to read the result.",
+  "moveCard": "Move card",
+  "destinationColumn": "Destination column",
+  "deleteCard": "Delete card",
+  "deleteCardQuestion": "Delete this card from the server?",
+  "cardUnavailable": "This card is no longer available. Unsent changes remain in Pending changes.",
+  "labels": "Labels",
+  "assignees": "Assignees",
+  "noLabels": "This board has no labels.",
+  "noUsers": "No users are available on this board.",
+  "cardActions": "Card actions",
+  "externalImage": "Tap to open this image in your browser.",
+  "archivedCards": "Archived cards",
+  "activeCards": "Active cards",
+  "reorderCard": "Hold and drag the card; Move is also available in the card menu."
 }

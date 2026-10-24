@@ -39,3 +39,15 @@ DeckBoard board(int id, String title, {bool edit = false}) =>
       'deletedAt': 0,
       'permissions': {'PERMISSION_READ': true, 'PERMISSION_EDIT': edit},
     });
+
+JsonObject cardJson({int id = 8, String description = 'Original'}) => {
+  'id': id,
+  'stackId': 2,
+  'title': 'Task',
+  'description': description,
+  'type': 'plain',
+  'owner': 'user',
+  'order': 0,
+  'archived': false,
+  'duedate': null,
+};

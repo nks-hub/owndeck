@@ -9,6 +9,7 @@ part 'writes.dart';
 part 'editor_drafts.dart';
 part 'views.dart';
 part 'structure_writes.dart';
+part 'card_actions.dart';
 
 class StoredAccounts extends Table {
   TextColumn get id => text()();
@@ -152,6 +153,23 @@ class DeckDatabase extends _$DeckDatabase {
     final current = await account(accountId);
     return current?.state == 'active' && current?.generation == generation;
   }
+
+  Future<void> saveBoard(
+    StoredAccount account,
+    DeckBoard board,
+    int contentEpoch,
+  ) => transaction(() async {
+    if (!await accepts(account.id, account.generation) ||
+        (await this.account(account.id))?.contentEpoch != contentEpoch)
+      return;
+    await into(storedBoards).insertOnConflictUpdate(
+      StoredBoardsCompanion.insert(
+        accountId: account.id,
+        remoteId: board.id,
+        payload: jsonEncode(board.raw),
+      ),
+    );
+  });
 
   Future<SyncCheckpoint?> checkpoint(String accountId, String scope) =>
       (select(syncCheckpoints)..where(

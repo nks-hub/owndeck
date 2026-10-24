@@ -288,4 +288,52 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dependencyUnavailable =>
       'The parent board or column was discarded. Your local content has been preserved.';
+
+  @override
+  String get awaitingReadback =>
+      'The server accepted this change. Waiting to read the result.';
+
+  @override
+  String get moveCard => 'Move card';
+
+  @override
+  String get destinationColumn => 'Destination column';
+
+  @override
+  String get deleteCard => 'Delete card';
+
+  @override
+  String get deleteCardQuestion => 'Delete this card from the server?';
+
+  @override
+  String get cardUnavailable =>
+      'This card is no longer available. Unsent changes remain in Pending changes.';
+
+  @override
+  String get labels => 'Labels';
+
+  @override
+  String get assignees => 'Assignees';
+
+  @override
+  String get noLabels => 'This board has no labels.';
+
+  @override
+  String get noUsers => 'No users are available on this board.';
+
+  @override
+  String get cardActions => 'Card actions';
+
+  @override
+  String get externalImage => 'Tap to open this image in your browser.';
+
+  @override
+  String get archivedCards => 'Archived cards';
+
+  @override
+  String get activeCards => 'Active cards';
+
+  @override
+  String get reorderCard =>
+      'Hold and drag the card; Move is also available in the card menu.';
 }

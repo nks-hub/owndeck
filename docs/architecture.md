@@ -35,7 +35,7 @@ Obnova v popředí při návratu aplikace, změně sítě a ručním obnovení. 
 
 ## Zápisy a konflikty
 
-Stavy operace: `queued`, `sending`, `confirmed`, `conflict`, `uncertain`, `blocked`. Jeden odesílatel na účet. Před odesláním ověřit platnost účtu, oprávnění a závislosti. Změna tokenu zruší původní klienty.
+Stavy operace: `queued`, `sending`, `applied`, `confirmed`, `conflict`, `uncertain`, `blocked`. `applied` znamená potvrzený zápis, jehož výsledek je ještě potřeba načíst; v tomto stavu se opakuje jen GET. Jeden odesílatel na účet. Před odesláním ověřit platnost účtu, oprávnění a závislosti. Změna tokenu zruší původní klienty.
 
 GET lze opakovat s omezeným exponenciálním zpožděním a náhodnou složkou. Respektovat `Retry-After`. POST po timeoutu neopakovat automaticky: server mohl kartu nebo komentář vytvořit. Stav `sending` po pádu se obnoví jako `uncertain`, dokud není výsledek rozhodnut. Porovnání názvu karty není důkaz identity. UI nabídne kontrolu serveru a výslovné opakování s upozorněním na možnost duplicity.
 

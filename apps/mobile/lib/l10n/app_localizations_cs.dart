@@ -289,4 +289,52 @@ class AppLocalizationsCs extends AppLocalizations {
   @override
   String get dependencyUnavailable =>
       'Nadřazená nástěnka nebo sloupec byly zrušeny. Místní obsah zůstal zachovaný.';
+
+  @override
+  String get awaitingReadback =>
+      'Server změnu přijal. Čeká se na načtení výsledku.';
+
+  @override
+  String get moveCard => 'Přesunout kartu';
+
+  @override
+  String get destinationColumn => 'Cílový sloupec';
+
+  @override
+  String get deleteCard => 'Smazat kartu';
+
+  @override
+  String get deleteCardQuestion => 'Opravdu smazat tuto kartu ze serveru?';
+
+  @override
+  String get cardUnavailable =>
+      'Karta už není dostupná. Neodeslané změny najdete v jejich přehledu.';
+
+  @override
+  String get labels => 'Štítky';
+
+  @override
+  String get assignees => 'Přiřazení';
+
+  @override
+  String get noLabels => 'Nástěnka nemá žádné štítky.';
+
+  @override
+  String get noUsers => 'Na nástěnce nejsou dostupní uživatelé.';
+
+  @override
+  String get cardActions => 'Akce karty';
+
+  @override
+  String get externalImage => 'Obrázek otevřete klepnutím v prohlížeči.';
+
+  @override
+  String get archivedCards => 'Archivované karty';
+
+  @override
+  String get activeCards => 'Aktivní karty';
+
+  @override
+  String get reorderCard =>
+      'Podržte a přetáhněte kartu; přesun je také v nabídce karty.';
 }

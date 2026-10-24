@@ -90,33 +90,63 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
     );
   });
 
-  Future<void> refreshStacks(int boardId) =>
-      _refresh('board:$boardId', () async {
-        await sync.run();
-        final resolved = await database.resolveId(
-          account.id,
-          boardId,
-          'createBoard',
-        );
-        if (resolved == null) return;
-        final cached = await database.checkpoint(account.id, 'board:$resolved');
-        final epoch = (await database.account(account.id))?.contentEpoch;
-        final response = await client.rest('GET', [
+  Future<void> refreshStacks(int boardId) => _refresh(
+    'board:$boardId',
+    () async {
+      await sync.run();
+      final resolved = await database.resolveId(
+        account.id,
+        boardId,
+        'createBoard',
+      );
+      if (resolved == null) return;
+      final cached = await database.checkpoint(account.id, 'board:$resolved');
+      final epoch = (await database.account(account.id))?.contentEpoch;
+      if (_disposed || epoch == null) return;
+      final details = DeckBoard.fromJson(
+        object((await client.rest('GET', ['boards', '$resolved'])).data),
+      );
+      if (_disposed) return;
+      await database.saveBoard(account, details, epoch);
+      final response = await client.rest('GET', [
+        'boards',
+        '$resolved',
+        'stacks',
+      ], etag: cached?.etag);
+      if (_disposed || response.notModified) return;
+      final active = objects(response.data).map(DeckStack.fromJson).toList();
+      final archived = objects(
+        (await client.rest('GET', [
           'boards',
           '$resolved',
           'stacks',
-        ], etag: cached?.etag);
-        if (_disposed || response.notModified) return;
-        final stacks = objects(response.data).map(DeckStack.fromJson).toList();
-        await database.saveStacks(
-          account.id,
-          account.generation,
-          resolved,
-          stacks,
-          response.etag,
-          contentEpoch: epoch,
-        );
-      });
+          'archived',
+        ])).data,
+      ).map(DeckStack.fromJson).toList();
+      if (_disposed) return;
+      final combined = {for (final stack in active) stack.id: stack};
+      for (final stack in archived) {
+        final previous = combined[stack.id];
+        final cards = {
+          for (final card in previous?.cards ?? <DeckCard>[]) card.id: card.raw,
+          for (final card in stack.cards) card.id: card.raw,
+        };
+        combined[stack.id] = DeckStack.fromJson({
+          ...stack.raw,
+          'cards': cards.values.toList(),
+        });
+      }
+      final stacks = combined.values.toList();
+      await database.saveStacks(
+        account.id,
+        account.generation,
+        resolved,
+        stacks,
+        response.etag,
+        contentEpoch: epoch,
+      );
+    },
+  );
 
   Future<void> _refresh(String scope, Future<void> Function() operation) {
     if (_disposed) return Future.value();

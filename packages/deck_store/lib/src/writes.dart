@@ -68,7 +68,9 @@ extension DeckWrites on DeckDatabase {
         )
         .firstOrNull;
     if (existing != null) {
-      if (existing.state != 'queued') throw StateError('pending_decision');
+      if (existing.state != 'queued' ||
+          !{'createCard', 'updateCard'}.contains(existing.kind))
+        throw StateError('pending_decision');
       final merged = {...object(jsonDecode(existing.proposal)), ...changes};
       await (update(pendingWrites)..where((w) => w.id.equals(existing.id)))
           .write(PendingWritesCompanion(proposal: Value(jsonEncode(merged))));
@@ -206,7 +208,8 @@ extension DeckWrites on DeckDatabase {
               (w) => w.accountId.equals(account.id) & w.id.equals(write.id),
             ))
             .getSingleOrNull();
-    if (current?.state != 'sending') return;
+    if (current == null || !{'sending', 'applied'}.contains(current.state))
+      return;
     await into(storedCards).insertOnConflictUpdate(
       StoredCardsCompanion.insert(
         accountId: account.id,
@@ -239,6 +242,8 @@ extension DeckWrites on DeckDatabase {
             .getSingleOrNull();
     if (write == null || write.state == 'sending' || write.state == 'confirmed')
       throw StateError('write_unavailable');
+    if (write.state == 'applied' && !discard)
+      throw StateError('already_applied');
     await (update(pendingWrites)..where((w) => w.id.equals(id))).write(
       PendingWritesCompanion(
         state: Value(discard ? 'discarded' : 'queued'),
@@ -249,7 +254,8 @@ extension DeckWrites on DeckDatabase {
         stackId:
             acceptRemoteBase &&
                 write.remote != null &&
-                write.kind == 'updateCard'
+                !write.kind.endsWith('Board') &&
+                !write.kind.endsWith('Stack')
             ? Value(intField(object(jsonDecode(write.remote!)), 'stackId'))
             : const Value.absent(),
       ),

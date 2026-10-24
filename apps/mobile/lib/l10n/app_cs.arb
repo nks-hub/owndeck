@@ -87,5 +87,20 @@
   "invalidPosition": "Pořadí musí být celé nezáporné číslo.",
   "boardActions": "Akce nástěnky",
   "stackActions": "Akce sloupce",
-  "dependencyUnavailable": "Nadřazená nástěnka nebo sloupec byly zrušeny. Místní obsah zůstal zachovaný."
+  "dependencyUnavailable": "Nadřazená nástěnka nebo sloupec byly zrušeny. Místní obsah zůstal zachovaný.",
+  "awaitingReadback": "Server změnu přijal. Čeká se na načtení výsledku.",
+  "moveCard": "Přesunout kartu",
+  "destinationColumn": "Cílový sloupec",
+  "deleteCard": "Smazat kartu",
+  "deleteCardQuestion": "Opravdu smazat tuto kartu ze serveru?",
+  "cardUnavailable": "Karta už není dostupná. Neodeslané změny najdete v jejich přehledu.",
+  "labels": "Štítky",
+  "assignees": "Přiřazení",
+  "noLabels": "Nástěnka nemá žádné štítky.",
+  "noUsers": "Na nástěnce nejsou dostupní uživatelé.",
+  "cardActions": "Akce karty",
+  "externalImage": "Obrázek otevřete klepnutím v prohlížeči.",
+  "archivedCards": "Archivované karty",
+  "activeCards": "Aktivní karty",
+  "reorderCard": "Podržte a přetáhněte kartu; přesun je také v nabídce karty."
 }
