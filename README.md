@@ -19,6 +19,7 @@ Card creation and basic edits now use a persistent outbox with conflict handling
 
 - Flutter 3.44.4 with Dart 3.12.2.
 - Android SDK for Android builds; macOS and Xcode for iOS builds.
+- iOS 14 or later, required by the system file picker.
 - A Nextcloud server with Deck enabled for integration tests.
 - Python 3.10+ to regenerate the API inventory.
 
