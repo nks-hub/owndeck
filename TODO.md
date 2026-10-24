@@ -40,4 +40,6 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [ ] T02 Ověřit skutečný Nextcloud server, oba buildy a příjem bezpečných telemetrických událostí.
 - [ ] T03 Průběžně provádět fyzické testy S9/S21 na pozadí nad izolovanými kandidáty, nezávisle pro každý telefon, a samostatné ověření iOS; před dokončením doložit finální revizi.
 
-Aktuální krok: sjednocení přihlášení s OwnTalkem (D02b). Implementovány společné texty, ikony, vzhled, QR, kontrola stavu serveru, certifikáty a zrušení. Nové testy čekají na běh v izolované revizi. Předchozí protokol 13/13 a databáze 38/38 prošly na `95b19ed`. Android kandidát `9134c05` prošel na S9+ a S21: start, HTTPS validace a kontrola runtime chyb; S21 vstup byl znovu ověřen opraveným ovladačem `18b0730`. Tyto výsledky nepokrývají nové přihlášení ani serverové operace.
+Aktuální krok: sjednocení přihlášení s OwnTalkem (D02b). Deck: společné texty, ikony, vzhled, QR, kontrola stavu serveru, certifikáty a zrušení jsou implementované. Protokol 56/56 na `4f6dbc8`, databáze 40/40 na `c5866ce`, UI 24/24 na `1af10e2`. Kandidát `79c1be8` na S21 prošel validací, tokem s lokálním HTTPS testovacím serverem, zrušením, restartem, změnou certifikátu a odmítnutím kamery. Podrobnosti a meze jsou v `docs/testing.md`; ověření Notes ještě běží samostatně. T02 se skutečným Nextcloudem a fyzické iOS zůstávají otevřené.
+
+- [ ] R01 Při samostatné práci na OwnTalku ověřit také SAN certifikátů a oddělení přístupnosti prvků přihlašovací karty; v Decku a Notes jsou opravené, OwnTalk zde nebyl měněn.

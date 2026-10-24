@@ -43,8 +43,8 @@ Testované kombinace verzí se doplní podle dostupného prostředí. Jedna zele
 
 | Zařízení | Stav | Povinné scénáře |
 |---|---|---|
-| Samsung Galaxy S9 | Neověřeno, zařízení zatím nepoužito | Instalace, přihlášení, čtení, všechny hlavní zápisy, offline/restart, velká nástěnka, klávesnice, TalkBack, telemetrie. |
-| Samsung Galaxy S21 | Neověřeno, zařízení zatím nepoužito | Totéž, přepnutí sítě, návrat z prohlížeče, systémové Zpět, soubory a oprávnění aktuálního OS. |
+| Samsung Galaxy S9+ | Android 10: kandidát `9134c05`, start a HTTPS validace prošly | Instalace, přihlášení, čtení, všechny hlavní zápisy, offline/restart, velká nástěnka, klávesnice, TalkBack, telemetrie. |
+| Samsung Galaxy S21 | Android 15: kandidát `79c1be8`, nové přihlášení a HTTPS validace prošly | Totéž, přepnutí sítě, návrat z prohlížeče, systémové Zpět, soubory a oprávnění aktuálního OS. |
 | iPhone | Konkrétní dostupný model zjistit před T03 | Systémový prohlížeč, Keychain, návrat gestem, výběr přílohy, VoiceOver, životní cyklus a telemetrie. |
 
 Před testem zapsat skutečný model, verzi OS, revizi, verzi balíčku a SHA-256 artefaktu. Pro každou hlavní akci ověřit výsledek v aplikaci i na serveru. U výkonu zaznamenat nejméně 5 studených startů a 30 s scrollování po zahřátí; měřit v profile/release režimu, ne debug.
@@ -54,3 +54,11 @@ Oprava po fyzickém testu vytváří nového kandidáta. Znovu ověřit opraven�
 ## Záznam důkazu
 
 Výsledek má tvar: datum, commit, zařízení/runtime, OS, build/hash, scénář, očekávání, skutečnost, odkaz na redigovaný záznam. Screenshot neobsahuje osobní data. Do Gitu patří stručné výsledky; velké logy do ignorované `.artifacts/`. Tokeny nepatří ani do těchto logů.
+
+## Ověření společného přihlášení
+
+Protokol `4f6dbc8`: 56 testů prošlo, včetně šesti skutečných lokálních TLS scénářů. Databáze `c5866ce`: 40 testů prošlo. Mobilní UI `1af10e2`: 24 testů prošlo, včetně QR, zrušení, cizí identity při opětovném přihlášení a čitelnosti chyby pro asistivní nástroje. Pozdější změny se týkají pouze testů a přístupnosti formuláře; nemění testovaný protokol ani databázi.
+
+Android kandidát `79c1be8` na S21 prošel instalací, startem, přesným zadáním HTTP adresy, odmítnutím této adresy a kontrolou runtime chyb. SHA-256 APK: `0ae818387e14b2c589dc4fb13e4a73bfffa2345682fa5bdd65b0b39dee3ae393`. Přihlášení se serverem a iOS nejsou tímto základním scénářem ověřené.
+
+Na stejném kandidátu S21 následně prošel celý tok s odděleným lokálním HTTPS testovacím serverem: potvrzení certifikátu, otevření a návrat z prohlížeče, zrušení před schválením bez vytvoření účtu, dokončení a autentizované čtení, zachování účtu a pinu po restartu. Při výměně certifikátu server nedostal žádný HTTP požadavek. Odmítnutí kamery zobrazilo vysvětlení a nastavení. Testovací účet byl odebrán a požadavek na odvolání tokenu dorazil. Schválení prováděl testovací server; nejde o důkaz kompatibility se skutečným Nextcloudem ani ověření jeho odvolání tokenů.
