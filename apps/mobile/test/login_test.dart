@@ -125,8 +125,14 @@ void main() {
       'https://',
     );
     await connect(tester, 'http://cloud.example.com');
+    final semantics = tester.ensureSemantics();
+    addTearDown(semantics.dispose);
     await tester.pumpAndSettle();
     expect(find.text('Enter a valid HTTPS Nextcloud address.'), findsOneWidget);
+    expect(
+      find.bySemanticsLabel('Enter a valid HTTPS Nextcloud address.'),
+      findsOneWidget,
+    );
     expect(requests, 0);
   });
 

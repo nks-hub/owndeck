@@ -194,8 +194,11 @@ def main():
         if button is None:
             raise RuntimeError("connect_button_missing")
         device.tap(button)
-        time.sleep(1)
-        labels = device.labels(device.hierarchy("validation"))
+        for attempt in range(5):
+            time.sleep(1)
+            labels = device.labels(device.hierarchy("validation"))
+            if "Zadejte platnou HTTPS" in labels or "Enter a valid HTTPS Nextcloud" in labels:
+                break
         device.screenshot("validation")
         if "Zadejte platnou HTTPS" not in labels and "Enter a valid HTTPS Nextcloud" not in labels:
             raise RuntimeError("invalid_http_url_not_rejected_in_ui")
