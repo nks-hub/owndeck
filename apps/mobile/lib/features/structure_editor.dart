@@ -217,7 +217,7 @@ Future<void> editStructure(
                               : session.refreshBoards(),
                         );
                       } catch (failure) {
-                        if (dialogContext.mounted)
+                        if (dialogContext.mounted) {
                           setState(() {
                             saving = false;
                             error =
@@ -226,6 +226,7 @@ Future<void> editStructure(
                                 ? text.pendingDecision
                                 : text.loadError;
                           });
+                        }
                       }
                     },
               child: Text(text.save),
@@ -282,7 +283,7 @@ Future<void> changeStructure(
       stack == null ? session.refreshBoards() : session.refreshStacks(board.id),
     );
   } catch (failure) {
-    if (context.mounted)
+    if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -292,5 +293,6 @@ Future<void> changeStructure(
           ),
         ),
       );
+    }
   }
 }

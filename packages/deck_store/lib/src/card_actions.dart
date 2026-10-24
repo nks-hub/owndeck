@@ -8,8 +8,9 @@ extension CardActions on DeckDatabase {
     String kind,
     JsonObject proposal,
   ) => transaction(() async {
-    if (!await accepts(account.id, account.generation))
+    if (!await accepts(account.id, account.generation)) {
       throw StateError('account_unavailable');
+    }
     if (!{
       'moveCard',
       'archiveCard',
@@ -19,8 +20,9 @@ extension CardActions on DeckDatabase {
       'removeLabel',
       'assignUser',
       'unassignUser',
-    }.contains(kind))
+    }.contains(kind)) {
       throw ArgumentError('invalid_operation');
+    }
     final resolved =
         await resolveId(account.id, boardId, 'createBoard') ?? boardId;
     final board = (await boardView(
@@ -29,18 +31,21 @@ extension CardActions on DeckDatabase {
     if (board == null ||
         !board.permissions.edit ||
         board.archived ||
-        board.deletedAt != 0)
+        board.deletedAt != 0) {
       throw StateError('permission_denied');
-    if (card.archived && !{'unarchiveCard', 'deleteCard'}.contains(kind))
+    }
+    if (card.archived && !{'unarchiveCard', 'deleteCard'}.contains(kind)) {
       throw StateError('card_archived');
+    }
     if (kind == 'moveCard') {
       final targetId = intField(proposal, 'stackId');
       final target = (await stackView(
         account.id,
         boardId,
       )).where((s) => s.id == targetId).firstOrNull;
-      if (target == null || intField(proposal, 'order') < 0)
+      if (target == null || intField(proposal, 'order') < 0) {
         throw StateError('invalid_destination');
+      }
     }
     await into(pendingWrites).insert(
       PendingWritesCompanion.insert(
@@ -62,8 +67,9 @@ extension CardActions on DeckDatabase {
         await resolveId(write.accountId, write.cardId!, 'createCard') ??
         write.cardId;
     for (final earlier in await writesFor(write.accountId)) {
-      if (earlier.sequence >= write.sequence || earlier.cardId == null)
+      if (earlier.sequence >= write.sequence || earlier.cardId == null) {
         continue;
+      }
       final earlierId =
           await resolveId(write.accountId, earlier.cardId!, 'createCard') ??
           earlier.cardId;

@@ -87,8 +87,9 @@ void main() {
       });
       var posts = 0;
       final sync = engine((request) async {
-        if (request.method == 'GET')
+        if (request.method == 'GET') {
           return response(board(1, 'Board', edit: true).raw);
+        }
         posts++;
         throw http.ClientException('response lost');
       });
@@ -132,10 +133,12 @@ void main() {
         'description': 'Local',
       }, original: DeckCard.fromJson(cardJson()));
       final sync = engine((request) async {
-        if (request.url.path.endsWith('/boards/1'))
+        if (request.url.path.endsWith('/boards/1')) {
           return response(board(1, 'Board', edit: true).raw);
-        if (request.method == 'PUT')
+        }
+        if (request.method == 'PUT') {
           return response(cardJson(description: 'Local'));
+        }
         return response(cardJson());
       });
       await sync.run();

@@ -21,8 +21,9 @@ extension DeckEditorDrafts on DeckDatabase {
     JsonObject payload,
     DeckCard? original,
   ) => transaction(() async {
-    if (!await accepts(account.id, account.generation))
+    if (!await accepts(account.id, account.generation)) {
       throw StateError('account_unavailable');
+    }
     await into(editorDrafts).insertOnConflictUpdate(
       EditorDraftsCompanion.insert(
         accountId: account.id,
@@ -52,9 +53,10 @@ extension DeckEditorDrafts on DeckDatabase {
     JsonObject changes,
     DeckCard? original,
   ) => transaction(() async {
-    if (!await accepts(account.id, account.generation))
+    if (!await accepts(account.id, account.generation)) {
       throw StateError('account_unavailable');
-    if (changes.isNotEmpty)
+    }
+    if (changes.isNotEmpty) {
       await saveCardDraft(
         account,
         boardId,
@@ -62,6 +64,7 @@ extension DeckEditorDrafts on DeckDatabase {
         changes,
         original: original,
       );
+    }
     await deleteEditorDraft(account.id, key);
   });
 }

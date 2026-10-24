@@ -21,5 +21,7 @@
 - Assign existing board labels and users from a live card detail view.
 - Render Markdown without fetching external images automatically.
 - Persist accepted card actions before reading their results, so read-back failures do not resend mutations.
+- Add paginated comments, replies, author-only editing and deletion, and recoverable comment drafts.
+- Use the server user ID for comment ownership instead of inferring it from the login name.
 
 Automated and device acceptance tests are scheduled after feature development. This version has not been distributed.

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import '../data/session.dart';
 import '../l10n/app_localizations.dart';
 import 'card_editor.dart';
+import 'comment_editor.dart';
 
 class DraftsScreen extends StatefulWidget {
   const DraftsScreen({super.key, required this.session});
@@ -46,10 +47,11 @@ class _DraftsScreenState extends State<DraftsScreen> {
         draft.draftKey,
       );
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(text.storageError)));
+      }
     }
   }
 
@@ -62,8 +64,9 @@ class _DraftsScreenState extends State<DraftsScreen> {
         stream: _drafts,
         builder: (context, snapshot) {
           if (snapshot.hasError) return Center(child: Text(text.storageError));
-          if (!snapshot.hasData)
+          if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
+          }
           final drafts = snapshot.requireData;
           if (drafts.isEmpty) return Center(child: Text(text.noDrafts));
           return ListView.builder(
@@ -73,7 +76,9 @@ class _DraftsScreenState extends State<DraftsScreen> {
               final fields = object(jsonDecode(draft.payload));
               return ListTile(
                 title: Text(
-                  stringField(fields, 'title').isEmpty
+                  draft.kind == 'comment'
+                      ? text.commentDraft
+                      : stringField(fields, 'title').isEmpty
                       ? text.addCard
                       : stringField(fields, 'title'),
                 ),
@@ -82,13 +87,22 @@ class _DraftsScreenState extends State<DraftsScreen> {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                onTap: () => editCard(
-                  context,
-                  widget.session,
-                  draft.boardId,
-                  draft.stackId,
-                  draftKey: draft.draftKey,
-                ),
+                onTap: draft.kind == 'comment'
+                    ? () => openCommentEditor(
+                        context,
+                        widget.session,
+                        draft.boardId,
+                        draft.stackId,
+                        draft.cardId!,
+                        draftKey: draft.draftKey,
+                      )
+                    : () => editCard(
+                        context,
+                        widget.session,
+                        draft.boardId,
+                        draft.stackId,
+                        draftKey: draft.draftKey,
+                      ),
                 trailing: IconButton(
                   tooltip: text.discardDraft,
                   onPressed: () => _discard(draft),

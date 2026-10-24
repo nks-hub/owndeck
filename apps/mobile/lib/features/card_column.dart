@@ -30,7 +30,6 @@ class CardColumn extends StatelessWidget {
     int newIndex,
   ) async {
     if (!board.permissions.edit || board.archived || archivedView) return;
-    if (newIndex > oldIndex) newIndex--;
     if (newIndex == oldIndex) return;
     final text = AppLocalizations.of(context)!;
     try {
@@ -43,10 +42,11 @@ class CardColumn extends StatelessWidget {
       );
       unawaited(session.refreshStacks(board.id));
     } catch (_) {
-      if (context.mounted)
+      if (context.mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(text.pendingDecision)));
+      }
     }
   }
 
@@ -61,7 +61,7 @@ class CardColumn extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         buildDefaultDragHandles: false,
         itemCount: stack.cards.length,
-        onReorder: (oldIndex, newIndex) =>
+        onReorderItem: (oldIndex, newIndex) =>
             _reorder(context, oldIndex, newIndex),
         footer: Column(
           children: [

@@ -32,10 +32,11 @@ extension _CardDialogs on _CardScreenState {
         widget.board.id,
       );
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(text.storageError)));
+      }
       return;
     }
     if (!mounted || stacks.isEmpty) return;
@@ -104,11 +105,12 @@ extension _CardDialogs on _CardScreenState {
           ),
         ),
       );
-      if (move == true && mounted)
+      if (move == true && mounted) {
         await _action(card, 'moveCard', {
           'stackId': destination,
           'order': int.parse(position.text),
         });
+      }
     } finally {
       position.dispose();
     }
@@ -143,12 +145,13 @@ extension _CardDialogs on _CardScreenState {
               ),
       ),
     );
-    if (chosen != null && mounted)
+    if (chosen != null && mounted) {
       await _action(
         card,
         assigned.contains(chosen['id']) ? 'removeLabel' : 'assignLabel',
         {'labelId': chosen['id'], 'label': chosen},
       );
+    }
   }
 
   Future<void> _users(DeckBoard board, DeckCard card) async {
@@ -182,11 +185,12 @@ extension _CardDialogs on _CardScreenState {
               ),
       ),
     );
-    if (chosen != null && mounted)
+    if (chosen != null && mounted) {
       await _action(
         card,
         assigned.contains(_uid(chosen)) ? 'unassignUser' : 'assignUser',
         {'userId': _uid(chosen), 'type': 0, 'user': chosen},
       );
+    }
   }
 }

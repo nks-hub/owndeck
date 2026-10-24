@@ -36,16 +36,18 @@ class AccountsScreen extends ConsumerWidget {
     final messenger = ScaffoldMessenger.of(context);
     try {
       final revoked = await ref.read(accountsProvider).remove(account.id);
-      if (!revoked && messenger.mounted)
+      if (!revoked && messenger.mounted) {
         messenger.showSnackBar(
           SnackBar(
             content: Text(text.revocationFailed),
             duration: const Duration(seconds: 10),
           ),
         );
+      }
     } catch (_) {
-      if (messenger.mounted)
+      if (messenger.mounted) {
         messenger.showSnackBar(SnackBar(content: Text(text.storageError)));
+      }
     }
   }
 
@@ -80,10 +82,11 @@ class AccountsScreen extends ConsumerWidget {
                             try {
                               await accounts.select(account.id);
                             } catch (_) {
-                              if (context.mounted)
+                              if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(content: Text(text.storageError)),
                                 );
+                              }
                             }
                           },
                   ),

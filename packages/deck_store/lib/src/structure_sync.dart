@@ -42,8 +42,9 @@ extension _StructureSync on DeckSync {
           );
         }
       }
-      if (_closed || !await database.acquireLease(account, _owner))
+      if (_closed || !await database.acquireLease(account, _owner)) {
         return false;
+      }
       started = await database.startWrite(account, _owner, write.id);
       if (!started) return true;
       if (!allowed) {
@@ -141,9 +142,10 @@ extension _StructureSync on DeckSync {
       }
       return !error.uncertain;
     } on FormatException {
-      if (!started)
+      if (!started) {
         started = await database.startWrite(account, _owner, write.id);
-      if (started)
+      }
+      if (started) {
         await database.markWrite(
           account,
           _owner,
@@ -151,6 +153,7 @@ extension _StructureSync on DeckSync {
           mutationStarted ? 'uncertain' : 'blocked',
           error: 'invalid_response',
         );
+      }
       return false;
     }
   }

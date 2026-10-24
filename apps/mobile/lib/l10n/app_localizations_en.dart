@@ -184,7 +184,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get confirmRetry =>
-      'Retrying may create a duplicate card. Send again?';
+      'Retrying may create a duplicate item. Send again?';
 
   @override
   String get confirmDiscard =>
@@ -336,4 +336,47 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get reorderCard =>
       'Hold and drag the card; Move is also available in the card menu.';
+
+  @override
+  String get comments => 'Comments';
+
+  @override
+  String get addComment => 'Add comment';
+
+  @override
+  String get editComment => 'Edit comment';
+
+  @override
+  String get deleteComment => 'Delete comment';
+
+  @override
+  String get deleteCommentQuestion => 'Delete this comment from the server?';
+
+  @override
+  String get reply => 'Reply';
+
+  @override
+  String get replyTo => 'Reply to comment';
+
+  @override
+  String get noComments => 'No comments yet.';
+
+  @override
+  String get commentMessage => 'Comment text';
+
+  @override
+  String get invalidComment => 'A comment must contain 1 to 1,000 characters.';
+
+  @override
+  String get commentDraft => 'Comment draft';
+
+  @override
+  String get localDraftSaved => 'The draft is saved on this device.';
+
+  @override
+  String get sendComment => 'Send comment';
+
+  @override
+  String get identityUnavailable =>
+      'Reconnect first so the app can verify your user ID. Your draft is preserved.';
 }

@@ -10,11 +10,13 @@ part 'editor_drafts.dart';
 part 'views.dart';
 part 'structure_writes.dart';
 part 'card_actions.dart';
+part 'comments.dart';
 
 class StoredAccounts extends Table {
   TextColumn get id => text()();
   TextColumn get server => text()();
   TextColumn get loginName => text()();
+  TextColumn get userId => text().nullable()();
   TextColumn get credentialRef => text().unique()();
   TextColumn get state => text().withDefault(const Constant('active'))();
   IntColumn get generation => integer().withDefault(const Constant(1))();
@@ -97,6 +99,7 @@ class SyncLeases extends Table {
 }
 
 class EditorDrafts extends Table {
+  TextColumn get kind => text().withDefault(const Constant('card'))();
   TextColumn get accountId =>
       text().references(StoredAccounts, #id, onDelete: KeyAction.cascade)();
   TextColumn get draftKey => text()();
@@ -110,6 +113,16 @@ class EditorDrafts extends Table {
   Set<Column<Object>> get primaryKey => {accountId, draftKey};
 }
 
+class StoredComments extends Table {
+  TextColumn get accountId =>
+      text().references(StoredAccounts, #id, onDelete: KeyAction.cascade)();
+  IntColumn get cardId => integer()();
+  IntColumn get remoteId => integer()();
+  TextColumn get payload => text()();
+  @override
+  Set<Column<Object>> get primaryKey => {accountId, remoteId};
+}
+
 @DriftDatabase(
   tables: [
     StoredAccounts,
@@ -120,13 +133,14 @@ class EditorDrafts extends Table {
     PendingWrites,
     SyncLeases,
     EditorDrafts,
+    StoredComments,
   ],
 )
 class DeckDatabase extends _$DeckDatabase {
   DeckDatabase(super.executor);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -136,11 +150,18 @@ class DeckDatabase extends _$DeckDatabase {
         await m.createTable(pendingWrites);
         await m.createTable(syncLeases);
       }
-      if (from < 3)
+      if (from < 3) {
         await m.addColumn(storedAccounts, storedAccounts.contentEpoch);
+      }
       if (from < 4) await m.createTable(editorDrafts);
-      if (from < 5)
+      if (from < 5) {
         await m.addColumn(storedAccounts, storedAccounts.capabilities);
+      }
+      if (from < 6) {
+        await m.addColumn(storedAccounts, storedAccounts.userId);
+        await m.addColumn(editorDrafts, editorDrafts.kind);
+        await m.createTable(storedComments);
+      }
     },
     beforeOpen: (_) => customStatement('PRAGMA foreign_keys = ON'),
   );
@@ -154,14 +175,26 @@ class DeckDatabase extends _$DeckDatabase {
     return current?.state == 'active' && current?.generation == generation;
   }
 
+  Future<void> saveUserIdentity(StoredAccount account, String userId) =>
+      transaction(() async {
+        if (!await accepts(account.id, account.generation)) return;
+        final current = (await this.account(account.id))!;
+        if (current.userId != null && current.userId != userId) {
+          throw StateError('identity_mismatch');
+        }
+        await (update(storedAccounts)..where((a) => a.id.equals(account.id)))
+            .write(StoredAccountsCompanion(userId: Value(userId)));
+      });
+
   Future<void> saveBoard(
     StoredAccount account,
     DeckBoard board,
     int contentEpoch,
   ) => transaction(() async {
     if (!await accepts(account.id, account.generation) ||
-        (await this.account(account.id))?.contentEpoch != contentEpoch)
+        (await this.account(account.id))?.contentEpoch != contentEpoch) {
       return;
+    }
     await into(storedBoards).insertOnConflictUpdate(
       StoredBoardsCompanion.insert(
         accountId: account.id,
@@ -186,8 +219,9 @@ class DeckDatabase extends _$DeckDatabase {
   }) => transaction(() async {
     if (!await accepts(accountId, generation)) return;
     if (contentEpoch != null &&
-        (await account(accountId))?.contentEpoch != contentEpoch)
+        (await account(accountId))?.contentEpoch != contentEpoch) {
       return;
+    }
     final ids = boards.map((b) => b.id).toSet();
     final previous = await (select(
       storedBoards,
@@ -237,8 +271,9 @@ class DeckDatabase extends _$DeckDatabase {
   }) => transaction(() async {
     if (!await accepts(accountId, generation)) return;
     if (contentEpoch != null &&
-        (await account(accountId))?.contentEpoch != contentEpoch)
+        (await account(accountId))?.contentEpoch != contentEpoch) {
       return;
+    }
     await (delete(storedCards)..where(
           (c) => c.accountId.equals(accountId) & c.boardId.equals(boardId),
         ))
@@ -248,8 +283,9 @@ class DeckDatabase extends _$DeckDatabase {
         ))
         .go();
     for (final stack in stacks) {
-      if (stack.boardId != boardId)
+      if (stack.boardId != boardId) {
         throw const FormatException('stack_board_mismatch');
+      }
       await into(storedStacks).insert(
         StoredStacksCompanion.insert(
           accountId: accountId,
@@ -260,8 +296,9 @@ class DeckDatabase extends _$DeckDatabase {
         ),
       );
       for (final card in stack.cards) {
-        if (card.stackId != stack.id)
+        if (card.stackId != stack.id) {
           throw const FormatException('card_stack_mismatch');
+        }
         await into(storedCards).insert(
           StoredCardsCompanion.insert(
             accountId: accountId,

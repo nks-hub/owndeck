@@ -8,6 +8,7 @@ import 'database.dart';
 
 part 'structure_sync.dart';
 part 'card_actions_sync.dart';
+part 'comments_sync.dart';
 
 final class DeckSync {
   DeckSync(this.database, this.account, this.client);
@@ -98,7 +99,10 @@ final class DeckSync {
         final board = DeckBoard.fromJson(object(boardResponse.data));
         if (_closed || !await database.acquireLease(account, _owner)) return;
         if (!await database.startWrite(account, _owner, queued.id)) continue;
-        if (!board.permissions.edit || board.archived || board.deletedAt != 0) {
+        final allowed = queued.kind.endsWith('Comment')
+            ? board.permissions.read && board.deletedAt == 0
+            : board.permissions.edit && !board.archived && board.deletedAt == 0;
+        if (!allowed) {
           await database.markWrite(
             account,
             _owner,
@@ -108,8 +112,9 @@ final class DeckSync {
           );
           continue;
         }
-        final shouldContinue =
-            {'createCard', 'updateCard'}.contains(queued.kind)
+        final shouldContinue = queued.kind.endsWith('Comment')
+            ? await _sendComment(queued)
+            : {'createCard', 'updateCard'}.contains(queued.kind)
             ? await _send(queued)
             : await _sendCardAction(queued);
         if (!shouldContinue) return;
@@ -174,8 +179,9 @@ final class DeckSync {
           );
           return true;
         }
-        if (_closed || !await database.acquireLease(account, _owner))
+        if (_closed || !await database.acquireLease(account, _owner)) {
           return false;
+        }
         mutationStarted = true;
         response = await client.rest(
           'PUT',

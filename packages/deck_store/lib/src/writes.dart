@@ -31,8 +31,9 @@ extension DeckWrites on DeckDatabase {
     JsonObject changes, {
     DeckCard? original,
   }) => transaction(() async {
-    if (!await accepts(account.id, account.generation))
+    if (!await accepts(account.id, account.generation)) {
       throw StateError('account_unavailable');
+    }
     var resolved = original;
     if (original != null && original.id < 0) {
       final creation =
@@ -56,8 +57,9 @@ extension DeckWrites on DeckDatabase {
     if (board == null ||
         !board.permissions.edit ||
         board.archived ||
-        board.deletedAt != 0)
+        board.deletedAt != 0) {
       throw StateError('permission_denied');
+    }
     final existing = (await writesFor(account.id))
         .where(
           (w) =>
@@ -69,8 +71,9 @@ extension DeckWrites on DeckDatabase {
         .firstOrNull;
     if (existing != null) {
       if (existing.state != 'queued' ||
-          !{'createCard', 'updateCard'}.contains(existing.kind))
+          !{'createCard', 'updateCard'}.contains(existing.kind)) {
         throw StateError('pending_decision');
+      }
       final merged = {...object(jsonDecode(existing.proposal)), ...changes};
       await (update(pendingWrites)..where((w) => w.id.equals(existing.id)))
           .write(PendingWritesCompanion(proposal: Value(jsonEncode(merged))));
@@ -105,24 +108,26 @@ extension DeckWrites on DeckDatabase {
     return id;
   });
 
-  Future<bool> acquireLease(StoredAccount account, String owner) =>
-      transaction(() async {
-        if (!await accepts(account.id, account.generation)) return false;
-        final lease = await (select(
-          syncLeases,
-        )..where((l) => l.accountId.equals(account.id))).getSingleOrNull();
-        final now = DateTime.now().toUtc();
-        if (lease != null && lease.owner != owner && lease.expires.isAfter(now))
-          return false;
-        await into(syncLeases).insertOnConflictUpdate(
-          SyncLeasesCompanion.insert(
-            accountId: account.id,
-            owner: owner,
-            expires: now.add(const Duration(minutes: 2)),
-          ),
-        );
-        return true;
-      });
+  Future<bool> acquireLease(StoredAccount account, String owner) => transaction(
+    () async {
+      if (!await accepts(account.id, account.generation)) return false;
+      final lease = await (select(
+        syncLeases,
+      )..where((l) => l.accountId.equals(account.id))).getSingleOrNull();
+      final now = DateTime.now().toUtc();
+      if (lease != null && lease.owner != owner && lease.expires.isAfter(now)) {
+        return false;
+      }
+      await into(syncLeases).insertOnConflictUpdate(
+        SyncLeasesCompanion.insert(
+          accountId: account.id,
+          owner: owner,
+          expires: now.add(const Duration(minutes: 2)),
+        ),
+      );
+      return true;
+    },
+  );
 
   Future<bool> ownsLease(StoredAccount account, String owner) async {
     if (!await accepts(account.id, account.generation)) return false;
@@ -208,8 +213,9 @@ extension DeckWrites on DeckDatabase {
               (w) => w.accountId.equals(account.id) & w.id.equals(write.id),
             ))
             .getSingleOrNull();
-    if (current == null || !{'sending', 'applied'}.contains(current.state))
+    if (current == null || !{'sending', 'applied'}.contains(current.state)) {
       return;
+    }
     await into(storedCards).insertOnConflictUpdate(
       StoredCardsCompanion.insert(
         accountId: account.id,
@@ -240,10 +246,14 @@ extension DeckWrites on DeckDatabase {
         await (select(pendingWrites)
               ..where((w) => w.accountId.equals(accountId) & w.id.equals(id)))
             .getSingleOrNull();
-    if (write == null || write.state == 'sending' || write.state == 'confirmed')
+    if (write == null ||
+        write.state == 'sending' ||
+        write.state == 'confirmed') {
       throw StateError('write_unavailable');
-    if (write.state == 'applied' && !discard)
+    }
+    if (write.state == 'applied' && !discard) {
       throw StateError('already_applied');
+    }
     await (update(pendingWrites)..where((w) => w.id.equals(id))).write(
       PendingWritesCompanion(
         state: Value(discard ? 'discarded' : 'queued'),
@@ -254,6 +264,7 @@ extension DeckWrites on DeckDatabase {
         stackId:
             acceptRemoteBase &&
                 write.remote != null &&
+                object(jsonDecode(write.remote!)).containsKey('stackId') &&
                 !write.kind.endsWith('Board') &&
                 !write.kind.endsWith('Stack')
             ? Value(intField(object(jsonDecode(write.remote!)), 'stackId'))

@@ -88,13 +88,14 @@ void main() {
         if (request.method == 'POST') {
           posted.add(path);
           if (path.endsWith('/boards')) return reply(boardJson());
-          if (path.endsWith('/stacks'))
+          if (path.endsWith('/stacks')) {
             return reply({
               'id': 20,
               'boardId': 10,
               'title': 'Todo',
               'order': 0,
             });
+          }
           return reply({
             'id': 30,
             'stackId': 20,
@@ -106,7 +107,7 @@ void main() {
             'owner': 'user',
           });
         }
-        if (path.endsWith('/capabilities'))
+        if (path.endsWith('/capabilities')) {
           return reply({
             'ocs': {
               'meta': {'status': 'ok', 'statuscode': 200},
@@ -121,6 +122,7 @@ void main() {
               },
             },
           });
+        }
         return reply(boardJson());
       }).run();
       expect(posted, [

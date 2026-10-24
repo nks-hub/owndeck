@@ -79,8 +79,9 @@ class _AccountGate extends ConsumerWidget {
           );
         }
         final session = accounts.session;
-        if (session == null)
+        if (session == null) {
           return LoginScreen(initialServer: accounts.selected?.server);
+        }
         return Navigator(
           key: ObjectKey(session),
           onGenerateRoute: (_) => MaterialPageRoute<void>(

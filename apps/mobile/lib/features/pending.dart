@@ -56,10 +56,11 @@ class _PendingScreenState extends State<PendingScreen> {
       );
       if (!discard) unawaited(widget.session.refreshStacks(write.boardId));
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(text.pendingDecision)));
+      }
     }
   }
 
@@ -92,8 +93,9 @@ class _PendingScreenState extends State<PendingScreen> {
         stream: _writes,
         builder: (context, snapshot) {
           if (snapshot.hasError) return Center(child: Text(text.storageError));
-          if (!snapshot.hasData)
+          if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
+          }
           final writes = snapshot.requireData;
           if (writes.isEmpty) return Center(child: Text(text.noPending));
           return ListView.builder(
@@ -123,7 +125,11 @@ class _PendingScreenState extends State<PendingScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        (changes['title'] ?? base['title'] ?? text.cardTitle)
+                        (changes['title'] ??
+                                base['title'] ??
+                                (write.kind.endsWith('Comment')
+                                    ? text.comments
+                                    : text.cardTitle))
                             .toString(),
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
@@ -135,14 +141,18 @@ class _PendingScreenState extends State<PendingScreen> {
                       const SizedBox(height: 12),
                       Text(text.localVersion),
                       SelectableText(
-                        (changes['description'] ?? base['description'] ?? '')
+                        (changes['message'] ??
+                                changes['description'] ??
+                                base['message'] ??
+                                base['description'] ??
+                                '')
                             .toString(),
                       ),
                       if (remote != null) ...[
                         const Divider(),
                         Text(text.serverVersion),
                         SelectableText(
-                          '${remote['title'] ?? ''}\n${remote['description'] ?? ''}',
+                          '${remote['title'] ?? ''}\n${remote['message'] ?? remote['description'] ?? ''}',
                         ),
                       ],
                       if (write.state != 'sending')

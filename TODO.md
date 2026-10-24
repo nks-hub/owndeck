@@ -20,6 +20,7 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] D04b Implementován přesun přes nabídku a řazení tažením uvnitř sloupce, archiv/obnova/smazání karty, přiřazení existujících štítků a uživatelů, živý detail a Markdown bez automatického stahování externích obrázků; 5 scénářů akcí připraveno pro T01.
 - [ ] D04c Dokončit správu štítků a doplňková pole karty (začátek a barva), ověřit všechny podporované operace v T01/T02.
 - [ ] D05 Implementovat komentáře, přílohy a návazné soubory.
+- [x] D05a Implementováno stránkované čtení komentářů, odpovědi, úprava/smazání autorem, serverové UID a průběžně uložené koncepty; 4 protokolové a 6 databázových scénářů připraveno pro T01.
 - [ ] D06 Implementovat místní data, frontu změn, obnovu po restartu a konflikty.
 - [x] D06a Přidána databáze a místní kopie nástěnek/sloupců/karet, ETag a ochrana proti pozdním odpovědím odebraného účtu; připraveno 6 databázových scénářů pro T01.
 - [x] D06b Implementována trvalá fronta vytvoření/úprav karet, zámek účtu, detekce konfliktu a ruční rozhodnutí, obnova přerušeného zápisu a ochrana před starou odpovědí po potvrzeném zápisu; 6 scénářů připraveno pro T01.
@@ -36,4 +37,4 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [ ] T02 Ověřit skutečný Nextcloud server, oba buildy a příjem bezpečných telemetrických událostí.
 - [ ] T03 Provést závěrečné fyzické testy S9 a S21 a samostatné ověření iOS; uložit důkazy s revizí.
 
-Aktuální krok: sdílení a správa štítků (D03/D04c), komentáře a přílohy (D05). Základní správa nástěnek/sloupců, akce karet, koncepty a fronta s rodičovskými závislostmi jsou implementované. Závislosti a generování databázových typů proběhly. Testy protokolu a databáze jsou připravené, dosud nespouštěné. Zaškrtnutí D bodů znamená dokončenou implementaci, nikoli úspěch testů; ty mají vlastní T body. Aplikace ani cílová zařízení zatím nebyly testované.
+Aktuální krok: sdílení a správa štítků (D03/D04c) a přílohy (D05). Základní správa nástěnek/sloupců, akce karet, komentáře, koncepty a fronta s rodičovskými závislostmi jsou implementované. Statická kontrola aplikace i obou balíků je po doplnění komentářů bez nálezů. Běhové testy protokolu a databáze jsou připravené, dosud nespouštěné. Zaškrtnutí D bodů znamená dokončenou implementaci, nikoli úspěch testů; ty mají vlastní T body. Aplikace ani cílová zařízení zatím nebyly testované.

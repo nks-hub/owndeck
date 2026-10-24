@@ -77,8 +77,9 @@ extension _CardActionSync on DeckSync {
           );
           return true;
       }
-      if (_closed || !await database.acquireLease(account, _owner))
+      if (_closed || !await database.acquireLease(account, _owner)) {
         return false;
+      }
       mutationStarted = true;
       final response = await client.rest(method, path, body: body);
       final receipt = <String, Object?>{
@@ -91,8 +92,9 @@ extension _CardActionSync on DeckSync {
           'deleted': {...current.raw, ...object(response.data)},
       };
       if (write.kind == 'deleteCard' &&
-          intField(object(receipt['deleted']), 'deletedAt') <= 0)
+          intField(object(receipt['deleted']), 'deletedAt') <= 0) {
         throw const FormatException('deletion_not_confirmed');
+      }
       await database.markApplied(account, _owner, write, receipt);
       return _finishApplied(write.copyWith(remote: Value(jsonEncode(receipt))));
     } on DeckException catch (error) {

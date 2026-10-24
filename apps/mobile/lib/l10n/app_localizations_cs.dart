@@ -185,7 +185,7 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get confirmRetry =>
-      'Opakování může vytvořit duplicitní kartu. Opravdu odeslat znovu?';
+      'Opakování může vytvořit duplicitní položku. Opravdu odeslat znovu?';
 
   @override
   String get confirmDiscard =>
@@ -337,4 +337,48 @@ class AppLocalizationsCs extends AppLocalizations {
   @override
   String get reorderCard =>
       'Podržte a přetáhněte kartu; přesun je také v nabídce karty.';
+
+  @override
+  String get comments => 'Komentáře';
+
+  @override
+  String get addComment => 'Přidat komentář';
+
+  @override
+  String get editComment => 'Upravit komentář';
+
+  @override
+  String get deleteComment => 'Smazat komentář';
+
+  @override
+  String get deleteCommentQuestion =>
+      'Opravdu smazat tento komentář ze serveru?';
+
+  @override
+  String get reply => 'Odpovědět';
+
+  @override
+  String get replyTo => 'Odpověď na komentář';
+
+  @override
+  String get noComments => 'Zatím žádné komentáře.';
+
+  @override
+  String get commentMessage => 'Text komentáře';
+
+  @override
+  String get invalidComment => 'Komentář musí mít 1 až 1 000 znaků.';
+
+  @override
+  String get commentDraft => 'Rozepsaný komentář';
+
+  @override
+  String get localDraftSaved => 'Koncept je uložený v telefonu.';
+
+  @override
+  String get sendComment => 'Odeslat komentář';
+
+  @override
+  String get identityUnavailable =>
+      'Nejdřív obnovte připojení, aby aplikace ověřila vaše uživatelské ID. Koncept zůstává uložený.';
 }

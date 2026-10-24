@@ -10,6 +10,7 @@ import '../data/session.dart';
 import '../l10n/app_localizations.dart';
 import 'card_editor.dart';
 import 'pending.dart';
+import 'comments.dart';
 
 part 'card_actions_ui.dart';
 
@@ -50,10 +51,11 @@ class _CardScreenState extends State<CardScreen> {
       );
       unawaited(widget.session.refreshStacks(widget.board.id));
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(text.pendingDecision)));
+      }
     }
   }
 
@@ -63,8 +65,9 @@ class _CardScreenState extends State<CardScreen> {
     if (parsed == null) return;
     final uri = widget.session.client.base.uri.resolveUri(parsed);
     if (!{'https', 'http', 'mailto'}.contains(uri.scheme) ||
-        uri.userInfo.isNotEmpty)
+        uri.userInfo.isNotEmpty) {
       return;
+    }
     final text = AppLocalizations.of(context)!;
     try {
       if (!await launchUrl(uri, mode: LaunchMode.externalApplication) &&
@@ -74,10 +77,11 @@ class _CardScreenState extends State<CardScreen> {
         ).showSnackBar(SnackBar(content: Text(text.browserError)));
       }
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(text.browserError)));
+      }
     }
   }
 
@@ -106,18 +110,20 @@ class _CardScreenState extends State<CardScreen> {
         stream: _card,
         initialData: widget.card,
         builder: (context, cardSnapshot) {
-          if (boardSnapshot.hasError || cardSnapshot.hasError)
+          if (boardSnapshot.hasError || cardSnapshot.hasError) {
             return Scaffold(
               appBar: AppBar(),
               body: Center(child: Text(text.storageError)),
             );
+          }
           final board = boardSnapshot.data;
           final card = cardSnapshot.data;
-          if (board == null || !board.permissions.read || card == null)
+          if (board == null || !board.permissions.read || card == null) {
             return Scaffold(
               appBar: AppBar(),
               body: Center(child: Text(text.cardUnavailable)),
             );
+          }
           final canEdit =
               board.permissions.edit && !board.archived && board.deletedAt == 0;
           final labels = _items(card.raw['labels']);
@@ -255,6 +261,21 @@ class _CardScreenState extends State<CardScreen> {
                     ],
                   ),
                 const SizedBox(height: 16),
+                ListTile(
+                  title: Text(text.comments),
+                  leading: const Icon(Icons.comment_outlined),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      settings: const RouteSettings(name: '/comments'),
+                      builder: (_) => CommentsScreen(
+                        session: widget.session,
+                        boardId: board.id,
+                        stackId: card.stackId,
+                        cardId: card.id,
+                      ),
+                    ),
+                  ),
+                ),
                 MarkdownBody(
                   data: card.description.isEmpty
                       ? text.noDescription

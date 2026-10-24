@@ -431,7 +431,7 @@ abstract class AppLocalizations {
   /// No description provided for @confirmRetry.
   ///
   /// In en, this message translates to:
-  /// **'Retrying may create a duplicate card. Send again?'**
+  /// **'Retrying may create a duplicate item. Send again?'**
   String get confirmRetry;
 
   /// No description provided for @confirmDiscard.
@@ -715,6 +715,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hold and drag the card; Move is also available in the card menu.'**
   String get reorderCard;
+
+  /// No description provided for @comments.
+  ///
+  /// In en, this message translates to:
+  /// **'Comments'**
+  String get comments;
+
+  /// No description provided for @addComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Add comment'**
+  String get addComment;
+
+  /// No description provided for @editComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit comment'**
+  String get editComment;
+
+  /// No description provided for @deleteComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete comment'**
+  String get deleteComment;
+
+  /// No description provided for @deleteCommentQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this comment from the server?'**
+  String get deleteCommentQuestion;
+
+  /// No description provided for @reply.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply'**
+  String get reply;
+
+  /// No description provided for @replyTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply to comment'**
+  String get replyTo;
+
+  /// No description provided for @noComments.
+  ///
+  /// In en, this message translates to:
+  /// **'No comments yet.'**
+  String get noComments;
+
+  /// No description provided for @commentMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Comment text'**
+  String get commentMessage;
+
+  /// No description provided for @invalidComment.
+  ///
+  /// In en, this message translates to:
+  /// **'A comment must contain 1 to 1,000 characters.'**
+  String get invalidComment;
+
+  /// No description provided for @commentDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Comment draft'**
+  String get commentDraft;
+
+  /// No description provided for @localDraftSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'The draft is saved on this device.'**
+  String get localDraftSaved;
+
+  /// No description provided for @sendComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Send comment'**
+  String get sendComment;
+
+  /// No description provided for @identityUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect first so the app can verify your user ID. Your draft is preserved.'**
+  String get identityUnavailable;
 }
 
 class _AppLocalizationsDelegate

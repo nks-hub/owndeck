@@ -25,8 +25,9 @@ final class AccountRepository {
   }
 
   Future<StoredAccount> add(
-    LoginCredentials credentials,
-  ) => _serialize(() async {
+    LoginCredentials credentials, {
+    String? userId,
+  }) => _serialize(() async {
     final existing =
         await (database.select(database.storedAccounts)..where(
               (a) =>
@@ -35,6 +36,11 @@ final class AccountRepository {
             ))
             .getSingleOrNull();
     if (existing?.state == 'deleting') throw StateError('account_deleting');
+    if (userId != null &&
+        existing?.userId != null &&
+        existing!.userId != userId) {
+      throw StateError('identity_mismatch');
+    }
     final id = existing?.id ?? const Uuid().v4();
     final reference = 'owndeck.account.${const Uuid().v4()}';
     // A new reference keeps the old account usable until the database commits.
@@ -50,6 +56,7 @@ final class AccountRepository {
               id: id,
               server: credentials.server.uri.toString(),
               loginName: credentials.loginName,
+              userId: userId == null ? const Value.absent() : Value(userId),
               credentialRef: reference,
               generation: Value((existing?.generation ?? 0) + 1),
               state: const Value('active'),
@@ -65,8 +72,9 @@ final class AccountRepository {
   Future<void> select(String id) => _serialize(
     () => database.transaction(() async {
       final target = await database.account(id);
-      if (target == null || target.state == 'deleting')
+      if (target == null || target.state == 'deleting') {
         throw StateError('account_unavailable');
+      }
       await database
           .update(database.storedAccounts)
           .write(const StoredAccountsCompanion(selected: Value(false)));
@@ -112,8 +120,10 @@ final class AccountRepository {
         .map((a) => a.credentialRef)
         .toSet();
     for (final reference in await vault.references()) {
-      if (reference.startsWith('owndeck.account.') && !keep.contains(reference))
+      if (reference.startsWith('owndeck.account.') &&
+          !keep.contains(reference)) {
         await vault.delete(reference);
+      }
     }
   });
 }

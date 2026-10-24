@@ -71,8 +71,9 @@ void main() {
       String? mutationPath;
       JsonObject? sent;
       await engine((request) async {
-        if (request.url.path.endsWith('/boards/1'))
+        if (request.url.path.endsWith('/boards/1')) {
           return reply(board(1, 'Board', edit: true).raw);
+        }
         if (request.method == 'PUT') {
           mutationPath = request.url.path;
           sent = object(jsonDecode(request.body));
@@ -106,14 +107,16 @@ void main() {
       var mutations = 0;
       var failReadback = true;
       final sync = engine((request) async {
-        if (request.url.path.endsWith('/boards/1'))
+        if (request.url.path.endsWith('/boards/1')) {
           return reply(board(1, 'Board', edit: true).raw);
+        }
         if (request.method == 'PUT') {
           mutations++;
           return reply(card.raw);
         }
-        if (mutations > 0 && failReadback)
+        if (mutations > 0 && failReadback) {
           throw http.ClientException('offline');
+        }
         return reply({
           ...card.raw,
           'labels': mutations > 0 ? [label] : [],
@@ -172,8 +175,9 @@ void main() {
     });
     var assigned = false;
     await engine((request) async {
-      if (request.url.path.endsWith('/boards/1'))
+      if (request.url.path.endsWith('/boards/1')) {
         return reply(board(1, 'Board', edit: true).raw);
+      }
       if (request.method == 'PUT') {
         assigned = true;
         return reply({'id': 99, 'cardId': 8, 'participant': user, 'type': 0});

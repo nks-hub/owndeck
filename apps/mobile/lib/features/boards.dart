@@ -68,8 +68,9 @@ class _BoardsScreenState extends State<BoardsScreen> {
         builder: (context, _) => StreamBuilder<List<DeckBoard>>(
           stream: _boards,
           builder: (context, snapshot) {
-            if (snapshot.hasError)
+            if (snapshot.hasError) {
               return Center(child: Text(text.storageError));
+            }
             final boards = (snapshot.data ?? [])
                 .where(
                   (b) => _filter == 2
@@ -124,7 +125,7 @@ class _BoardsScreenState extends State<BoardsScreen> {
                             physics: const AlwaysScrollableScrollPhysics(),
                             itemCount: boards.isEmpty ? 1 : boards.length,
                             itemBuilder: (context, index) {
-                              if (boards.isEmpty)
+                              if (boards.isEmpty) {
                                 return Padding(
                                   padding: const EdgeInsets.all(24),
                                   child: Column(
@@ -140,6 +141,7 @@ class _BoardsScreenState extends State<BoardsScreen> {
                                     ],
                                   ),
                                 );
+                              }
                               final board = boards[index];
                               final color = int.tryParse(
                                 board.color.replaceFirst('#', ''),
@@ -214,11 +216,12 @@ class _BoardScreenState extends State<BoardScreen> {
         .watchBoard(widget.session.account.id, widget.board.id)
         .listen(
           (board) {
-            if (mounted)
+            if (mounted) {
               setState(() {
                 _unavailable = board == null || !board.permissions.read;
                 if (board != null) _board = board;
               });
+            }
           },
           onError: (Object _) {
             if (mounted) setState(() => _unavailable = true);
@@ -240,11 +243,12 @@ class _BoardScreenState extends State<BoardScreen> {
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context)!;
     final session = widget.session;
-    if (_unavailable || _board.deletedAt != 0)
+    if (_unavailable || _board.deletedAt != 0) {
       return Scaffold(
         appBar: AppBar(title: Text(_board.title)),
         body: Center(child: Text(text.permissionError)),
       );
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(_board.title),
@@ -276,8 +280,9 @@ class _BoardScreenState extends State<BoardScreen> {
         builder: (context, _) => StreamBuilder<List<DeckStack>>(
           stream: _stacks,
           builder: (context, snapshot) {
-            if (snapshot.hasError)
+            if (snapshot.hasError) {
               return Center(child: Text(text.storageError));
+            }
             final stacks = (snapshot.data ?? <DeckStack>[])
                 .map(
                   (stack) => DeckStack.fromJson({

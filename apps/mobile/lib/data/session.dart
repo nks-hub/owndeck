@@ -4,16 +4,17 @@ import 'dart:convert';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:deck_protocol/deck_protocol.dart';
 import 'package:deck_store/deck_store.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
   DeckSession(this.database, this.account, this.client) {
     sync = DeckSync(database, account, client);
-    if (account.capabilities != null)
+    userId = account.userId;
+    if (account.capabilities != null) {
       capabilities = DeckCapabilities.fromJson(
         object(jsonDecode(account.capabilities!)),
       );
+    }
     WidgetsBinding.instance.addObserver(this);
     _foreground =
         WidgetsBinding.instance.lifecycleState == null ||
@@ -40,6 +41,7 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
   final _errors = <String, Object>{};
   bool _disposed = false;
   DeckCapabilities? capabilities;
+  String? userId;
 
   void openBoard(int boardId) {
     if (_disposed) return;
@@ -73,6 +75,8 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
       database.watchStacks(account.id, boardId);
 
   Future<void> refreshBoards() => _refresh('boards', () async {
+    userId = await client.currentUserId();
+    await database.saveUserIdentity(account, userId!);
     await sync.run();
     capabilities = await client.capabilities();
     await database.saveCapabilities(account, capabilities!);
@@ -147,6 +151,34 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
       );
     },
   );
+
+  Future<void> refreshComments(int cardId) =>
+      _refresh('comments:$cardId', () async {
+        userId = await client.currentUserId();
+        await database.saveUserIdentity(account, userId!);
+        await sync.run();
+        final resolved = await database.resolveId(
+          account.id,
+          cardId,
+          'createCard',
+        );
+        if (_disposed || resolved == null) return;
+        final epoch = (await database.account(account.id))?.contentEpoch;
+        if (epoch == null) return;
+        final comments = <int, DeckComment>{};
+        await for (final page in client.commentPages(resolved)) {
+          if (_disposed) return;
+          for (final comment in page) {
+            comments[comment.id] = comment;
+          }
+        }
+        await database.saveComments(
+          account,
+          resolved,
+          comments.values.toList(),
+          epoch,
+        );
+      });
 
   Future<void> _refresh(String scope, Future<void> Function() operation) {
     if (_disposed) return Future.value();

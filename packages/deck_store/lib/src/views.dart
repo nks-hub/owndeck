@@ -23,8 +23,9 @@ extension DeckViews on DeckDatabase {
       'createBoard',
     );
     if (boardId == null) return null;
-    if (write.kind.endsWith('Board') || write.kind == 'createStack')
+    if (write.kind.endsWith('Board') || write.kind == 'createStack') {
       return write.copyWith(boardId: boardId);
+    }
     final stackId = await resolveId(
       write.accountId,
       write.stackId,
@@ -46,6 +47,21 @@ extension DeckViews on DeckDatabase {
       if (targetId == null) return null;
       proposal = jsonEncode({...data, 'stackId': targetId});
     }
+    if (write.kind.endsWith('Comment')) {
+      final data = object(jsonDecode(proposal));
+      for (final key in ['commentId', 'parentId']) {
+        if (data[key] is int && (data[key] as int) < 0) {
+          final targetId = await resolveId(
+            write.accountId,
+            data[key] as int,
+            'createComment',
+          );
+          if (targetId == null) return null;
+          data[key] = targetId;
+        }
+      }
+      proposal = jsonEncode(data);
+    }
     return write.copyWith(
       boardId: boardId,
       stackId: stackId,
@@ -55,6 +71,7 @@ extension DeckViews on DeckDatabase {
   }
 
   Future<bool> dependencyUnavailable(PendingWrite write) async {
+    final data = object(jsonDecode(write.proposal));
     final parents = [
       if (write.kind != 'createBoard' && write.boardId < 0) -write.boardId,
       if (!write.kind.endsWith('Board') &&
@@ -62,6 +79,9 @@ extension DeckViews on DeckDatabase {
           write.stackId < 0)
         -write.stackId,
       if (write.cardId != null && write.cardId! < 0) -write.cardId!,
+      if (write.kind.endsWith('Comment'))
+        for (final key in ['commentId', 'parentId'])
+          if (data[key] is int && (data[key] as int) < 0) -(data[key] as int),
       if (write.kind == 'moveCard' &&
           intField(object(jsonDecode(write.proposal)), 'stackId') < 0)
         -intField(object(jsonDecode(write.proposal)), 'stackId'),
@@ -141,8 +161,9 @@ extension DeckViews on DeckDatabase {
             await resolveId(accountId, write.boardId, 'createBoard') ??
             write.boardId;
         final base = boards[id];
-        if (base != null)
+        if (base != null) {
           boards[id] = {...base, ...data, 'syncState': write.state};
+        }
       }
     }
     return boards.values.map(DeckBoard.fromJson).toList();
@@ -183,10 +204,11 @@ extension DeckViews on DeckDatabase {
             .get();
     for (final card in cards) {
       final stack = stacks[card.stackId];
-      if (stack != null)
+      if (stack != null) {
         (stack['cards'] as List<JsonObject>).add(
           object(jsonDecode(card.payload)),
         );
+      }
     }
     for (final write in await writesFor(accountId)) {
       final parent =
@@ -216,8 +238,9 @@ extension DeckViews on DeckDatabase {
         continue;
       }
       if (write.kind == 'deleteStack') {
-        if (stacks[stackId] != null)
+        if (stacks[stackId] != null) {
           stacks[stackId] = {...stacks[stackId]!, 'syncState': write.state};
+        }
         continue;
       }
       final stack = stacks[stackId];
@@ -287,8 +310,9 @@ extension DeckViews on DeckDatabase {
                   .whereType<JsonObject>()
                   .where((label) => label['id'] != data['labelId'])
                   .toList();
-              if (write.kind == 'assignLabel')
+              if (write.kind == 'assignLabel') {
                 labels.add(object(data['label']));
+              }
               projected['labels'] = labels;
             }
             if (write.kind == 'assignUser' || write.kind == 'unassignUser') {
@@ -302,11 +326,12 @@ extension DeckViews on DeckDatabase {
                         data['userId'];
                   })
                   .toList();
-              if (write.kind == 'assignUser')
+              if (write.kind == 'assignUser') {
                 assigned.add({
                   'participant': data['user'],
                   'type': data['type'] ?? 0,
                 });
+              }
               projected['assignedUsers'] = assigned;
             }
             sourceCards[index] = projected;

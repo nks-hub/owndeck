@@ -163,19 +163,22 @@ class _CardEditorState extends State<CardEditor> {
       final card = _original;
       final changes = <String, Object?>{};
       if (card == null || title != card.title) changes['title'] = title;
-      if (card == null || _description.text != card.description)
+      if (card == null || _description.text != card.description) {
         changes['description'] = _description.text;
+      }
       final oldDue = DateTime.tryParse(card?.raw['duedate']?.toString() ?? '');
       if (_due == null
           ? oldDue != null
-          : oldDue == null || !_due!.isAtSameMomentAs(oldDue))
+          : oldDue == null || !_due!.isAtSameMomentAs(oldDue)) {
         changes['duedate'] = _due?.toUtc().toIso8601String();
+      }
       if (card != null &&
           card.raw.containsKey('done') &&
-          _done != (card.raw['done'] != null))
+          _done != (card.raw['done'] != null)) {
         changes['done'] = _done
             ? DateTime.now().toUtc().toIso8601String()
             : null;
+      }
       await widget.session.database.publishEditorDraft(
         widget.session.account,
         _key,
@@ -193,13 +196,14 @@ class _CardEditorState extends State<CardEditor> {
       }
       _close();
     } catch (error) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _saving = false;
           _error = error is StateError && error.message == 'pending_decision'
               ? text.pendingDecision
               : text.storageError;
         });
+      }
     }
   }
 

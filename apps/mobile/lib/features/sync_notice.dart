@@ -21,7 +21,7 @@ class SyncNotice extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context)!;
     final error = session.error(scope);
-    if (error != null)
+    if (error != null) {
       return Material(
         color: Theme.of(context).colorScheme.errorContainer,
         child: Padding(
@@ -36,8 +36,10 @@ class SyncNotice extends StatelessWidget {
           ),
         ),
       );
-    if (session.loading(scope))
+    }
+    if (session.loading(scope)) {
       return LinearProgressIndicator(semanticsLabel: text.syncing);
+    }
     return const SizedBox.shrink();
   }
 }

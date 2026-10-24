@@ -72,14 +72,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         final credentials = await session.poll();
         if (!mounted || generation != _generation) return;
         if (credentials != null) {
-          await DeckClient(
+          final client = DeckClient(
             base: credentials.server,
             loginName: credentials.loginName,
             appPassword: credentials.appPassword,
             transport: transport,
-          ).capabilities();
+          );
+          await client.capabilities();
+          final userId = await client.currentUserId();
           if (!mounted || generation != _generation) return;
-          await ref.read(accountsProvider).add(credentials);
+          await ref.read(accountsProvider).add(credentials, userId: userId);
           if (mounted && widget.closeOnSuccess && generation == _generation) {
             Navigator.of(context).pop();
           }

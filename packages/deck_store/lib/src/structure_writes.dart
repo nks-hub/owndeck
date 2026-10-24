@@ -29,8 +29,9 @@ extension StructureWrites on DeckDatabase {
     int stackId = 0,
     JsonObject? base,
   }) => transaction(() async {
-    if (!await accepts(account.id, account.generation))
+    if (!await accepts(account.id, account.generation)) {
       throw StateError('account_unavailable');
+    }
     if (!{
       'createBoard',
       'updateBoard',
@@ -39,15 +40,17 @@ extension StructureWrites on DeckDatabase {
       'createStack',
       'updateStack',
       'deleteStack',
-    }.contains(kind))
+    }.contains(kind)) {
       throw ArgumentError('invalid_operation');
+    }
     if (kind == 'createBoard') {
       final current = (await this.account(account.id))!;
       if (current.capabilities == null ||
           !DeckCapabilities.fromJson(
             object(jsonDecode(current.capabilities!)),
-          ).canCreateBoards)
+          ).canCreateBoards) {
         throw StateError('permission_denied');
+      }
     } else {
       final resolved =
           await resolveId(account.id, boardId, 'createBoard') ?? boardId;
@@ -57,8 +60,9 @@ extension StructureWrites on DeckDatabase {
       if (board == null ||
           !board.permissions.manage ||
           board.deletedAt != 0 && kind != 'restoreBoard' ||
-          board.archived && !{'updateBoard', 'restoreBoard'}.contains(kind))
+          board.archived && !{'updateBoard', 'restoreBoard'}.contains(kind)) {
         throw StateError('permission_denied');
+      }
     }
     final entityId = kind.endsWith('Board') ? boardId : stackId;
     if (!kind.startsWith('create')) {
@@ -71,8 +75,9 @@ extension StructureWrites on DeckDatabase {
                 .getSingleOrNull()
           : null;
       if (creation != null && creation.state != 'confirmed') {
-        if (creation.state != 'queued' || kind.startsWith('delete'))
+        if (creation.state != 'queued' || kind.startsWith('delete')) {
           throw StateError('pending_decision');
+        }
         await (update(
           pendingWrites,
         )..where((w) => w.id.equals(creation.id))).write(

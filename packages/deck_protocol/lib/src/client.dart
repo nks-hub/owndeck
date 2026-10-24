@@ -115,7 +115,7 @@ final class DeckClient {
             'OCS-APIRequest': 'true',
             'Accept': 'application/json',
             'User-Agent': 'OwnDeck',
-            if (etag != null) 'If-None-Match': etag,
+            'If-None-Match': ?etag,
           });
     if (body != null) {
       request.headers['Content-Type'] = 'application/json';

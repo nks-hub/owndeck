@@ -116,8 +116,9 @@ final class Accounts extends ChangeNotifier {
 
   Future<T> _change<T>(Future<T> Function() operation) async {
     await ready;
-    if (busy || loadError != null || _disposed)
+    if (busy || loadError != null || _disposed) {
       throw StateError('accounts_unavailable');
+    }
     busy = true;
     notifyListeners();
     try {
@@ -139,10 +140,11 @@ final class Accounts extends ChangeNotifier {
     }
   }
 
-  Future<void> add(LoginCredentials credentials) => _change(() async {
-    await repository.add(credentials);
-    await _reload();
-  });
+  Future<void> add(LoginCredentials credentials, {String? userId}) =>
+      _change(() async {
+        await repository.add(credentials, userId: userId);
+        await _reload();
+      });
 
   Future<void> select(String id) => _change(() async {
     await repository.select(id);

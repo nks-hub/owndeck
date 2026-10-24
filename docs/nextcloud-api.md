@@ -66,6 +66,7 @@ Neznámá pole tolerovat. Pole, jejichž vynechání změní význam, rozlišit 
 9. ETag slouží k podmíněnému čtení. V analyzované cestě aktualizace není kontrola `If-Match`; samotné odeslání této hlavičky nezaručí ochranu před přepsáním souběžné změny.
 10. Název boardId/stackId v URL není dostačující důkaz oprávnění. Server má vlastní kontroly nad kartou a cílem. Klient musí správně reagovat na odmítnutí i po dříve úspěšné synchronizaci.
 11. `CardService::reorder` vrací seznam přerovnaných karet. Cílový `stackId` patří do URL i těla. Obecná mutace nemusí vracet detail karty; například přiřazení může vrátit vazbu. Po přijetí zápisu načíst aktuální kartu a neopakovat mutaci při selhání tohoto následného GET.
+12. `CommentService` dovoluje vytvářet komentáře s právem READ, bez EDIT. Změnu a odstranění povoluje pouze autorovi typu `users`; UID je nutné zjistit přes OCS aktuálního uživatele. Stránka má nejvýše 200 komentářů, základní limit zprávy v `IComment` je 1 000 znaků. Načtení částečné stránky není důkaz smazání zbývajících komentářů.
 
 Tyto nálezy vycházejí ze zdrojů, nikoli ze spuštění exploitu či měření. Otevřené serverové scénáře jsou přímo v [testing.md](testing.md).
 
