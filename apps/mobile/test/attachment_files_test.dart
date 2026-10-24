@@ -273,7 +273,12 @@ void main() {
       await files.cache('account-a', 1, attachment(), [1]);
       await files.cache('account-a', 1, attachment(modified: 11), [2]);
       await files.cache('account-b', 1, attachment(), [3]);
-      await files.pruneCard('account-a', 1, 8, [attachment(modified: 11)]);
+      await files.pruneCard(
+        'account-a',
+        1,
+        8,
+        () async => [attachment(modified: 11)],
+      );
       expect(await files.cached('account-a', 1, attachment()), isNull);
       expect(
         await (await files.cached(
@@ -283,7 +288,7 @@ void main() {
         ))!.readAsBytes(),
         [2],
       );
-      await files.pruneBoards('account-a', {});
+      await files.pruneBoards('account-a', () async => {});
       expect(
         await files.cached('account-a', 1, attachment(modified: 11)),
         isNull,
@@ -309,6 +314,53 @@ void main() {
       await expectLater(
         AttachmentFiles(root).readUpload('account-a', staged.id),
         throwsStateError,
+      );
+    },
+  );
+
+  test(
+    'queued pruning reads current metadata after earlier disk work finishes',
+    () async {
+      await files.cache('account-a', 1, attachment(), [1]);
+      await files.cache('account-a', 1, attachment(modified: 11), [2]);
+      await files.cache('account-a', 2, attachment(), [3]);
+      final querying = Completer<void>();
+      final release = Completer<Set<String>>();
+      final blocker = files.pruneUploads('account-a', () {
+        querying.complete();
+        return release.future;
+      });
+      await querying.future;
+      var currentAttachments = [attachment()];
+      var currentBoards = {1};
+      final cardPrune = files.pruneCard(
+        'account-a',
+        1,
+        8,
+        () async => currentAttachments,
+      );
+      final boardPrune = files.pruneBoards(
+        'account-a',
+        () async => currentBoards,
+      );
+      currentAttachments = [attachment(modified: 11)];
+      currentBoards = {1, 2};
+      release.complete({});
+      await blocker;
+      await cardPrune;
+      await boardPrune;
+      expect(await files.cached('account-a', 1, attachment()), isNull);
+      expect(
+        await (await files.cached(
+          'account-a',
+          1,
+          attachment(modified: 11),
+        ))!.readAsBytes(),
+        [2],
+      );
+      expect(
+        await (await files.cached('account-a', 2, attachment()))!.readAsBytes(),
+        [3],
       );
     },
   );
