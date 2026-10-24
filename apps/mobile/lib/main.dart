@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -5,10 +7,12 @@ import 'data/accounts.dart';
 import 'features/boards.dart';
 import 'features/login.dart';
 import 'l10n/app_localizations.dart';
+import 'core/telemetry_bootstrap.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const ProviderScope(child: OwnDeckApp()));
+  unawaited(telemetry.initialize());
 }
 
 class OwnDeckApp extends StatelessWidget {
@@ -18,6 +22,7 @@ class OwnDeckApp extends StatelessWidget {
   Widget build(BuildContext context) => MaterialApp(
     title: 'OwnDeck',
     debugShowCheckedModeBanner: false,
+    navigatorObservers: [telemetry.navigatorObserver()],
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     theme: _theme(Brightness.light),
@@ -84,6 +89,7 @@ class _AccountGate extends ConsumerWidget {
         }
         return Navigator(
           key: ObjectKey(session),
+          observers: [telemetry.navigatorObserver()],
           onGenerateRoute: (_) => MaterialPageRoute<void>(
             settings: const RouteSettings(name: '/boards'),
             builder: (_) => BoardsScreen(session: session),

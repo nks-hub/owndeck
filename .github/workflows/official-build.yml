@@ -1,0 +1,70 @@
+name: Compile official telemetry build
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Telemetry environment
+        required: true
+        default: staging
+        type: choice
+        options: [staging, production]
+permissions:
+  contents: read
+env:
+  CI: 'true'
+  FLUTTER_SUPPRESS_ANALYTICS: 'true'
+jobs:
+  compile:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: android
+            runner: ubuntu-latest
+          - platform: ios
+            runner: macos-15
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        if: matrix.platform == 'android'
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          flutter-version: '3.44.4'
+          channel: stable
+          cache: true
+      - name: Configure both telemetry services
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          RYBBIT_HOST: ${{ secrets.RYBBIT_HOST }}
+          RYBBIT_SITE_ID: ${{ secrets.RYBBIT_SITE_ID }}
+          TELEMETRY_ENVIRONMENT: ${{ inputs.environment }}
+        run: python3 tool/telemetry_config.py
+      - run: flutter pub get --enforce-lockfile
+        working-directory: apps/mobile
+      - name: Verify configured startup and opt-out
+        working-directory: apps/mobile
+        run: flutter test --no-pub test/telemetry_test.dart test/telemetry_runtime_test.dart --dart-define-from-file=telemetry.json
+      - name: Compile unsigned Android APK
+        if: matrix.platform == 'android'
+        working-directory: apps/mobile
+        env:
+          GRADLE_OPTS: '-Dorg.gradle.workers.max=2 -Dorg.gradle.jvmargs=-Xmx4G'
+        run: flutter build apk --release --no-pub --dart-define-from-file=telemetry.json
+      - name: Compile unsigned iOS app
+        if: matrix.platform == 'ios'
+        working-directory: apps/mobile
+        run: flutter build ios --release --no-codesign --no-pub --dart-define-from-file=telemetry.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: matrix.platform == 'android'
+        with:
+          name: owndeck-android-unsigned-${{ github.sha }}
+          path: apps/mobile/build/app/outputs/flutter-apk/*.apk
+          if-no-files-found: error
+      - name: Remove generated telemetry configuration
+        if: always()
+        run: python3 -c "from pathlib import Path; Path('apps/mobile/telemetry.json').unlink(missing_ok=True)"
