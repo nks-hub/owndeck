@@ -40,8 +40,15 @@ extension StructureWrites on DeckDatabase {
       'createStack',
       'updateStack',
       'deleteStack',
+      'setDoneStack',
     }.contains(kind)) {
       throw ArgumentError('invalid_operation');
+    }
+    if (kind == 'setDoneStack' &&
+        (stackId <= 0 ||
+            proposal['isDone'] is! bool ||
+            base?['isDoneColumn'] is! bool)) {
+      throw StateError('unsupported_operation');
     }
     if (kind == 'createBoard') {
       final current = (await this.account(account.id))!;
@@ -169,6 +176,48 @@ extension StructureWrites on DeckDatabase {
       account.id,
       write.kind == 'createBoard' ? id : write.boardId,
     );
+  });
+
+  Future<bool> confirmDoneStack(
+    StoredAccount account,
+    String owner,
+    PendingWrite write,
+    List<DeckStack> stacks,
+  ) => transaction(() async {
+    if (!await ownsLease(account, owner)) return false;
+    final pending =
+        await (select(pendingWrites)..where(
+              (w) => w.accountId.equals(account.id) & w.id.equals(write.id),
+            ))
+            .getSingleOrNull();
+    if (pending?.state != 'applied') return false;
+    final row =
+        await (select(storedBoards)..where(
+              (b) =>
+                  b.accountId.equals(account.id) &
+                  b.remoteId.equals(write.boardId),
+            ))
+            .getSingleOrNull();
+    if (row == null) return false;
+    final board = DeckBoard.fromJson(object(jsonDecode(row.payload)));
+    if (!board.permissions.read || board.deletedAt != 0) return false;
+    final epoch = (await this.account(account.id))!.contentEpoch;
+    await saveStacks(
+      account.id,
+      account.generation,
+      write.boardId,
+      stacks,
+      null,
+      contentEpoch: epoch,
+    );
+    await (update(pendingWrites)..where((w) => w.id.equals(write.id))).write(
+      const PendingWritesCompanion(
+        state: Value('confirmed'),
+        error: Value(null),
+      ),
+    );
+    await invalidateMutation(account.id, write.boardId);
+    return true;
   });
 
   Future<void> invalidateMutation(String accountId, int boardId) async {

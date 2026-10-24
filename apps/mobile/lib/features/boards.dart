@@ -11,6 +11,7 @@ import 'pending.dart';
 import 'sync_notice.dart';
 import 'structure_editor.dart';
 import 'search.dart';
+import 'notifications.dart';
 import 'package:deck_store/deck_store.dart';
 
 class BoardsScreen extends StatefulWidget {
@@ -38,6 +39,16 @@ class _BoardsScreenState extends State<BoardsScreen> {
       appBar: AppBar(
         title: Text(_destination == 0 ? text.boards : text.myTasks),
         actions: [
+          IconButton(
+            tooltip: text.deckNotifications,
+            icon: const Icon(Icons.notifications_outlined),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                settings: const RouteSettings(name: '/notifications'),
+                builder: (_) => NotificationsScreen(session: session),
+              ),
+            ),
+          ),
           IconButton(
             tooltip: text.searchCards,
             icon: const Icon(Icons.search),
@@ -357,6 +368,12 @@ class _BoardScreenState extends State<BoardScreen> {
                                 tabs: [
                                   for (final stack in stacks)
                                     Tab(
+                                      icon: stack.isDoneColumn
+                                          ? Icon(
+                                              Icons.check_circle_outline,
+                                              semanticLabel: text.doneColumn,
+                                            )
+                                          : null,
                                       text:
                                           '${stack.title} (${stack.cards.length})',
                                     ),

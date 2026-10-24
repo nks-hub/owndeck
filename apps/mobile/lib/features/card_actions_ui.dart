@@ -1,6 +1,132 @@
 part of 'card_detail.dart';
 
 extension _CardDialogs on _CardScreenState {
+  Future<void> _copy(DeckCard card) async {
+    final text = AppLocalizations.of(context)!;
+    try {
+      final boards =
+          (await widget.session.database.boardView(widget.session.account.id))
+              .where(
+                (board) =>
+                    board.permissions.edit &&
+                    !board.archived &&
+                    board.deletedAt == 0,
+              )
+              .toList();
+      if (!mounted) return;
+      if (boards.isEmpty) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(text.noCopyDestination)));
+        return;
+      }
+      final targetBoard = await showModalBottomSheet<DeckBoard>(
+        context: context,
+        showDragHandle: true,
+        builder: (context) => SafeArea(
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  text.copyDestinationBoard,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+              for (final board in boards)
+                ListTile(
+                  title: Text(board.title),
+                  leading: const Icon(Icons.view_kanban_outlined),
+                  onTap: () => Navigator.pop(context, board),
+                ),
+            ],
+          ),
+        ),
+      );
+      if (targetBoard == null || !mounted) return;
+      await widget.session.refreshStacks(targetBoard.id);
+      final stacks = await widget.session.database.stackView(
+        widget.session.account.id,
+        targetBoard.id,
+      );
+      if (!mounted) return;
+      if (stacks.isEmpty) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(text.noStacks)));
+        return;
+      }
+      var selected =
+          targetBoard.id == widget.board.id &&
+              stacks.any((stack) => stack.id == card.stackId)
+          ? card.stackId
+          : stacks.first.id;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => StatefulBuilder(
+          builder: (context, update) => AlertDialog(
+            title: Text(text.copyCard),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(text.copyCardDescription),
+                  const SizedBox(height: 16),
+                  Text(targetBoard.title),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<int>(
+                    initialValue: selected,
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                      labelText: text.destinationColumn,
+                    ),
+                    items: [
+                      for (final stack in stacks)
+                        DropdownMenuItem(
+                          value: stack.id,
+                          child: Text(
+                            stack.title,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) update(() => selected = value);
+                    },
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(text.cancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(text.copyCard),
+              ),
+            ],
+          ),
+        ),
+      );
+      if (confirmed == true && mounted) {
+        await _action(card, 'cloneCard', {
+          'title': card.title,
+          'destinationBoardId': targetBoard.id,
+          'destinationStackId': selected,
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(text.loadError)));
+      }
+    }
+  }
+
   Future<void> _delete(DeckCard card) async {
     final text = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(

@@ -20,6 +20,9 @@ extension CardActions on DeckDatabase {
       'removeLabel',
       'assignUser',
       'unassignUser',
+      'cloneCard',
+      'addCardLink',
+      'removeCardLink',
     }.contains(kind)) {
       throw ArgumentError('invalid_operation');
     }
@@ -29,13 +32,63 @@ extension CardActions on DeckDatabase {
       account.id,
     )).where((b) => b.id == resolved).firstOrNull;
     if (board == null ||
-        !board.permissions.edit ||
-        board.archived ||
+        (kind == 'cloneCard'
+            ? !board.permissions.read
+            : !board.permissions.edit || board.archived) ||
         board.deletedAt != 0) {
       throw StateError('permission_denied');
     }
-    if (card.archived && !{'unarchiveCard', 'deleteCard'}.contains(kind)) {
+    if (card.archived &&
+        !{'unarchiveCard', 'deleteCard', 'cloneCard'}.contains(kind)) {
       throw StateError('card_archived');
+    }
+    if ((card.raw['deletedAt'] ?? 0) != 0) throw StateError('card_unavailable');
+    if (kind == 'cloneCard' ||
+        kind == 'addCardLink' ||
+        kind == 'removeCardLink') {
+      final clone = kind == 'cloneCard';
+      final targetBoardId = intField(
+        proposal,
+        clone ? 'destinationBoardId' : 'dependentBoardId',
+      );
+      final targetStackId = intField(
+        proposal,
+        clone ? 'destinationStackId' : 'dependentStackId',
+      );
+      final resolvedTarget =
+          await resolveId(account.id, targetBoardId, 'createBoard') ??
+          targetBoardId;
+      final targetBoard = (await boardView(
+        account.id,
+      )).where((b) => b.id == resolvedTarget).firstOrNull;
+      if (targetBoard == null ||
+          !targetBoard.permissions.read ||
+          targetBoard.deletedAt != 0 ||
+          clone && (!targetBoard.permissions.edit || targetBoard.archived)) {
+        throw StateError('permission_denied');
+      }
+      final resolvedStack =
+          await resolveId(account.id, targetStackId, 'createStack') ??
+          targetStackId;
+      final targetStack = (await stackView(
+        account.id,
+        targetBoardId,
+      )).where((s) => s.id == resolvedStack).firstOrNull;
+      if (targetStack == null) throw StateError('invalid_destination');
+      if (!clone) {
+        final targetId = intField(proposal, 'dependentCardId');
+        final resolvedCard =
+            await resolveId(account.id, targetId, 'createCard') ?? targetId;
+        final sourceId =
+            await resolveId(account.id, card.id, 'createCard') ?? card.id;
+        if (resolvedCard == sourceId ||
+            !targetStack.cards.any(
+              (card) =>
+                  card.id == resolvedCard && (card.raw['deletedAt'] ?? 0) == 0,
+            )) {
+          throw StateError('invalid_card_link');
+        }
+      }
     }
     if (kind == 'moveCard') {
       final targetId = intField(proposal, 'stackId');
@@ -77,6 +130,30 @@ extension CardActions on DeckDatabase {
     }
     return false;
   }
+
+  Future<bool> confirmClonedCard(
+    StoredAccount account,
+    String owner,
+    PendingWrite write,
+    int boardId,
+    DeckCard card,
+  ) => transaction(() async {
+    if (!await ownsLease(account, owner)) return false;
+    final row =
+        await (select(storedBoards)..where(
+              (b) =>
+                  b.accountId.equals(account.id) & b.remoteId.equals(boardId),
+            ))
+            .getSingleOrNull();
+    if (row == null) return false;
+    final board = DeckBoard.fromJson(object(jsonDecode(row.payload)));
+    if (!board.permissions.read || board.deletedAt != 0) return false;
+    await confirmCard(account, owner, write.copyWith(boardId: boardId), card);
+    return (await (select(
+          pendingWrites,
+        )..where((w) => w.id.equals(write.id))).getSingle()).state ==
+        'confirmed';
+  });
 
   Future<void> markApplied(
     StoredAccount account,

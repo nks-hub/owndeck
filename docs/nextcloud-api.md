@@ -107,3 +107,13 @@ Oficiální zdroje: [katalog klientských API](https://docs.nextcloud.com/server
 Žádné univerzální stránkování Deck seznamů není v této smlouvě garantované. Stránkovat jen tam, kde jsou parametry skutečně definované, například comments/search. Velké seznamy zpracovat mimo náročné překreslování UI a nezahajovat načítání příloh každé karty. Server s tisíci kartami má vlastní náklady; výkon nelze vyřešit jen mobilní animací.
 
 První implementační cíl: stabilní REST 1.1, OCS comments/config a jednotlivě ověřené doplňkové funkce. Fallback 1.0 musí výslovně omezit typy příloh. Podporované verze Nextcloud/Deck v obchodě uvést až podle skutečně provedené matice T02, nikoli pouze podle úspěchu proti jednomu serveru.
+
+## Kopie, vazby, hotový sloupec a oznámení
+
+Kopie karty používá OCS adresu `apps/deck/api/v1.0/cards/{cardId}/clone` s `targetStackId`, ale vrací přímo JSON karty bez OCS obálky. Zdroj vyžaduje čtení, cílový sloupec úpravy. Kopíruje název, popis, štítky a dostupná přiřazení; termíny, komentáře a přílohy nejsou součástí této operace. Potvrzené ID nové karty se uloží před načtením výsledku, takže výpadek čtení nevyvolá další POST. Zdroj: [připnutý CardApi](https://github.com/nextcloud/deck/blob/28efc84c108807cf0821d83e52f45b43cac27412/src/services/CardApi.js).
+
+Vazby `dependentCards` jsou směrované seznamy ID souvisejících karet. Nezakazují dokončení karty. Změna vyžaduje úpravy zdroje a čtení cíle; fronta řeší i ID dosud nevytvořených rodičů.
+
+Hotový sloupec se nastavuje přes OCS `PUT stacks/{stackId}/done` s `boardId` a booleovským `isDone`. Vyžaduje správu nástěnky. Nastavení zruší předchozí hotový sloupec a dokončí aktivní karty v novém; zrušení nastavení již dokončené karty nevrací. UI vyžaduje přítomnost `isDoneColumn` ve skutečném snímku sloupce a před akcí vysvětlí její účinek. Potvrzení načte aktivní i archivované karty a ověří výsledné příznaky. Zdroj: [připnutý StackService](https://github.com/nextcloud/deck/blob/28efc84c108807cf0821d83e52f45b43cac27412/lib/Service/StackService.php).
+
+Přehled oznámení nejprve ověří capability `notifications.ocs-endpoints` s `list`, čte API v2 a zobrazí pouze položky aplikace `deck`. Odpověď 204 znamená prázdný seznam. Čtení je na vyžádání, bez automatického pollingu a bez nové push registrace. Odkaz se otevře jen v HTTPS instalaci Decku daného účtu, bez přidání autorizačních hlaviček. Zdroj: [Notifications API v2](https://github.com/nextcloud/notifications/blob/master/docs/ocs-endpoint-v2.md).

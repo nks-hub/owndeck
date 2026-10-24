@@ -102,6 +102,21 @@ class StackActions extends StatelessWidget {
     return Wrap(
       spacing: 8,
       children: [
+        if (stack.supportsDoneColumn &&
+            board.permissions.manage &&
+            !board.archived &&
+            board.deletedAt == 0)
+          TextButton.icon(
+            icon: Icon(
+              stack.isDoneColumn
+                  ? Icons.check_circle
+                  : Icons.check_circle_outline,
+            ),
+            label: Text(
+              stack.isDoneColumn ? text.unsetDoneColumn : text.setDoneColumn,
+            ),
+            onPressed: () => _changeDoneStack(context, session, board, stack),
+          ),
         TextButton.icon(
           icon: const Icon(Icons.edit_outlined),
           label: Text(text.editStack),
@@ -127,6 +142,46 @@ class StackActions extends StatelessWidget {
       ],
     );
   }
+}
+
+Future<void> _changeDoneStack(
+  BuildContext context,
+  DeckSession session,
+  DeckBoard board,
+  DeckStack stack,
+) async {
+  final text = AppLocalizations.of(context)!;
+  final isDone = !stack.isDoneColumn;
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(isDone ? text.setDoneColumn : text.unsetDoneColumn),
+      content: SingleChildScrollView(
+        child: Text(
+          isDone ? text.setDoneColumnQuestion : text.unsetDoneColumnQuestion,
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: Text(text.cancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: Text(text.save),
+        ),
+      ],
+    ),
+  );
+  if (confirmed != true || !context.mounted) return;
+  await changeStructure(
+    context,
+    session,
+    'setDoneStack',
+    board,
+    stack: stack,
+    proposal: {'title': stack.title, 'isDone': isDone},
+  );
 }
 
 Future<void> editStructure(

@@ -102,7 +102,7 @@ final class DeckStack {
       order = intField(json, 'order'),
       raw = Map.unmodifiable(json),
       cards = objects(
-        json['cards'],
+        json['cards'] ?? const <Object?>[],
       ).map(DeckCard.fromJson).toList(growable: false);
 
   final int id;
@@ -111,6 +111,9 @@ final class DeckStack {
   final int order;
   final List<DeckCard> cards;
   final JsonObject raw;
+
+  bool get supportsDoneColumn => raw['isDoneColumn'] is bool;
+  bool get isDoneColumn => raw['isDoneColumn'] == true;
 }
 
 final class DeckCard {
@@ -121,6 +124,7 @@ final class DeckCard {
       description = stringField(json, 'description'),
       order = intField(json, 'order'),
       archived = json['archived'] == true,
+      dependentCards = _cardLinks(json['dependentCards']),
       raw = Map.unmodifiable(json);
 
   final int id;
@@ -130,6 +134,8 @@ final class DeckCard {
   final int order;
   final bool archived;
   final JsonObject raw;
+
+  final List<int> dependentCards;
 
   int? get rgbColor {
     final value = raw['color'];
@@ -157,4 +163,12 @@ final class DeckCard {
       ...changes,
     };
   }
+}
+
+List<int> _cardLinks(Object? value) {
+  if (value == null) return const [];
+  if (value is! List || value.any((id) => id is! int || id == 0)) {
+    throw const FormatException('invalid_card_links');
+  }
+  return List<int>.unmodifiable(value.cast<int>());
 }

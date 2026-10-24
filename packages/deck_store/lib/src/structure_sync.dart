@@ -57,6 +57,39 @@ extension _StructureSync on DeckSync {
         );
         return true;
       }
+      if (write.kind == 'setDoneStack') {
+        if (current?['isDoneColumn'] is! bool ||
+            current?['id'] != write.stackId ||
+            current?['boardId'] != write.boardId) {
+          await database.markWrite(
+            account,
+            _owner,
+            write.id,
+            'blocked',
+            error: 'unsupported_operation',
+          );
+          return true;
+        }
+        if (!await database.acquireLease(account, _owner) || _closed) {
+          await database.markWrite(account, _owner, write.id, 'queued');
+          return false;
+        }
+        mutationStarted = true;
+        await client.setDoneStack(
+          write.boardId,
+          write.stackId,
+          proposal['isDone']! as bool,
+        );
+        final receipt = {
+          'boardId': write.boardId,
+          'stackId': write.stackId,
+          'isDone': proposal['isDone'],
+        };
+        await database.markApplied(account, _owner, write, receipt);
+        return _finishDoneStack(
+          write.copyWith(remote: Value(jsonEncode(receipt))),
+        );
+      }
       if (current != null && write.base != null) {
         final base = object(jsonDecode(write.base!));
         final keys = write.kind.startsWith('delete')
@@ -154,6 +187,39 @@ extension _StructureSync on DeckSync {
           error: 'invalid_response',
         );
       }
+      return false;
+    }
+  }
+
+  Future<bool> _finishDoneStack(PendingWrite write) async {
+    if (_closed || !await database.acquireLease(account, _owner)) return false;
+    try {
+      final receipt = object(jsonDecode(write.remote!));
+      final stacks = await client.doneStackState(write.boardId);
+      final target = stacks
+          .where((stack) => stack.id == write.stackId)
+          .firstOrNull;
+      final isDone = receipt['isDone'];
+      if (isDone is! bool ||
+          target == null ||
+          !target.supportsDoneColumn ||
+          target.isDoneColumn != isDone) {
+        return false;
+      }
+      if (isDone &&
+          (stacks.where((stack) => stack.isDoneColumn).length != 1 ||
+              target.cards.any(
+                (card) =>
+                    !card.archived &&
+                    (card.raw['deletedAt'] ?? 0) == 0 &&
+                    card.raw['done'] == null,
+              ))) {
+        return false;
+      }
+      return database.confirmDoneStack(account, _owner, write, stacks);
+    } on DeckException {
+      return false;
+    } on FormatException {
       return false;
     }
   }

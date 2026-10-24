@@ -1411,6 +1411,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The server requested a pause. Sync will retry later.'**
   String get rateLimited;
+
+  /// No description provided for @copyCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy card'**
+  String get copyCard;
+
+  /// No description provided for @copyCardDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'The copy includes the title, description, labels and available assignments. Dates, comments and attachments are not copied.'**
+  String get copyCardDescription;
+
+  /// No description provided for @copyDestinationBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Destination board'**
+  String get copyDestinationBoard;
+
+  /// No description provided for @noCopyDestination.
+  ///
+  /// In en, this message translates to:
+  /// **'No writable board is available.'**
+  String get noCopyDestination;
+
+  /// No description provided for @linkedCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked cards'**
+  String get linkedCards;
+
+  /// No description provided for @addCardLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Link a card'**
+  String get addCardLink;
+
+  /// No description provided for @removeCardLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove link'**
+  String get removeCardLink;
+
+  /// No description provided for @noLinkedCards.
+  ///
+  /// In en, this message translates to:
+  /// **'This card has no links yet.'**
+  String get noLinkedCards;
+
+  /// No description provided for @linkedCardUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'A linked card is not available in stored data.'**
+  String get linkedCardUnavailable;
+
+  /// No description provided for @cardLinksDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Links point to related cards. They do not block completion.'**
+  String get cardLinksDescription;
+
+  /// No description provided for @cardLinkCachedOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Only cards stored on this device are listed.'**
+  String get cardLinkCachedOnly;
+
+  /// No description provided for @noLinkCandidates.
+  ///
+  /// In en, this message translates to:
+  /// **'No other stored cards match the search.'**
+  String get noLinkCandidates;
+
+  /// No description provided for @doneColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Done column'**
+  String get doneColumn;
+
+  /// No description provided for @setDoneColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as done column'**
+  String get setDoneColumn;
+
+  /// No description provided for @unsetDoneColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Unset done column'**
+  String get unsetDoneColumn;
+
+  /// No description provided for @setDoneColumnQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'This will be the board’s only done column. Its active cards will be marked complete, and cards moved here will be completed automatically.'**
+  String get setDoneColumnQuestion;
+
+  /// No description provided for @unsetDoneColumnQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Unset this done column? Cards already completed will remain completed.'**
+  String get unsetDoneColumnQuestion;
+
+  /// No description provided for @deckNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Deck notifications'**
+  String get deckNotifications;
+
+  /// No description provided for @notificationsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This server does not support the notification list.'**
+  String get notificationsUnavailable;
+
+  /// No description provided for @noDeckNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'No Deck notifications.'**
+  String get noDeckNotifications;
+
+  /// No description provided for @openInNextcloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in Nextcloud'**
+  String get openInNextcloud;
+
+  /// No description provided for @telemetryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics and usage'**
+  String get telemetryTitle;
+
+  /// No description provided for @crashReporting.
+  ///
+  /// In en, this message translates to:
+  /// **'Error reporting'**
+  String get crashReporting;
+
+  /// No description provided for @crashReportingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Send technical errors without card contents, files or credentials.'**
+  String get crashReportingDescription;
+
+  /// No description provided for @usageAnalytics.
+  ///
+  /// In en, this message translates to:
+  /// **'Usage statistics'**
+  String get usageAnalytics;
+
+  /// No description provided for @usageAnalyticsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Send only predefined screen and action names.'**
+  String get usageAnalyticsDescription;
+
+  /// No description provided for @telemetryUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This service is not configured in this build.'**
+  String get telemetryUnavailable;
+
+  /// No description provided for @telemetrySaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The setting could not be saved.'**
+  String get telemetrySaveFailed;
 }
 
 class _AppLocalizationsDelegate

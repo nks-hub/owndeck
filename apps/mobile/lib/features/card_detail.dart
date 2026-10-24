@@ -12,6 +12,7 @@ import 'card_editor.dart';
 import 'pending.dart';
 import 'comments.dart';
 import 'attachments.dart';
+import 'card_links.dart';
 
 part 'card_actions_ui.dart';
 
@@ -141,11 +142,13 @@ class _CardScreenState extends State<CardScreen> {
             appBar: AppBar(
               title: Text(card.title),
               actions: [
-                if (canEdit)
+                if (board.permissions.read)
                   PopupMenuButton<String>(
                     tooltip: text.cardActions,
                     onSelected: (action) {
                       switch (action) {
+                        case 'copy':
+                          unawaited(_copy(card));
                         case 'move':
                           unawaited(_move(card));
                         case 'labels':
@@ -165,7 +168,8 @@ class _CardScreenState extends State<CardScreen> {
                       }
                     },
                     itemBuilder: (_) => [
-                      if (!card.archived) ...[
+                      PopupMenuItem(value: 'copy', child: Text(text.copyCard)),
+                      if (canEdit && !card.archived) ...[
                         PopupMenuItem(
                           value: 'move',
                           child: Text(text.moveCard),
@@ -179,16 +183,18 @@ class _CardScreenState extends State<CardScreen> {
                           child: Text(text.assignees),
                         ),
                       ],
-                      PopupMenuItem(
-                        value: 'archive',
-                        child: Text(
-                          card.archived ? text.unarchive : text.archive,
+                      if (canEdit)
+                        PopupMenuItem(
+                          value: 'archive',
+                          child: Text(
+                            card.archived ? text.unarchive : text.archive,
+                          ),
                         ),
-                      ),
-                      PopupMenuItem(
-                        value: 'delete',
-                        child: Text(text.deleteCard),
-                      ),
+                      if (canEdit)
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Text(text.deleteCard),
+                        ),
                     ],
                   ),
               ],
@@ -299,6 +305,22 @@ class _CardScreenState extends State<CardScreen> {
                     MaterialPageRoute<void>(
                       settings: const RouteSettings(name: '/attachments'),
                       builder: (_) => AttachmentsScreen(
+                        session: widget.session,
+                        boardId: board.id,
+                        cardId: card.id,
+                      ),
+                    ),
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.link),
+                  title: Text(
+                    '${text.linkedCards} (${card.dependentCards.length})',
+                  ),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      settings: const RouteSettings(name: '/card/links'),
+                      builder: (_) => CardLinksScreen(
                         session: widget.session,
                         boardId: board.id,
                         cardId: card.id,

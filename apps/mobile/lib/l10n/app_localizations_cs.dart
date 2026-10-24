@@ -721,4 +721,99 @@ class AppLocalizationsCs extends AppLocalizations {
   @override
   String get rateLimited =>
       'Server požádal o přestávku. Synchronizace se později zopakuje.';
+
+  @override
+  String get copyCard => 'Vytvořit kopii karty';
+
+  @override
+  String get copyCardDescription =>
+      'Kopie převezme název, popis, štítky a dostupná přiřazení. Termíny, komentáře a přílohy se nekopírují.';
+
+  @override
+  String get copyDestinationBoard => 'Cílová nástěnka';
+
+  @override
+  String get noCopyDestination =>
+      'Není dostupná žádná nástěnka, do které můžete zapisovat.';
+
+  @override
+  String get linkedCards => 'Propojené karty';
+
+  @override
+  String get addCardLink => 'Propojit kartu';
+
+  @override
+  String get removeCardLink => 'Odebrat vazbu';
+
+  @override
+  String get noLinkedCards => 'Tato karta zatím nemá žádné vazby.';
+
+  @override
+  String get linkedCardUnavailable =>
+      'Propojená karta není dostupná v místních datech.';
+
+  @override
+  String get cardLinksDescription =>
+      'Vazby odkazují na související karty. Neblokují jejich dokončení.';
+
+  @override
+  String get cardLinkCachedOnly =>
+      'Nabídka obsahuje pouze karty uložené v tomto zařízení.';
+
+  @override
+  String get noLinkCandidates =>
+      'Žádné další uložené karty neodpovídají hledání.';
+
+  @override
+  String get doneColumn => 'Hotový sloupec';
+
+  @override
+  String get setDoneColumn => 'Nastavit jako hotový sloupec';
+
+  @override
+  String get unsetDoneColumn => 'Zrušit hotový sloupec';
+
+  @override
+  String get setDoneColumnQuestion =>
+      'Tento sloupec bude jediným hotovým sloupcem nástěnky. Jeho aktivní karty se označí jako dokončené a nově přesunuté karty se budou dokončovat automaticky.';
+
+  @override
+  String get unsetDoneColumnQuestion =>
+      'Zrušit nastavení hotového sloupce? Již dokončené karty zůstanou dokončené.';
+
+  @override
+  String get deckNotifications => 'Oznámení Decku';
+
+  @override
+  String get notificationsUnavailable => 'Server nepodporuje přehled oznámení.';
+
+  @override
+  String get noDeckNotifications => 'Žádná oznámení Decku.';
+
+  @override
+  String get openInNextcloud => 'Otevřít v Nextcloudu';
+
+  @override
+  String get telemetryTitle => 'Diagnostika a používání';
+
+  @override
+  String get crashReporting => 'Hlášení chyb';
+
+  @override
+  String get crashReportingDescription =>
+      'Odesílat technické chyby bez obsahu karet, souborů a přihlašovacích údajů.';
+
+  @override
+  String get usageAnalytics => 'Statistiky používání';
+
+  @override
+  String get usageAnalyticsDescription =>
+      'Odesílat pouze předem určené názvy obrazovek a akcí.';
+
+  @override
+  String get telemetryUnavailable =>
+      'Tato služba není v tomto sestavení nastavená.';
+
+  @override
+  String get telemetrySaveFailed => 'Nastavení se nepodařilo uložit.';
 }

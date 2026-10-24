@@ -718,4 +718,98 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get rateLimited =>
       'The server requested a pause. Sync will retry later.';
+
+  @override
+  String get copyCard => 'Copy card';
+
+  @override
+  String get copyCardDescription =>
+      'The copy includes the title, description, labels and available assignments. Dates, comments and attachments are not copied.';
+
+  @override
+  String get copyDestinationBoard => 'Destination board';
+
+  @override
+  String get noCopyDestination => 'No writable board is available.';
+
+  @override
+  String get linkedCards => 'Linked cards';
+
+  @override
+  String get addCardLink => 'Link a card';
+
+  @override
+  String get removeCardLink => 'Remove link';
+
+  @override
+  String get noLinkedCards => 'This card has no links yet.';
+
+  @override
+  String get linkedCardUnavailable =>
+      'A linked card is not available in stored data.';
+
+  @override
+  String get cardLinksDescription =>
+      'Links point to related cards. They do not block completion.';
+
+  @override
+  String get cardLinkCachedOnly =>
+      'Only cards stored on this device are listed.';
+
+  @override
+  String get noLinkCandidates => 'No other stored cards match the search.';
+
+  @override
+  String get doneColumn => 'Done column';
+
+  @override
+  String get setDoneColumn => 'Set as done column';
+
+  @override
+  String get unsetDoneColumn => 'Unset done column';
+
+  @override
+  String get setDoneColumnQuestion =>
+      'This will be the board’s only done column. Its active cards will be marked complete, and cards moved here will be completed automatically.';
+
+  @override
+  String get unsetDoneColumnQuestion =>
+      'Unset this done column? Cards already completed will remain completed.';
+
+  @override
+  String get deckNotifications => 'Deck notifications';
+
+  @override
+  String get notificationsUnavailable =>
+      'This server does not support the notification list.';
+
+  @override
+  String get noDeckNotifications => 'No Deck notifications.';
+
+  @override
+  String get openInNextcloud => 'Open in Nextcloud';
+
+  @override
+  String get telemetryTitle => 'Diagnostics and usage';
+
+  @override
+  String get crashReporting => 'Error reporting';
+
+  @override
+  String get crashReportingDescription =>
+      'Send technical errors without card contents, files or credentials.';
+
+  @override
+  String get usageAnalytics => 'Usage statistics';
+
+  @override
+  String get usageAnalyticsDescription =>
+      'Send only predefined screen and action names.';
+
+  @override
+  String get telemetryUnavailable =>
+      'This service is not configured in this build.';
+
+  @override
+  String get telemetrySaveFailed => 'The setting could not be saved.';
 }

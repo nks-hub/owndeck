@@ -3,6 +3,7 @@ export 'src/login.dart';
 export 'src/models.dart';
 export 'src/server_base.dart';
 export 'src/collaboration.dart';
+export 'src/card_extras.dart';
 export 'src/attachments.dart';
 export 'src/qr_login.dart';
 export 'src/security/certificate_trust.dart';
