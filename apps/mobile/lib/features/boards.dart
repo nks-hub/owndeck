@@ -4,6 +4,7 @@ import 'package:deck_protocol/deck_protocol.dart';
 import 'package:flutter/material.dart';
 
 import '../data/session.dart';
+import '../core/telemetry_bootstrap.dart';
 import '../l10n/app_localizations.dart';
 import 'accounts.dart';
 import 'card_column.dart';
@@ -12,6 +13,7 @@ import 'sync_notice.dart';
 import 'structure_editor.dart';
 import 'search.dart';
 import 'notifications.dart';
+import 'telemetry_settings.dart';
 import 'package:deck_store/deck_store.dart';
 
 class BoardsScreen extends StatefulWidget {
@@ -39,16 +41,6 @@ class _BoardsScreenState extends State<BoardsScreen> {
       appBar: AppBar(
         title: Text(_destination == 0 ? text.boards : text.myTasks),
         actions: [
-          IconButton(
-            tooltip: text.deckNotifications,
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                settings: const RouteSettings(name: '/notifications'),
-                builder: (_) => NotificationsScreen(session: session),
-              ),
-            ),
-          ),
           IconButton(
             tooltip: text.searchCards,
             icon: const Icon(Icons.search),
@@ -82,16 +74,45 @@ class _BoardsScreenState extends State<BoardsScreen> {
               ),
             ),
           ),
-          IconButton(
-            onPressed: session.refreshBoards,
-            tooltip: text.refresh,
-            icon: const Icon(Icons.refresh),
+          PopupMenuButton<String>(
+            onSelected: (action) {
+              if (action == 'refresh') {
+                unawaited(session.refreshBoards());
+                return;
+              }
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  settings: RouteSettings(
+                    name: action == 'notifications'
+                        ? '/notifications'
+                        : '/settings',
+                  ),
+                  builder: (_) => action == 'notifications'
+                      ? NotificationsScreen(session: session)
+                      : const TelemetrySettingsScreen(),
+                ),
+              );
+            },
+            itemBuilder: (_) => [
+              PopupMenuItem(value: 'refresh', child: Text(text.refresh)),
+              PopupMenuItem(
+                value: 'notifications',
+                child: Text(text.deckNotifications),
+              ),
+              PopupMenuItem(
+                value: 'settings',
+                child: Text(text.telemetryTitle),
+              ),
+            ],
           ),
         ],
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _destination,
-        onDestinationSelected: (value) => setState(() => _destination = value),
+        onDestinationSelected: (value) {
+          setState(() => _destination = value);
+          telemetry.screen(value == 0 ? '/boards' : '/my-tasks');
+        },
         destinations: [
           NavigationDestination(
             icon: const Icon(Icons.view_kanban_outlined),

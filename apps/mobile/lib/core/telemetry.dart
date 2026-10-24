@@ -96,6 +96,8 @@ const telemetryRoutes = {
   '/search',
   '/my-tasks',
   '/settings',
+  '/notifications',
+  '/card/links',
 };
 
 enum TelemetryEvent { appOpen, releaseProbe }
