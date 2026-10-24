@@ -42,7 +42,7 @@
   "savedLocally": "Uloženo v telefonu. Změna čeká na potvrzení serverem.",
   "invalidTitle": "Název musí mít 1 až 255 znaků.",
   "dueDate": "Termín",
-  "clearDate": "Zrušit termín",
+  "clearDate": "Zrušit datum",
   "completed": "Dokončeno",
   "pendingChanges": "Neodeslané změny",
   "noPending": "Všechny změny jsou potvrzené.",
@@ -138,5 +138,9 @@
   "editLabel": "Upravit štítek",
   "deleteLabel": "Smazat štítek",
   "deleteLabelQuestion": "Smazat štítek z nástěnky i ze všech jejích karet?",
-  "alreadyShared": "Příjemce už má přístup. Obnovte nástěnku a upravte existující sdílení."
+  "alreadyShared": "Příjemce už má přístup. Obnovte nástěnku a upravte existující sdílení.",
+  "startDate": "Začátek",
+  "cardColor": "Barva karty",
+  "optionalColor": "Prázdné pole znamená bez vlastní barvy.",
+  "invalidDateRange": "Začátek musí být nejpozději v termínu dokončení."
 }

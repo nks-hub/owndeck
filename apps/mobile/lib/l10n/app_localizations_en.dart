@@ -143,7 +143,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dueDate => 'Due date';
 
   @override
-  String get clearDate => 'Clear due date';
+  String get clearDate => 'Clear date';
 
   @override
   String get completed => 'Completed';
@@ -448,4 +448,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get alreadyShared =>
       'This recipient already has access. Refresh the board and edit the existing share.';
+
+  @override
+  String get startDate => 'Start date';
+
+  @override
+  String get cardColor => 'Card color';
+
+  @override
+  String get optionalColor => 'Leave empty for no custom color.';
+
+  @override
+  String get invalidDateRange =>
+      'The start date must not be after the due date.';
 }

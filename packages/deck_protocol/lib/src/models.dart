@@ -45,6 +45,13 @@ final class DeckCapabilities {
   final String version;
   final String apiVersion;
   final bool canCreateBoards;
+
+  bool get supportsExtendedCardFields {
+    final match = RegExp(r'^(\d+)\.(\d+)').firstMatch(version);
+    if (match == null) return false;
+    final major = int.parse(match[1]!);
+    return major > 1 || major == 1 && int.parse(match[2]!) >= 19;
+  }
 }
 
 final class BoardPermissions {
@@ -123,6 +130,14 @@ final class DeckCard {
   final int order;
   final bool archived;
   final JsonObject raw;
+
+  int? get rgbColor {
+    final value = raw['color'];
+    if (value is! String || !RegExp(r'^[0-9a-fA-F]{6}$').hasMatch(value)) {
+      return null;
+    }
+    return int.tryParse(value, radix: 16);
+  }
 
   // REST update defaults clear omitted fields; preserve the full writable state.
   JsonObject updateBody(JsonObject changes) {

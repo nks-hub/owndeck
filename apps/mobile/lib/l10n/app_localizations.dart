@@ -353,7 +353,7 @@ abstract class AppLocalizations {
   /// No description provided for @clearDate.
   ///
   /// In en, this message translates to:
-  /// **'Clear due date'**
+  /// **'Clear date'**
   String get clearDate;
 
   /// No description provided for @completed.
@@ -931,6 +931,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This recipient already has access. Refresh the board and edit the existing share.'**
   String get alreadyShared;
+
+  /// No description provided for @startDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Start date'**
+  String get startDate;
+
+  /// No description provided for @cardColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Card color'**
+  String get cardColor;
+
+  /// No description provided for @optionalColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave empty for no custom color.'**
+  String get optionalColor;
+
+  /// No description provided for @invalidDateRange.
+  ///
+  /// In en, this message translates to:
+  /// **'The start date must not be after the due date.'**
+  String get invalidDateRange;
 }
 
 class _AppLocalizationsDelegate

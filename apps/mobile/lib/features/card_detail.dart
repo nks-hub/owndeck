@@ -128,9 +128,14 @@ class _CardScreenState extends State<CardScreen> {
               board.permissions.edit && !board.archived && board.deletedAt == 0;
           final labels = _items(card.raw['labels']);
           final assigned = _items(card.raw['assignedUsers']);
-          final due = DateTime.tryParse(
-            card.raw['duedate']?.toString() ?? '',
-          )?.toLocal();
+          final dates = {
+            text.startDate: DateTime.tryParse(
+              card.raw['startdate']?.toString() ?? '',
+            )?.toLocal(),
+            text.dueDate: DateTime.tryParse(
+              card.raw['duedate']?.toString() ?? '',
+            )?.toLocal(),
+          };
           return Scaffold(
             appBar: AppBar(
               title: Text(card.title),
@@ -220,12 +225,22 @@ class _CardScreenState extends State<CardScreen> {
                     label: Text(text.completed),
                     avatar: const Icon(Icons.check, size: 18),
                   ),
-                if (due != null)
+                for (final date in dates.entries)
+                  if (date.value != null)
+                    ListTile(
+                      leading: const Icon(Icons.event_outlined),
+                      title: Text(date.key),
+                      subtitle: Text(
+                        '${MaterialLocalizations.of(context).formatMediumDate(date.value!)} ${MaterialLocalizations.of(context).formatTimeOfDay(TimeOfDay.fromDateTime(date.value!))}',
+                      ),
+                    ),
+                if (card.rgbColor != null)
                   ListTile(
-                    leading: const Icon(Icons.event_outlined),
-                    title: Text(text.dueDate),
-                    subtitle: Text(
-                      '${MaterialLocalizations.of(context).formatMediumDate(due)} ${MaterialLocalizations.of(context).formatTimeOfDay(TimeOfDay.fromDateTime(due))}',
+                    title: Text(text.cardColor),
+                    subtitle: Text('#${card.raw['color']}'),
+                    leading: Icon(
+                      Icons.palette_outlined,
+                      color: Color(0xff000000 | card.rgbColor!),
                     ),
                   ),
                 if (labels.isNotEmpty)

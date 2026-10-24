@@ -91,6 +91,17 @@ class CardColumn extends StatelessWidget {
             key: ValueKey(card.id),
             child: ListTile(
               title: Text(card.title),
+              leading: card.rgbColor == null
+                  ? null
+                  : ExcludeSemantics(
+                      child: SizedBox(
+                        width: 6,
+                        height: 40,
+                        child: ColoredBox(
+                          color: Color(0xff000000 | card.rgbColor!),
+                        ),
+                      ),
+                    ),
               subtitle: card.description.isEmpty
                   ? null
                   : Text(

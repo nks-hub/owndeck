@@ -13,6 +13,43 @@ DeckClient client(http.Client transport) => DeckClient(
 );
 
 void main() {
+  test('extended fields are offered only for a verified release family', () {
+    DeckCapabilities capabilities(String version) => DeckCapabilities(
+      version: version,
+      apiVersion: '1.1',
+      canCreateBoards: true,
+    );
+    expect(capabilities('1.18.0').supportsExtendedCardFields, isFalse);
+    expect(capabilities('1.19.1').supportsExtendedCardFields, isTrue);
+    expect(capabilities('unknown').supportsExtendedCardFields, isFalse);
+  });
+
+  test(
+    'renaming preserves start and color while explicit null clears them',
+    () {
+      final card = DeckCard.fromJson({
+        'id': 1,
+        'stackId': 2,
+        'title': 'Task',
+        'description': 'Text',
+        'order': 0,
+        'archived': false,
+        'type': 'plain',
+        'owner': 'user',
+        'startdate': '2026-11-01T08:00:00Z',
+        'duedate': '2026-11-02T12:00:00Z',
+        'color': '008080',
+      });
+      final rename = card.updateBody({'title': 'Renamed'});
+      expect(rename['startdate'], '2026-11-01T08:00:00Z');
+      expect(rename['color'], '008080');
+      final clear = card.updateBody({'startdate': null, 'color': null});
+      expect(clear.containsKey('startdate'), isTrue);
+      expect(clear['startdate'], isNull);
+      expect(clear['color'], isNull);
+      expect(clear['duedate'], '2026-11-02T12:00:00Z');
+    },
+  );
   test('preserves installation subdirectory and REST response shape', () async {
     late Uri received;
     final transport = MockClient((request) async {

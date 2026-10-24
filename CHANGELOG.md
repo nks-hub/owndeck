@@ -26,5 +26,6 @@
 - Search Deck recipients and manage user, group, team, and federated board sharing.
 - Recheck sharing rights before sending; distinguish share permission from management permission.
 - Create, rename, recolor, and delete labels, including dependent offline assignments.
+- Edit and restore card start dates and custom colors on supported servers.
 
 Automated and device acceptance tests are scheduled after feature development. This version has not been distributed.

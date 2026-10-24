@@ -1,6 +1,6 @@
 # Testovací plán
 
-Testy se připravují při vývoji a spustí až po jeho dokončení podle zadání. Fyzické S9/S21 jsou poslední ověřovací etapa. Zatím nebyl spuštěn žádný test OwnDeck aplikace; aplikace ještě není vytvořená.
+Testy se připravují při vývoji a spustí až po jeho dokončení podle zadání. Fyzické S9/S21 jsou poslední ověřovací etapa. Běhové testy OwnDecku zatím nebyly spuštěné. Během implementace probíhá statická kontrola typů a stylu; ta neprokazuje funkčnost na serveru ani zařízení.
 
 ## Automatické ověření po vývoji
 

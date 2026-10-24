@@ -16,10 +16,10 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] D03 Implementovány nástěnky, sloupce, oprávnění, archivace a sdílení; runtime důkazy zůstávají v T01–T03.
 - [x] D03a Implementováno vytváření a úpravy nástěnek/sloupců, archivace, mazání a obnova nástěnky, oddělená práva edit/manage a řazení sloupců; runtime ověření čeká na T01–T03.
 - [x] D03b Doplněno hledání uživatelů/skupin/týmů a externích příjemců, vytvoření/změna/odebrání ACL, omezení udělovaných práv a vyřazení cache po ztrátě přístupu; 6 metadata scénářů a 1 hledací scénář připraveny pro T01.
-- [ ] D04 Implementovat karty, popis, termíny, štítky, přiřazení, dokončení a přesuny.
+- [x] D04 Implementovány karty, popis, termíny, štítky, přiřazení, dokončení a přesuny; ověření běhu zůstává v T01–T03.
 - [x] D04a Přidán editor názvu, popisu a termínu, volba dokončení u karet s podporovaným polem a lokálně uložené vytvoření/úprava; ověření běhu čeká na T01.
 - [x] D04b Implementován přesun přes nabídku a řazení tažením uvnitř sloupce, archiv/obnova/smazání karty, přiřazení existujících štítků a uživatelů, živý detail a Markdown bez automatického stahování externích obrázků; 5 scénářů akcí připraveno pro T01.
-- [ ] D04c Dokončit doplňková pole karty (začátek a barva), ověřit všechny podporované operace v T01/T02.
+- [x] D04c Doplněn začátek, volitelná barva, zachování hodnot v konceptu a skrytí nepodporovaných polí; 2 protokolové scénáře připraveny, ověření operací zůstává v T01/T02.
 - [x] D04d Implementováno vytváření, přejmenování, změna barvy a mazání štítků včetně návazné fronty přiřazení a odstranění smazaného štítku z místní kopie karet.
 - [ ] D05 Implementovat komentáře, přílohy a návazné soubory.
 - [x] D05a Implementováno stránkované čtení komentářů, odpovědi, úprava/smazání autorem, serverové UID a průběžně uložené koncepty; 4 protokolové a 6 databázových scénářů připraveno pro T01.
@@ -39,4 +39,4 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [ ] T02 Ověřit skutečný Nextcloud server, oba buildy a příjem bezpečných telemetrických událostí.
 - [ ] T03 Provést závěrečné fyzické testy S9 a S21 a samostatné ověření iOS; uložit důkazy s revizí.
 
-Aktuální krok: doplňková pole karty (D04c), přílohy (D05) a další otevřené D body. Nástěnky/sloupce, sdílení, štítky, základní akce karet, komentáře a koncepty jsou implementované. Statická kontrola aplikace i obou balíků je po doplnění sdílení bez nálezů. Běhové testy protokolu a databáze jsou připravené, dosud nespouštěné. Zaškrtnutí D bodů znamená dokončenou implementaci, nikoli úspěch testů; ty mají vlastní T body. Aplikace ani cílová zařízení zatím nebyly testované.
+Aktuální krok: přílohy (D05) a další otevřené D body. Nástěnky/sloupce, sdílení, štítky, akce karet, komentáře a koncepty jsou implementované. Statické kontroly dotčených částí jsou bez nálezů. Běhové testy protokolu a databáze jsou připravené, dosud nespouštěné. Zaškrtnutí D bodů znamená dokončenou implementaci, nikoli úspěch testů; ty mají vlastní T body. Aplikace ani cílová zařízení zatím nebyly testované.

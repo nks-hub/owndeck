@@ -144,7 +144,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get dueDate => 'Termín';
 
   @override
-  String get clearDate => 'Zrušit termín';
+  String get clearDate => 'Zrušit datum';
 
   @override
   String get completed => 'Dokončeno';
@@ -450,4 +450,17 @@ class AppLocalizationsCs extends AppLocalizations {
   @override
   String get alreadyShared =>
       'Příjemce už má přístup. Obnovte nástěnku a upravte existující sdílení.';
+
+  @override
+  String get startDate => 'Začátek';
+
+  @override
+  String get cardColor => 'Barva karty';
+
+  @override
+  String get optionalColor => 'Prázdné pole znamená bez vlastní barvy.';
+
+  @override
+  String get invalidDateRange =>
+      'Začátek musí být nejpozději v termínu dokončení.';
 }

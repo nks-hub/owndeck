@@ -49,11 +49,13 @@ class CardEditor extends StatefulWidget {
 class _CardEditorState extends State<CardEditor> {
   final _title = TextEditingController();
   final _description = TextEditingController();
+  final _color = TextEditingController();
   late final String _key =
       widget.draftKey ??
       '${widget.boardId}:${widget.stackId}:${widget.card?.id ?? 'new'}';
   DeckCard? _original;
   DateTime? _due;
+  DateTime? _start;
   bool _done = false;
   bool _dirty = false;
   bool _loading = true;
@@ -65,6 +67,10 @@ class _CardEditorState extends State<CardEditor> {
   int _persistedRevision = 0;
   String? _error;
   Future<void> _draftTail = Future.value();
+
+  bool _supports(String field) =>
+      _original?.raw.containsKey(field) == true ||
+      widget.session.capabilities?.supportsExtendedCardFields == true;
 
   @override
   void initState() {
@@ -97,6 +103,16 @@ class _CardEditorState extends State<CardEditor> {
           : stringField(saved, 'description');
       final due = saved == null ? _original?.raw['duedate'] : saved['duedate'];
       _due = DateTime.tryParse(due?.toString() ?? '')?.toLocal();
+      final start = saved?.containsKey('startdate') == true
+          ? saved!['startdate']
+          : _original?.raw['startdate'];
+      _start = DateTime.tryParse(start?.toString() ?? '')?.toLocal();
+      _color.text =
+          (saved?.containsKey('color') == true
+                  ? saved!['color']
+                  : _original?.raw['color'])
+              ?.toString() ??
+          '';
       _done = saved == null
           ? _original?.raw['done'] != null
           : saved['completed'] == true;
@@ -122,6 +138,8 @@ class _CardEditorState extends State<CardEditor> {
       'title': _title.text,
       'description': _description.text,
       'duedate': _due?.toUtc().toIso8601String(),
+      'startdate': _start?.toUtc().toIso8601String(),
+      'color': _color.text,
       'completed': _done,
     };
     final original = _original;
@@ -154,6 +172,20 @@ class _CardEditorState extends State<CardEditor> {
       setState(() => _error = text.invalidTitle);
       return;
     }
+    final color = _color.text.trim().replaceFirst('#', '');
+    if (_supports('color') &&
+        color.isNotEmpty &&
+        !RegExp(r'^[0-9a-fA-F]{6}$').hasMatch(color)) {
+      setState(() => _error = text.invalidColor);
+      return;
+    }
+    if (_supports('startdate') &&
+        _start != null &&
+        _due != null &&
+        _start!.isAfter(_due!)) {
+      setState(() => _error = text.invalidDateRange);
+      return;
+    }
     setState(() {
       _saving = true;
       _error = null;
@@ -166,11 +198,23 @@ class _CardEditorState extends State<CardEditor> {
       if (card == null || _description.text != card.description) {
         changes['description'] = _description.text;
       }
-      final oldDue = DateTime.tryParse(card?.raw['duedate']?.toString() ?? '');
-      if (_due == null
-          ? oldDue != null
-          : oldDue == null || !_due!.isAtSameMomentAs(oldDue)) {
-        changes['duedate'] = _due?.toUtc().toIso8601String();
+      for (final field in {
+        'duedate': _due,
+        if (_supports('startdate')) 'startdate': _start,
+      }.entries) {
+        final previous = DateTime.tryParse(
+          card?.raw[field.key]?.toString() ?? '',
+        );
+        final value = field.value;
+        if (value == null
+            ? previous != null
+            : previous == null || !value.isAtSameMomentAs(previous)) {
+          changes[field.key] = value?.toUtc().toIso8601String();
+        }
+      }
+      if (_supports('color')) {
+        final value = color.isEmpty ? null : color.toLowerCase();
+        if (value != card?.raw['color']) changes['color'] = value;
       }
       if (card != null &&
           card.raw.containsKey('done') &&
@@ -246,8 +290,8 @@ class _CardEditorState extends State<CardEditor> {
     if (leave == true && mounted) _close();
   }
 
-  Future<void> _chooseDate() async {
-    final initial = _due ?? DateTime.now();
+  Future<void> _chooseDate({bool start = false}) async {
+    final initial = (start ? _start : _due) ?? DateTime.now();
     final day = await showDatePicker(
       context: context,
       initialDate: initial,
@@ -260,21 +304,59 @@ class _CardEditorState extends State<CardEditor> {
       initialTime: TimeOfDay.fromDateTime(initial),
     );
     if (time == null || !mounted) return;
-    _due = DateTime(day.year, day.month, day.day, time.hour, time.minute);
+    final value = DateTime(
+      day.year,
+      day.month,
+      day.day,
+      time.hour,
+      time.minute,
+    );
+    if (start) {
+      _start = value;
+    } else {
+      _due = value;
+    }
     _changed();
+  }
+
+  Widget _dateTile(
+    String label,
+    DateTime? value,
+    VoidCallback choose,
+    VoidCallback clear,
+  ) {
+    final text = AppLocalizations.of(context)!;
+    final locale = MaterialLocalizations.of(context);
+    return ListTile(
+      title: Text(label),
+      leading: const Icon(Icons.event_outlined),
+      subtitle: value == null
+          ? null
+          : Text(
+              '${locale.formatMediumDate(value)} ${locale.formatTimeOfDay(TimeOfDay.fromDateTime(value))}',
+            ),
+      onTap: _saving ? null : choose,
+      trailing: value == null
+          ? null
+          : IconButton(
+              tooltip: '${text.clearDate}: $label',
+              icon: const Icon(Icons.close),
+              onPressed: _saving ? null : clear,
+            ),
+    );
   }
 
   @override
   void dispose() {
     _title.dispose();
     _description.dispose();
+    _color.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context)!;
-    final locale = MaterialLocalizations.of(context);
     return PopScope(
       canPop: _allowPop || !_dirty && !_saving && !_loading,
       onPopInvokedWithResult: _back,
@@ -317,28 +399,34 @@ class _CardEditorState extends State<CardEditor> {
                       onChanged: (_) => _changed(),
                     ),
                     const SizedBox(height: 16),
-                    ListTile(
-                      title: Text(text.dueDate),
-                      leading: const Icon(Icons.event_outlined),
-                      subtitle: _due == null
-                          ? null
-                          : Text(
-                              '${locale.formatMediumDate(_due!)} ${locale.formatTimeOfDay(TimeOfDay.fromDateTime(_due!))}',
-                            ),
-                      onTap: _saving ? null : _chooseDate,
-                      trailing: _due == null
-                          ? null
-                          : IconButton(
-                              tooltip: text.clearDate,
-                              icon: const Icon(Icons.close),
-                              onPressed: _saving
-                                  ? null
-                                  : () {
-                                      _due = null;
-                                      _changed();
-                                    },
-                            ),
-                    ),
+                    if (_supports('startdate'))
+                      _dateTile(
+                        text.startDate,
+                        _start,
+                        () => _chooseDate(start: true),
+                        () {
+                          _start = null;
+                          _changed();
+                        },
+                      ),
+                    _dateTile(text.dueDate, _due, _chooseDate, () {
+                      _due = null;
+                      _changed();
+                    }),
+                    if (_supports('color'))
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: TextField(
+                          controller: _color,
+                          enabled: !_saving,
+                          onChanged: (_) => _changed(),
+                          decoration: InputDecoration(
+                            labelText: text.cardColor,
+                            hintText: '008080',
+                            helperText: text.optionalColor,
+                          ),
+                        ),
+                      ),
                     if (_original?.raw.containsKey('done') == true)
                       SwitchListTile(
                         title: Text(text.completed),
