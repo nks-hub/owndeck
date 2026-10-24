@@ -17,6 +17,12 @@ try {
     $env:ANDROID_HOME = $config.androidHome
     $env:ANDROID_SDK_ROOT = $config.androidHome
     $env:JAVA_HOME = $config.javaHome
+    # Kotlin's incremental path converter cannot relativize plugin sources across volumes.
+    $env:PUB_CACHE = if ($config.pubCache) { $config.pubCache } else { Join-Path (Split-Path $config.sourceRoot -Parent) 'pub-cache' }
+    if (-not [string]::Equals([IO.Path]::GetPathRoot($env:PUB_CACHE), [IO.Path]::GetPathRoot($config.sourceRoot), [StringComparison]::OrdinalIgnoreCase)) {
+        throw 'pub_cache_volume_mismatch'
+    }
+    New-Item -ItemType Directory -Path $env:PUB_CACHE -Force | Out-Null
     $env:ORG_GRADLE_PROJECT_candidate = 'true'
     $env:GRADLE_OPTS = '-Dorg.gradle.workers.max=2 -Dorg.gradle.jvmargs=-Xmx3G -Dorg.gradle.daemon=false'
     Set-Location -LiteralPath (Join-Path $config.sourceRoot 'apps\mobile')
