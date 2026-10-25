@@ -9,6 +9,7 @@ import '../core/app_preferences.dart';
 import '../data/session.dart';
 import '../l10n/app_localizations.dart';
 import 'board_layout.dart';
+import 'board_presence.dart';
 import 'board_filters.dart';
 import 'quick_add_card.dart';
 import 'structure_editor.dart';
@@ -93,9 +94,6 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
             }
           },
         );
-    scheduleMicrotask(() {
-      if (mounted && binding == _binding) session.openBoard(widget.board.id);
-    });
   }
 
   @override
@@ -104,7 +102,6 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
     if (oldWidget.session != widget.session ||
         oldWidget.board.id != widget.board.id) {
       unawaited(_boardChanges?.cancel());
-      oldWidget.session.closeBoard(oldWidget.board.id);
       _showArchived = false;
       _filter = const BoardCardFilter();
       _query.clear();
@@ -118,7 +115,6 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
     _filterClock?.cancel();
     _query.dispose();
     unawaited(_boardChanges?.cancel());
-    widget.session.closeBoard(widget.board.id);
     super.dispose();
   }
 
@@ -155,7 +151,13 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => BoardPresence(
+    session: widget.session,
+    boardId: _board.id,
+    child: _content(context),
+  );
+
+  Widget _content(BuildContext context) {
     final text = AppLocalizations.of(context)!;
     final session = widget.session;
     final preferences = ref.watch(appPreferencesProvider);

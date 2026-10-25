@@ -12,6 +12,7 @@ import '../data/card_edits.dart';
 import '../l10n/app_localizations.dart';
 import 'card_editor.dart';
 import 'board_moves.dart';
+import 'board_presence.dart';
 import 'card_description.dart';
 import 'card_summary.dart';
 import 'card_selection_sheet.dart';
@@ -24,7 +25,7 @@ import 'card_links.dart';
 
 part 'card_actions_ui.dart';
 
-class CardScreen extends StatefulWidget {
+class CardScreen extends StatelessWidget {
   const CardScreen({
     super.key,
     required this.session,
@@ -35,10 +36,34 @@ class CardScreen extends StatefulWidget {
   final DeckBoard board;
   final DeckCard card;
   @override
-  State<CardScreen> createState() => _CardScreenState();
+  Widget build(BuildContext context) => BoardPresence(
+    session: session,
+    boardId: board.id,
+    child: _CardContent(
+      key: ValueKey((session, board.id, card.id)),
+      session: session,
+      board: board,
+      card: card,
+    ),
+  );
 }
 
-class _CardScreenState extends State<CardScreen> {
+class _CardContent extends StatefulWidget {
+  const _CardContent({
+    super.key,
+    required this.session,
+    required this.board,
+    required this.card,
+  });
+  final DeckSession session;
+  final DeckBoard board;
+  final DeckCard card;
+
+  @override
+  State<_CardContent> createState() => _CardScreenState();
+}
+
+class _CardScreenState extends State<_CardContent> {
   bool _copying = false;
   bool _savingDone = false;
   late final _stacks = widget.session.watchStacks(widget.board.id);

@@ -63,7 +63,7 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
         );
     _timer = Timer.periodic(pollInterval, (_) {
       if (_foreground &&
-          (_openBoards.isNotEmpty || _hasPending) &&
+          (_visibleBoards.isNotEmpty || _hasPending) &&
           !(client.retryUntil?.isAfter(DateTime.now().toUtc()) ?? false)) {
         _refreshVisible();
       }
@@ -165,7 +165,7 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
   late final StreamSubscription<List<ConnectivityResult>> _connection;
   late final StreamSubscription<List<PendingWrite>> _pending;
   late final Timer _timer;
-  final _openBoards = <int>{};
+  final _visibleBoards = <Object, int>{};
   bool _foreground = true;
   bool _hasPending = false;
   bool _refreshBoardListOnResume = false;
@@ -175,13 +175,20 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
   DeckCapabilities? capabilities;
   String? userId;
 
-  void openBoard(int boardId) {
+  void setVisibleBoard(Object owner, int? boardId) {
     if (_disposed) return;
-    _openBoards.add(boardId);
-    unawaited(refreshStacks(boardId));
+    if (boardId == null) {
+      _visibleBoards.remove(owner);
+      return;
+    }
+    if (_visibleBoards[owner] == boardId) return;
+    _visibleBoards[owner] = boardId;
+    scheduleMicrotask(() {
+      if (!_disposed && _foreground && _visibleBoards[owner] == boardId) {
+        unawaited(refreshStacks(boardId));
+      }
+    });
   }
-
-  void closeBoard(int boardId) => _openBoards.remove(boardId);
 
   void refreshBoardsOnNextResume() {
     if (!_disposed) _refreshBoardListOnResume = true;
@@ -189,10 +196,10 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
 
   void _refreshVisible() {
     if (_disposed || !_foreground) return;
-    if (_openBoards.isEmpty) {
-      unawaited(refreshBoards());
+    if (_visibleBoards.isEmpty) {
+      if (_hasPending) unawaited(refreshBoards());
     } else {
-      for (final id in _openBoards) {
+      for (final id in _visibleBoards.values.toSet()) {
         unawaited(refreshStacks(id));
       }
     }
@@ -206,7 +213,7 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
       _refreshBoardListOnResume = false;
       unawaited(
         refreshBoards().then((_) {
-          if (!_disposed && _openBoards.isNotEmpty) _refreshVisible();
+          if (!_disposed && _visibleBoards.isNotEmpty) _refreshVisible();
         }),
       );
     } else {
@@ -402,6 +409,7 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
   @override
   void dispose() {
     _disposed = true;
+    _visibleBoards.clear();
     sync.close();
     _timer.cancel();
     unawaited(_connection.cancel());

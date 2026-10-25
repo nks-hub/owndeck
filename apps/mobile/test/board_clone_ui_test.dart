@@ -390,7 +390,7 @@ void main() {
     (tester) async {
       await _using(tester, (fixture) async {
         final session = fixture.session;
-        session.openBoard(1);
+        session.setVisibleBoard(Object(), 1);
         await _until(tester, () => !session.loading('board:1'));
         fixture.requests.clear();
         await openDeckWeb(
