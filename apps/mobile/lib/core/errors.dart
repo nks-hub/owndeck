@@ -7,11 +7,17 @@ String errorMessage(Object error, AppLocalizations text) {
   final code = switch (error) {
     DeckException() => error.code,
     LoginException() => error.code,
+    StateError() => error.message,
     _ => '',
   };
   return switch (code) {
     'authentication_required' => text.authError,
     'permission_denied' => text.permissionError,
+    'pending_decision' => text.pendingDecision,
+    'account_unavailable' => text.authError,
+    'invalid_destination' || 'invalid_position' => text.invalidDestination,
+    'not_found' || 'card_unavailable' => text.cardUnavailable,
+    'concurrent_edit' => text.conflict,
     'deck_unavailable' => text.deckError,
     'tls_failed' => text.certError,
     'rate_limited' => text.rateLimited,
