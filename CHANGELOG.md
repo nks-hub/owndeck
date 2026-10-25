@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.1.0 (unreleased)
+## 0.1.0 (2) - 2026-10-25
+
+Submitted to Google Play closed testing (alpha); awaiting Google review.
 
 - Add Nextcloud Login Flow v2 and multiple account selection.
 - Store account metadata in SQLite and app passwords separately in secure storage.
@@ -34,5 +36,6 @@
 - Preserve server retry delays across restarts and resume queued changes from the board list.
 - Match suite sign-in screens, add OwnDeck launcher icons and fix keyboard handling in landscape dialogs.
 - Add optional CI-configured Sentry and Rybbit with separate persistent opt-out switches.
+- Use system file-picker grants without broad media, storage or microphone permissions on Android.
 
-Automated and Android device checks run during development. See `docs/testing.md` for tested revisions and limits. This version has not been distributed.
+Automated and Android device checks run during development. See `docs/testing.md` for tested revisions and limits. Google Play tester availability depends on review approval.

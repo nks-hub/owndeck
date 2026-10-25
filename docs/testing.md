@@ -77,6 +77,11 @@ Na stejném kandidátu S21 následně prošel celý tok s odděleným lokálním
 | `14318f5` | Nový oddělený checkout: 108 protokolových, 77 databázových a 88 mobilních testů, žádné chyby ani přeskočení; všechny tři analyzery bez nálezů. | Zahrnuje opravené dialogy při 100/200% textu i obnovu fronty bez otevřené nástěnky. |
 | `f47135f` | Podepsaný AAB 0.1.0+1: validace bundletool, kontrola podpisu všech 356 obsahových položek, package/verze, vlastní ikony, obě telemetrie bez probe a veřejné odkazy na soukromí. Odkaz má 7 cílených widget testů. | Sestavení samo nedokládá přijetí v Google Play. |
 | `f47135f` | [CI 40143408518](https://github.com/nks-hub/owndeck/actions/runs/40143408518): všech pět úloh prošlo, tedy testy/analyzery všech tří balíků a sestavení Android/iOS. | Oba CI buildy jsou bez telemetrie; podepsaný Android s telemetrií dokládá předchozí řádek. |
+| `7d13eb6` | [CI 40144410421](https://github.com/nks-hub/owndeck/actions/runs/40144410421): všech pět úloh prošlo. AAB 0.1.0+2 neobsahuje plošná oprávnění k médiím, úložišti ani mikrofonu, převzatá z knihoven. | AAB vznikl z `efbe085`, jeho Git strom je shodný s `7d13eb6`; hash stromu byl přímo porovnán. Fyzické přílohy se ověřují samostatně. |
+
+## Google Play 0.1.0+2
+
+Publikační API potvrdilo kanál alpha, pouze versionCode 2, stav tracku `completed` a samostatný stav kontroly `RELEASE_LIFECYCLE_STATE_IN_REVIEW`. `completed` zde neznamená, že Google kontrolu dokončil. AAB SHA-256: `2f923fe2e7105d173403b63ed5f8a6da2969edca67c836fea83c4451d9daa360`. Ověřená je shoda všech tří skupin s referenční aplikací, cs/en texty a hashe ikony, grafiky a dvou finálních snímků. Dostupnost testerům se ověří po schválení.
 
 ## Výkon na Androidu
 
