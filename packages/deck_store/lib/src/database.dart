@@ -196,7 +196,9 @@ class DeckDatabase extends _$DeckDatabase {
       }
       if (from < 6) {
         await m.addColumn(storedAccounts, storedAccounts.userId);
-        await m.addColumn(editorDrafts, editorDrafts.kind);
+        if (from >= 4) {
+          await m.addColumn(editorDrafts, editorDrafts.kind);
+        }
         await m.createTable(storedComments);
       }
       if (from < 7) {
