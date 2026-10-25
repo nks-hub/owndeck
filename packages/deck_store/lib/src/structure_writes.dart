@@ -203,14 +203,16 @@ extension StructureWrites on DeckDatabase {
     final board = DeckBoard.fromJson(object(jsonDecode(row.payload)));
     if (!board.permissions.read || board.deletedAt != 0) return false;
     final epoch = (await this.account(account.id))!.contentEpoch;
-    await saveStacks(
+    if (!await saveStacks(
       account.id,
       account.generation,
       write.boardId,
       stacks,
       null,
       contentEpoch: epoch,
-    );
+    )) {
+      return false;
+    }
     await (update(pendingWrites)..where((w) => w.id.equals(write.id))).write(
       const PendingWritesCompanion(
         state: Value('confirmed'),

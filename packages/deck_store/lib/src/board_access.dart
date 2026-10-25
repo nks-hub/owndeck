@@ -7,7 +7,8 @@ extension BoardAccessStore on DeckDatabase {
       ..where(
         storedCards.accountId.equals(accountId) &
             storedCards.boardId.equals(boardId) &
-            storedCards.remoteId.equals(cardId),
+            storedCards.remoteId.equals(cardId) &
+            _presentCardSnapshot,
       );
     return await query.getSingleOrNull() != null;
   }
@@ -15,7 +16,7 @@ extension BoardAccessStore on DeckDatabase {
   Future<Set<(int, int)>> cachedCardScopes(String accountId) async {
     final query = selectOnly(storedCards)
       ..addColumns([storedCards.boardId, storedCards.remoteId])
-      ..where(storedCards.accountId.equals(accountId));
+      ..where(storedCards.accountId.equals(accountId) & _presentCardSnapshot);
     return {
       for (final row in await query.get())
         (row.read(storedCards.boardId)!, row.read(storedCards.remoteId)!),

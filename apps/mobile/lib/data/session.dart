@@ -226,86 +226,111 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
     await sync.run();
     capabilities = await client.capabilities();
     await database.saveCapabilities(account, capabilities!);
-    final cached = await database.checkpoint(account.id, 'boards');
-    final epoch = (await database.account(account.id))?.contentEpoch;
-    final response = await client.rest('GET', ['boards'], etag: cached?.etag);
-    if (_disposed || response.notModified) return;
-    final boards = objects(response.data).map(DeckBoard.fromJson).toList();
-    await database.saveBoards(
-      account.id,
-      account.generation,
-      boards,
-      response.etag,
-      contentEpoch: epoch,
-    );
+    for (var attempt = 0; attempt < 3; attempt++) {
+      await _prepareRequest();
+      final cached = await database.checkpoint(account.id, 'boards');
+      final epoch = (await database.account(account.id))?.contentEpoch;
+      if (_disposed) return;
+      if (epoch == null) throw StateError('account_unavailable');
+      final response = await client.rest('GET', ['boards'], etag: cached?.etag);
+      if (_disposed) return;
+      if (response.notModified) {
+        if (await _currentSnapshot(epoch)) return;
+        continue;
+      }
+      final boards = objects(response.data).map(DeckBoard.fromJson).toList();
+      if (await database.saveBoards(
+        account.id,
+        account.generation,
+        boards,
+        response.etag,
+        contentEpoch: epoch,
+      )) {
+        return;
+      }
+    }
+    throw StateError('stale_response');
   });
 
-  Future<void> refreshStacks(int boardId) => _refresh(
-    'board:$boardId',
-    () async {
-      await sync.run();
-      final resolved = await database.resolveId(
-        account.id,
-        boardId,
-        'createBoard',
-      );
-      if (resolved == null) return;
-      final cached = await database.checkpoint(account.id, 'board:$resolved');
-      final epoch = (await database.account(account.id))?.contentEpoch;
-      if (_disposed || epoch == null) return;
-      final details = await _readAccessibleBoard(resolved);
-      if (_disposed) return;
-      await database.saveBoard(account, details, epoch);
-      if (details.deletedAt != 0) return;
-      late DeckResponse response;
-      late List<DeckStack> archived;
-      try {
-        response = await client.rest('GET', [
+  Future<bool> _currentSnapshot(int epoch) async {
+    final current = await database.account(account.id);
+    return current?.state == 'active' &&
+        current?.generation == account.generation &&
+        current?.contentEpoch == epoch;
+  }
+
+  Future<void> refreshStacks(int boardId) =>
+      _refresh('board:$boardId', () async {
+        await sync.run();
+        final resolved = await database.resolveId(
+          account.id,
+          boardId,
+          'createBoard',
+        );
+        if (resolved == null) return;
+        for (var attempt = 0; attempt < 3; attempt++) {
+          if (await _readStackSnapshot(resolved)) return;
+        }
+        throw StateError('stale_response');
+      });
+
+  Future<bool> _readStackSnapshot(int resolved) async {
+    await _prepareRequest();
+    final cached = await database.checkpoint(account.id, 'board:$resolved');
+    final epoch = (await database.account(account.id))?.contentEpoch;
+    if (_disposed) return true;
+    if (epoch == null) throw StateError('account_unavailable');
+    final details = await _readAccessibleBoard(resolved);
+    if (_disposed) return true;
+    await database.saveBoard(account, details, epoch);
+    if (details.deletedAt != 0) return _currentSnapshot(epoch);
+    late DeckResponse response;
+    late List<DeckStack> archived;
+    try {
+      response = await client.rest('GET', [
+        'boards',
+        '$resolved',
+        'stacks',
+      ], etag: cached?.etag);
+      if (_disposed) return true;
+      if (response.notModified) return _currentSnapshot(epoch);
+      archived = objects(
+        (await client.rest('GET', [
           'boards',
           '$resolved',
           'stacks',
-        ], etag: cached?.etag);
-        if (_disposed || response.notModified) return;
-        archived = objects(
-          (await client.rest('GET', [
-            'boards',
-            '$resolved',
-            'stacks',
-            'archived',
-          ])).data,
-        ).map(DeckStack.fromJson).toList();
-      } on DeckException catch (error) {
-        if (error.status == 403 || error.status == 404) {
-          await _readAccessibleBoard(resolved);
-        }
-        rethrow;
+          'archived',
+        ])).data,
+      ).map(DeckStack.fromJson).toList();
+    } on DeckException catch (error) {
+      if (error.status == 403 || error.status == 404) {
+        await _readAccessibleBoard(resolved);
       }
-      if (_disposed || response.notModified) return;
-      final active = objects(response.data).map(DeckStack.fromJson).toList();
-      if (_disposed) return;
-      final combined = {for (final stack in active) stack.id: stack};
-      for (final stack in archived) {
-        final previous = combined[stack.id];
-        final cards = {
-          for (final card in previous?.cards ?? <DeckCard>[]) card.id: card.raw,
-          for (final card in stack.cards) card.id: card.raw,
-        };
-        combined[stack.id] = DeckStack.fromJson({
-          ...stack.raw,
-          'cards': cards.values.toList(),
-        });
-      }
-      final stacks = combined.values.toList();
-      await database.saveStacks(
-        account.id,
-        account.generation,
-        resolved,
-        stacks,
-        response.etag,
-        contentEpoch: epoch,
-      );
-    },
-  );
+      rethrow;
+    }
+    if (_disposed) return true;
+    final active = objects(response.data).map(DeckStack.fromJson).toList();
+    final combined = {for (final stack in active) stack.id: stack};
+    for (final stack in archived) {
+      final previous = combined[stack.id];
+      final cards = {
+        for (final card in previous?.cards ?? <DeckCard>[]) card.id: card.raw,
+        for (final card in stack.cards) card.id: card.raw,
+      };
+      combined[stack.id] = DeckStack.fromJson({
+        ...stack.raw,
+        'cards': cards.values.toList(),
+      });
+    }
+    return database.saveStacks(
+      account.id,
+      account.generation,
+      resolved,
+      combined.values.toList(),
+      response.etag,
+      contentEpoch: epoch,
+    );
+  }
 
   Future<void> refreshComments(int cardId) =>
       _refresh('comments:$cardId', () async {

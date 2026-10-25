@@ -157,14 +157,16 @@ extension StackReordering on DeckDatabase {
     final current = await _ownedAppliedWrite(account, owner, write, epoch);
     if (current?.kind != 'stackReorder') return false;
     if (stacks != null) {
-      await saveStacks(
+      if (!await saveStacks(
         account.id,
         account.generation,
         write.boardId,
         stacks,
         null,
         contentEpoch: epoch,
-      );
+      )) {
+        return false;
+      }
     }
     await (update(
       pendingWrites,

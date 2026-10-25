@@ -270,17 +270,17 @@ class DeckDatabase extends _$DeckDatabase {
           ))
           .getSingleOrNull();
 
-  Future<void> saveBoards(
+  Future<bool> saveBoards(
     String accountId,
     int generation,
     List<DeckBoard> boards,
     String? etag, {
     int? contentEpoch,
   }) => transaction(() async {
-    if (!await accepts(accountId, generation)) return;
+    if (!await accepts(accountId, generation)) return false;
     if (contentEpoch != null &&
         (await account(accountId))?.contentEpoch != contentEpoch) {
-      return;
+      return false;
     }
     final ids = boards
         .where((b) => b.permissions.read)
@@ -313,9 +313,10 @@ class DeckDatabase extends _$DeckDatabase {
       );
     }
     await _checkpoint(accountId, 'boards', etag);
+    return true;
   });
 
-  Future<void> saveStacks(
+  Future<bool> saveStacks(
     String accountId,
     int generation,
     int boardId,
@@ -323,10 +324,10 @@ class DeckDatabase extends _$DeckDatabase {
     String? etag, {
     int? contentEpoch,
   }) => transaction(() async {
-    if (!await accepts(accountId, generation)) return;
+    if (!await accepts(accountId, generation)) return false;
     if (contentEpoch != null &&
         (await account(accountId))?.contentEpoch != contentEpoch) {
-      return;
+      return false;
     }
     final previous = {
       for (final card in await (select(
@@ -343,7 +344,7 @@ class DeckDatabase extends _$DeckDatabase {
         if (card.stackId != stack.id || !ids.add(card.id)) {
           throw const FormatException('card_stack_mismatch');
         }
-        if (_olderCardSnapshot(card, previous[card.id])) return;
+        if (_olderCardSnapshot(card, previous[card.id])) return false;
       }
     }
     final movedScopes = <int>{};
@@ -351,6 +352,14 @@ class DeckDatabase extends _$DeckDatabase {
           (c) => c.accountId.equals(accountId) & c.boardId.equals(boardId),
         ))
         .go();
+    if (await _retainMissingCardIdentities(
+      accountId,
+      previous.values.where(
+        (card) => card.boardId == boardId && !ids.contains(card.remoteId),
+      ),
+    )) {
+      movedScopes.add(boardId);
+    }
     await (delete(storedStacks)..where(
           (s) => s.accountId.equals(accountId) & s.boardId.equals(boardId),
         ))
@@ -379,6 +388,7 @@ class DeckDatabase extends _$DeckDatabase {
       await invalidateMutation(accountId, scope);
     }
     await _checkpoint(accountId, 'board:$boardId', etag);
+    return true;
   });
 
   Future<void> _checkpoint(String accountId, String scope, String? etag) =>

@@ -286,6 +286,7 @@ extension DeckViews on DeckDatabase {
               ]))
             .get();
     for (final card in cards) {
+      if (_missingCardSnapshot(card)) continue;
       final stack = stacks[card.stackId];
       if (stack != null) {
         (stack['cards'] as List<JsonObject>).add(
@@ -402,7 +403,9 @@ extension DeckViews on DeckDatabase {
                   ))
                   .getSingleOrNull();
           if (observed != null &&
-              (observed.boardId != boardId || observed.stackId != stackId)) {
+              (_missingCardSnapshot(observed) ||
+                  observed.boardId != boardId ||
+                  observed.stackId != stackId)) {
             continue;
           }
         }
