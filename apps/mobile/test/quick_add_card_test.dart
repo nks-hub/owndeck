@@ -401,4 +401,52 @@ void main() {
       }
     },
   );
+
+  testWidgets('quick add submit stays above navigation and keyboard insets', (
+    tester,
+  ) async {
+    final fixture = (await tester.runAsync(() => BoardFixture.create()))!;
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.viewPadding = const FakeViewPadding(bottom: 48);
+    tester.view.padding = const FakeViewPadding(bottom: 48);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetViewPadding);
+    addTearDown(tester.view.resetPadding);
+    addTearDown(tester.view.resetViewInsets);
+    try {
+      await tester.pumpWidget(
+        composer(fixture, AppPreferences(store: MemoryBoardPreferences())),
+      );
+      await openComposer(tester);
+      await tester.enterText(field('Card title'), 'Reachable submit');
+      await settleBoard(tester);
+      final submit = find.widgetWithText(FilledButton, 'Add card');
+      for (final keyboard in [0.0, 300.0]) {
+        tester.view.viewInsets = FakeViewPadding(bottom: keyboard);
+        tester.view.padding = FakeViewPadding(bottom: keyboard == 0 ? 48 : 0);
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(submit);
+        await tester.pumpAndSettle();
+        expect(
+          tester.getBottomRight(submit).dy,
+          lessThanOrEqualTo(800 - (keyboard == 0 ? 48 : keyboard)),
+        );
+        expect(submit.hitTestable(), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      }
+      await tester.tap(submit);
+      await settleBoard(tester);
+      final writes = await boardModel(
+        tester,
+        fixture.db.select(fixture.db.pendingWrites).get(),
+      );
+      expect(writes.where((write) => write.kind == 'createCard'), hasLength(1));
+      expect(jsonDecode(writes.single.proposal)['title'], 'Reachable submit');
+    } finally {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await boardModel(tester, fixture.close());
+    }
+  });
 }
