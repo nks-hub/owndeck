@@ -46,11 +46,14 @@ final class DeckCapabilities {
   final String apiVersion;
   final bool canCreateBoards;
 
-  bool get supportsExtendedCardFields {
+  bool get supportsExtendedCardFields => _supportsVersion(18);
+  bool get supportsBoardCloning => _supportsVersion(19);
+
+  bool _supportsVersion(int minor) {
     final match = RegExp(r'^(\d+)\.(\d+)').firstMatch(version);
     if (match == null) return false;
     final major = int.parse(match[1]!);
-    return major > 1 || major == 1 && int.parse(match[2]!) >= 18;
+    return major > 1 || major == 1 && int.parse(match[2]!) >= minor;
   }
 }
 
