@@ -1,0 +1,54 @@
+name: Verify pinned Nextcloud compatibility
+on:
+  workflow_dispatch:
+  workflow_call:
+permissions:
+  contents: read
+concurrency:
+  group: nextcloud-compatibility-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  deck:
+    if: github.repository == 'nks-hub/owndeck' && github.event.repository.private && github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      CI: 'true'
+      FLUTTER_SUPPRESS_ANALYTICS: 'true'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          flutter-version: '3.44.4'
+          channel: stable
+          cache: true
+      - run: dart pub get --enforce-lockfile
+        working-directory: packages/deck_protocol
+      - name: Start pinned isolated server
+        env:
+          COMPAT_RUNNER_ENV: ${{ runner.environment }}
+        run: python3 tool/nextcloud_compatibility.py prepare
+      - name: Verify clone options and shared-board permissions
+        run: dart run tool/nextcloud_compatibility.dart "$COMPAT_CONFIG" "$COMPAT_REPORT" clone
+        working-directory: packages/deck_protocol
+      - name: Restrict board creation inside the fixture
+        env:
+          COMPAT_RUNNER_ENV: ${{ runner.environment }}
+        run: python3 tool/nextcloud_compatibility.py restrict-creation
+      - name: Verify server-side canCreateBoards enforcement
+        run: dart run tool/nextcloud_compatibility.dart "$COMPAT_CONFIG" "$COMPAT_REPORT" creation-denied
+        working-directory: packages/deck_protocol
+      - name: Remove owned server and private files
+        if: always()
+        env:
+          COMPAT_RUNNER_ENV: ${{ runner.environment }}
+        run: python3 tool/nextcloud_compatibility.py cleanup
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: nextcloud-35-deck-1.19.1-${{ github.sha }}
+          path: ${{ runner.temp }}/owndeck-compat-report-${{ github.run_id }}-${{ github.run_attempt }}/*.json
+          if-no-files-found: error
+          retention-days: 7
