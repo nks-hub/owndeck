@@ -14,6 +14,7 @@ import sys
 import tarfile
 import time
 import urllib.request
+import urllib.error
 import xml.etree.ElementTree as ET
 
 
@@ -194,9 +195,18 @@ def prepare(run, private, report):
     server = "https://127.0.0.1:" + bindings[0]["HostPort"]
     fingerprint = hashlib.sha256(ssl.PEM_cert_to_DER_cert(certificate.read_text())).hexdigest()
     context = ssl.create_default_context(cafile=certificate)
-    with urllib.request.urlopen(server + "/status.php", context=context, timeout=30) as response:
-        if json.load(response).get("versionstring") != NEXTCLOUD_VERSION:
-            raise RuntimeError("https_version_mismatch")
+    deadline = time.monotonic() + 30
+    while True:
+        try:
+            with urllib.request.urlopen(server + "/status.php", context=context, timeout=5) as response:
+                if json.load(response).get("versionstring") != NEXTCLOUD_VERSION:
+                    raise RuntimeError("https_version_mismatch")
+            break
+        except urllib.error.URLError as error:
+            if (isinstance(error.reason, ssl.SSLCertVerificationError)
+                    or time.monotonic() >= deadline):
+                raise
+            time.sleep(1)
 
     actors = {}
     for role in ["owner", "reader"]:
@@ -283,6 +293,14 @@ def main():
             failure["code"] = str(error)
         if isinstance(error, CommandFailed):
             failure.update(phase=error.phase, exitCode=error.code)
+        if isinstance(error, urllib.error.URLError):
+            failure["reasonType"] = type(error.reason).__name__
+            if isinstance(error.reason, OSError):
+                failure["reasonErrno"] = error.reason.errno
+            if isinstance(error.reason, ssl.SSLCertVerificationError):
+                failure["tlsVerifyCode"] = error.reason.verify_code
+            if isinstance(error, urllib.error.HTTPError):
+                failure["httpStatus"] = error.code
         save(report / "setup-error.json", failure)
         print(json.dumps(failure), flush=True)
         return 1
