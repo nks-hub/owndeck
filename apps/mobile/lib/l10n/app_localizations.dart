@@ -1867,6 +1867,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose a position from 0 to {maximum}.'**
   String invalidBoardMovePosition(int maximum);
+
+  /// No description provided for @filterCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter cards'**
+  String get filterCards;
+
+  /// No description provided for @clearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get clearFilters;
+
+  /// No description provided for @allCards.
+  ///
+  /// In en, this message translates to:
+  /// **'All cards'**
+  String get allCards;
+
+  /// No description provided for @openCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Not completed'**
+  String get openCards;
+
+  /// No description provided for @upcomingTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get upcomingTasks;
+
+  /// No description provided for @boardNoMatchingCards.
+  ///
+  /// In en, this message translates to:
+  /// **'No cards match these filters.'**
+  String get boardNoMatchingCards;
+
+  /// No description provided for @dueSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Due soon'**
+  String get dueSoon;
+
+  /// No description provided for @boardOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Board options'**
+  String get boardOptions;
+
+  /// No description provided for @applyFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply filters'**
+  String get applyFilters;
+
+  /// No description provided for @anyMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone'**
+  String get anyMember;
+
+  /// No description provided for @anyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Any label'**
+  String get anyLabel;
+
+  /// No description provided for @noAssignee.
+  ///
+  /// In en, this message translates to:
+  /// **'Unassigned'**
+  String get noAssignee;
+
+  /// No description provided for @destinationBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Board'**
+  String get destinationBoard;
+
+  /// No description provided for @quickAddHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What needs to be done?'**
+  String get quickAddHint;
+
+  /// No description provided for @quickAddDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Add details'**
+  String get quickAddDetails;
+
+  /// No description provided for @noWritableBoards.
+  ///
+  /// In en, this message translates to:
+  /// **'There is no board you can add cards to.'**
+  String get noWritableBoards;
+
+  /// No description provided for @noWritableColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a column on this board first.'**
+  String get noWritableColumns;
+
+  /// No description provided for @moveToTop.
+  ///
+  /// In en, this message translates to:
+  /// **'At the beginning'**
+  String get moveToTop;
+
+  /// No description provided for @moveToBottom.
+  ///
+  /// In en, this message translates to:
+  /// **'At the end'**
+  String get moveToBottom;
+
+  /// No description provided for @moveBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Before a card'**
+  String get moveBefore;
+
+  /// No description provided for @moveAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'After a card'**
+  String get moveAfter;
+
+  /// No description provided for @moveRelativeCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Card'**
+  String get moveRelativeCard;
+
+  /// No description provided for @invalidDestination.
+  ///
+  /// In en, this message translates to:
+  /// **'This destination has changed or is no longer available. Refresh and choose again.'**
+  String get invalidDestination;
+
+  /// No description provided for @quickAddSavedDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Your text is saved in Drafts until you add the card.'**
+  String get quickAddSavedDraft;
+
+  /// No description provided for @colorDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'No custom color'**
+  String get colorDefault;
+
+  /// No description provided for @colorCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom color'**
+  String get colorCustom;
+
+  /// No description provided for @colorBlue.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get colorBlue;
+
+  /// No description provided for @colorTeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Teal'**
+  String get colorTeal;
+
+  /// No description provided for @colorGreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Green'**
+  String get colorGreen;
+
+  /// No description provided for @colorPurple.
+  ///
+  /// In en, this message translates to:
+  /// **'Purple'**
+  String get colorPurple;
+
+  /// No description provided for @colorOrange.
+  ///
+  /// In en, this message translates to:
+  /// **'Orange'**
+  String get colorOrange;
+
+  /// No description provided for @colorRed.
+  ///
+  /// In en, this message translates to:
+  /// **'Red'**
+  String get colorRed;
+
+  /// No description provided for @colorPink.
+  ///
+  /// In en, this message translates to:
+  /// **'Pink'**
+  String get colorPink;
+
+  /// No description provided for @colorGray.
+  ///
+  /// In en, this message translates to:
+  /// **'Gray'**
+  String get colorGray;
+
+  /// No description provided for @useLocalChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Use my changes'**
+  String get useLocalChanges;
+
+  /// No description provided for @keepServerVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the server version'**
+  String get keepServerVersion;
+
+  /// No description provided for @allChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'All changes'**
+  String get allChanges;
+
+  /// No description provided for @needsDecision.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs a decision'**
+  String get needsDecision;
+
+  /// No description provided for @boardSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Find a board'**
+  String get boardSearchHint;
 }
 
 class _AppLocalizationsDelegate

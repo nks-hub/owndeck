@@ -975,4 +975,124 @@ class AppLocalizationsCs extends AppLocalizations {
   String invalidBoardMovePosition(int maximum) {
     return 'Zadejte pozici od 0 do $maximum.';
   }
+
+  @override
+  String get filterCards => 'Filtrovat karty';
+
+  @override
+  String get clearFilters => 'Zrušit filtry';
+
+  @override
+  String get allCards => 'Všechny karty';
+
+  @override
+  String get openCards => 'Nedokončené';
+
+  @override
+  String get upcomingTasks => 'Nadcházející';
+
+  @override
+  String get boardNoMatchingCards => 'Žádná karta neodpovídá těmto filtrům.';
+
+  @override
+  String get dueSoon => 'Blíží se termín';
+
+  @override
+  String get boardOptions => 'Možnosti nástěnky';
+
+  @override
+  String get applyFilters => 'Použít filtry';
+
+  @override
+  String get anyMember => 'Kdokoliv';
+
+  @override
+  String get anyLabel => 'Libovolný štítek';
+
+  @override
+  String get noAssignee => 'Nepřiřazeno';
+
+  @override
+  String get destinationBoard => 'Nástěnka';
+
+  @override
+  String get quickAddHint => 'Co je potřeba udělat?';
+
+  @override
+  String get quickAddDetails => 'Doplnit podrobnosti';
+
+  @override
+  String get noWritableBoards =>
+      'Nemáte nástěnku, do které můžete přidávat karty.';
+
+  @override
+  String get noWritableColumns => 'Nejprve v této nástěnce vytvořte sloupec.';
+
+  @override
+  String get moveToTop => 'Na začátek';
+
+  @override
+  String get moveToBottom => 'Na konec';
+
+  @override
+  String get moveBefore => 'Před kartu';
+
+  @override
+  String get moveAfter => 'Za kartu';
+
+  @override
+  String get moveRelativeCard => 'Karta';
+
+  @override
+  String get invalidDestination =>
+      'Cílové místo se změnilo nebo už není dostupné. Obnovte obsah a vyberte jej znovu.';
+
+  @override
+  String get quickAddSavedDraft =>
+      'Text zůstává v Konceptech, dokud kartu nepřidáte.';
+
+  @override
+  String get colorDefault => 'Bez vlastní barvy';
+
+  @override
+  String get colorCustom => 'Vlastní barva';
+
+  @override
+  String get colorBlue => 'Modrá';
+
+  @override
+  String get colorTeal => 'Petrolejová';
+
+  @override
+  String get colorGreen => 'Zelená';
+
+  @override
+  String get colorPurple => 'Fialová';
+
+  @override
+  String get colorOrange => 'Oranžová';
+
+  @override
+  String get colorRed => 'Červená';
+
+  @override
+  String get colorPink => 'Růžová';
+
+  @override
+  String get colorGray => 'Šedá';
+
+  @override
+  String get useLocalChanges => 'Použít moje změny';
+
+  @override
+  String get keepServerVersion => 'Ponechat verzi serveru';
+
+  @override
+  String get allChanges => 'Všechny změny';
+
+  @override
+  String get needsDecision => 'Vyžaduje rozhodnutí';
+
+  @override
+  String get boardSearchHint => 'Najít nástěnku';
 }

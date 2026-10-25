@@ -971,4 +971,123 @@ class AppLocalizationsEn extends AppLocalizations {
   String invalidBoardMovePosition(int maximum) {
     return 'Choose a position from 0 to $maximum.';
   }
+
+  @override
+  String get filterCards => 'Filter cards';
+
+  @override
+  String get clearFilters => 'Clear filters';
+
+  @override
+  String get allCards => 'All cards';
+
+  @override
+  String get openCards => 'Not completed';
+
+  @override
+  String get upcomingTasks => 'Upcoming';
+
+  @override
+  String get boardNoMatchingCards => 'No cards match these filters.';
+
+  @override
+  String get dueSoon => 'Due soon';
+
+  @override
+  String get boardOptions => 'Board options';
+
+  @override
+  String get applyFilters => 'Apply filters';
+
+  @override
+  String get anyMember => 'Anyone';
+
+  @override
+  String get anyLabel => 'Any label';
+
+  @override
+  String get noAssignee => 'Unassigned';
+
+  @override
+  String get destinationBoard => 'Board';
+
+  @override
+  String get quickAddHint => 'What needs to be done?';
+
+  @override
+  String get quickAddDetails => 'Add details';
+
+  @override
+  String get noWritableBoards => 'There is no board you can add cards to.';
+
+  @override
+  String get noWritableColumns => 'Create a column on this board first.';
+
+  @override
+  String get moveToTop => 'At the beginning';
+
+  @override
+  String get moveToBottom => 'At the end';
+
+  @override
+  String get moveBefore => 'Before a card';
+
+  @override
+  String get moveAfter => 'After a card';
+
+  @override
+  String get moveRelativeCard => 'Card';
+
+  @override
+  String get invalidDestination =>
+      'This destination has changed or is no longer available. Refresh and choose again.';
+
+  @override
+  String get quickAddSavedDraft =>
+      'Your text is saved in Drafts until you add the card.';
+
+  @override
+  String get colorDefault => 'No custom color';
+
+  @override
+  String get colorCustom => 'Custom color';
+
+  @override
+  String get colorBlue => 'Blue';
+
+  @override
+  String get colorTeal => 'Teal';
+
+  @override
+  String get colorGreen => 'Green';
+
+  @override
+  String get colorPurple => 'Purple';
+
+  @override
+  String get colorOrange => 'Orange';
+
+  @override
+  String get colorRed => 'Red';
+
+  @override
+  String get colorPink => 'Pink';
+
+  @override
+  String get colorGray => 'Gray';
+
+  @override
+  String get useLocalChanges => 'Use my changes';
+
+  @override
+  String get keepServerVersion => 'Keep the server version';
+
+  @override
+  String get allChanges => 'All changes';
+
+  @override
+  String get needsDecision => 'Needs a decision';
+
+  @override
+  String get boardSearchHint => 'Find a board';
 }
