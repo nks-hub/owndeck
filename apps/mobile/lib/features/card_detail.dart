@@ -136,9 +136,6 @@ class _CardScreenState extends State<CardScreen> {
       : value is JsonObject
       ? (value['uid'] ?? value['primaryKey'] ?? '').toString()
       : '';
-  String _name(Object? value) => value is JsonObject
-      ? (value['displayname'] ?? value['displayName'] ?? _uid(value)).toString()
-      : _uid(value);
 
   @override
   Widget build(BuildContext context) {

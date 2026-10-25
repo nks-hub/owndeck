@@ -19,14 +19,50 @@ List<({String id, String name})> cardPeople(DeckCard card) => [
 ({String id, String name})? cardPerson(Object? value) {
   final id = switch (value) {
     String id => id,
-    JsonObject person => (person['uid'] ?? person['primaryKey'])?.toString(),
+    JsonObject person => [
+      person['uid'],
+      person['primaryKey'],
+    ].whereType<String>().where((id) => id.trim().isNotEmpty).firstOrNull,
     _ => null,
   };
-  if (id == null || id.isEmpty) return null;
-  final name = value is JsonObject
-      ? (value['displayname'] ?? value['displayName'] ?? id).toString()
-      : id;
-  return (id: id, name: name.isEmpty ? id : name);
+  if (id == null || id.trim().isEmpty) return null;
+  return (id: id, name: _participantName(value));
+}
+
+String _participantName(Object? value) {
+  if (value is! JsonObject) return '';
+  for (final key in ['displayname', 'displayName', 'name']) {
+    final name = value[key];
+    if (name is String && name.trim().isNotEmpty) return name.trim();
+  }
+  return '';
+}
+
+List<({String name, IconData icon})> _assignedDisplay(
+  DeckCard card,
+  AppLocalizations text,
+) {
+  final result = <({String name, IconData icon})>[];
+  for (final assignment in cardObjects(card.raw['assignedUsers'])) {
+    final name = _participantName(assignment['participant']);
+    result.add((
+      name: name.isNotEmpty
+          ? name
+          : switch (assignment['type'] ?? 0) {
+              0 => text.user,
+              1 => text.group,
+              6 => text.externalRecipient,
+              7 => text.team,
+              _ => text.assignees,
+            },
+      icon: switch (assignment['type'] ?? 0) {
+        1 || 7 => Icons.groups_outlined,
+        6 => Icons.public,
+        _ => Icons.person_outline,
+      },
+    ));
+  }
+  return result;
 }
 
 DateTime? cardDueDate(DeckCard card) =>
@@ -224,9 +260,11 @@ class CardMetadata extends StatefulWidget {
     super.key,
     required this.card,
     this.showStartDate = false,
+    this.showAllAssignees = false,
   });
   final DeckCard card;
   final bool showStartDate;
+  final bool showAllAssignees;
 
   @override
   State<CardMetadata> createState() => _CardMetadataState();
@@ -262,7 +300,7 @@ class _CardMetadataState extends State<CardMetadata> {
         ? DateTime.tryParse(card.raw['startdate']?.toString() ?? '')?.toLocal()
         : null;
     final completed = card.raw['done'] != null;
-    final people = cardPeople(card);
+    final assignees = _assignedDisplay(card, text);
     final comments = _count('commentsCount', 'comments');
     final attachments = _count('attachmentCount', 'attachments');
     final sync = card.raw['syncState'];
@@ -325,14 +363,23 @@ class _CardMetadataState extends State<CardMetadata> {
                 ? theme.colorScheme.onTertiaryContainer
                 : theme.colorScheme.onSurfaceVariant,
           ),
-        if (people.isNotEmpty)
+        if (widget.showAllAssignees)
+          for (final assignee in assignees)
+            _MetadataBadge(
+              icon: assignee.icon,
+              label: assignee.name,
+              semanticLabel: '${text.assignees}: ${assignee.name}',
+            )
+        else if (assignees.isNotEmpty)
           _MetadataBadge(
-            icon: Icons.person_outline,
-            label: people.length == 1
-                ? people.first.name
-                : '${people.first.name} +${people.length - 1}',
+            icon: assignees.length == 1
+                ? assignees.first.icon
+                : Icons.groups_outlined,
+            label: assignees.length == 1
+                ? assignees.first.name
+                : '${assignees.first.name} +${assignees.length - 1}',
             semanticLabel:
-                '${text.assignees}: ${people.map((person) => person.name).join(', ')}',
+                '${text.assignees}: ${assignees.map((assignee) => assignee.name).join(', ')}',
           ),
         if (_checklist.total > 0)
           _MetadataBadge(
@@ -400,7 +447,8 @@ class _LabelBadge extends StatelessWidget {
 }
 
 String cardLabelName(JsonObject label, AppLocalizations text) {
-  final title = label['title']?.toString().trim() ?? '';
+  final raw = label['title'];
+  final title = raw is String ? raw.trim() : '';
   return title.isEmpty ? text.unnamedLabel : title;
 }
 

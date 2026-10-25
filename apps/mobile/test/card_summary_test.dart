@@ -30,6 +30,294 @@ void main() {
             ],
       });
 
+  testWidgets(
+    'detail metadata shows every existing assignee without expanding person filters',
+    (tester) async {
+      final card = task(
+        assigned: [
+          {
+            'type': 0,
+            'participant': {'uid': 'alice', 'displayname': 'Alice'},
+          },
+          {
+            'type': 0,
+            'participant': {'uid': 'bob', 'displayname': 'Bob'},
+          },
+          {
+            'type': 1,
+            'participant': {'uid': 'group-id', 'displayname': 'Engineering'},
+          },
+          {
+            'type': 7,
+            'participant': {
+              'uid': 'opaque-team',
+              'displayname': {'invalid': 'payload'},
+            },
+          },
+        ],
+      );
+      await tester.pumpWidget(
+        localizedTestApp(
+          home: Scaffold(
+            body: CardMetadata(card: card, showAllAssignees: true),
+          ),
+        ),
+      );
+      for (final name in ['Alice', 'Bob', 'Engineering', 'Team']) {
+        expect(find.text(name), findsOneWidget);
+      }
+      expect(find.textContaining('opaque-team'), findsNothing);
+      expect(find.textContaining('invalid'), findsNothing);
+      expect(find.text('Alice +3'), findsNothing);
+      expect(cardPeople(card).map((person) => person.id), ['alice', 'bob']);
+    },
+  );
+
+  test(
+    'typed person identity keeps filtering IDs separate from display names',
+    () {
+      expect(cardPerson({'uid': 'alice', 'displayname': ' Alice '}), (
+        id: 'alice',
+        name: 'Alice',
+      ));
+      expect(
+        cardPerson({'primaryKey': 'other', 'displayName': 'Other person'}),
+        (id: 'other', name: 'Other person'),
+      );
+      expect(cardPerson('opaque-user'), (id: 'opaque-user', name: ''));
+      expect(
+        cardPerson({
+          'uid': 'opaque-user',
+          'displayname': {'internal': 'private-name'},
+        }),
+        (id: 'opaque-user', name: ''),
+      );
+      expect(
+        cardPerson({
+          'uid': {'id': 'not-an-id'},
+          'displayname': 'Invalid',
+        }),
+        isNull,
+      );
+      expect(cardPerson({'uid': 42, 'displayname': 'Invalid'}), isNull);
+      expect(cardPerson({'uid': '   ', 'displayname': 'Invalid'}), isNull);
+      final mixed = task(
+        assigned: [
+          {'type': 0, 'participant': 'opaque-user'},
+          {
+            'type': 1,
+            'participant': {'uid': 'group-id', 'displayname': 'A group'},
+          },
+        ],
+      );
+      expect(cardPeople(mixed), [(id: 'opaque-user', name: '')]);
+      expect(
+        const BoardCardFilter(memberId: 'opaque-user').matches(mixed),
+        isTrue,
+      );
+      expect(
+        const BoardCardFilter(memberId: 'group-id').matches(mixed),
+        isFalse,
+      );
+    },
+  );
+
+  testWidgets('typed label captions never render an object as text', (
+    tester,
+  ) async {
+    final card = DeckCard.fromJson({
+      ...task().raw,
+      'labels': [
+        {
+          'id': 1,
+          'title': {'internal': 'opaque-label'},
+          'color': '008080',
+        },
+        {'id': 2, 'title': 17, 'color': '008080'},
+        {'id': 3, 'title': '  Valid label  ', 'color': '008080'},
+      ],
+    });
+    await tester.pumpWidget(
+      localizedTestApp(
+        home: Scaffold(body: CardLabels(card: card)),
+      ),
+    );
+    expect(find.text('Unnamed label'), findsNWidgets(2));
+    expect(find.text('Valid label'), findsOneWidget);
+    expect(find.textContaining('opaque-label'), findsNothing);
+    expect(find.text('17'), findsNothing);
+  });
+
+  testWidgets(
+    'typed metadata includes existing groups teams and external assignees',
+    (tester) async {
+      final card = task(
+        assigned: [
+          {
+            'type': 1,
+            'participant': {
+              'primaryKey': 'group-id',
+              'displayname': 'Engineering',
+            },
+          },
+          {
+            'type': 7,
+            'participant': {'uid': 'team-id', 'displayName': 'Operations'},
+          },
+          {
+            'type': 6,
+            'participant': {'uid': 'external-id', 'name': 'Partner'},
+          },
+        ],
+      );
+      final semantics = tester.ensureSemantics();
+      try {
+        await tester.pumpWidget(
+          localizedTestApp(
+            home: Scaffold(body: CardMetadata(card: card)),
+          ),
+        );
+        expect(find.text('Engineering +2'), findsOneWidget);
+        expect(
+          find.bySemanticsLabel(
+            RegExp('Assignees: Engineering, Operations, Partner'),
+          ),
+          findsOneWidget,
+        );
+        expect(find.textContaining('group-id'), findsNothing);
+        expect(find.textContaining('team-id'), findsNothing);
+        expect(find.textContaining('external-id'), findsNothing);
+      } finally {
+        semantics.dispose();
+      }
+    },
+  );
+
+  testWidgets(
+    'typed metadata uses localized names when only opaque or malformed values exist',
+    (tester) async {
+      final card = task(
+        assigned: [
+          {
+            'type': 0,
+            'participant': {
+              'uid': 'opaque-user',
+              'displayname': {'private': 'name'},
+            },
+          },
+          {
+            'type': 1,
+            'participant': {
+              'uid': 'opaque-group',
+              'displayName': ['private-group'],
+            },
+          },
+          {'type': 6, 'participant': 'opaque-remote'},
+          {
+            'type': 7,
+            'participant': {'uid': 'opaque-team', 'name': 'Team name'},
+          },
+        ],
+      );
+      final semantics = tester.ensureSemantics();
+      try {
+        await tester.pumpWidget(
+          localizedTestApp(
+            home: Scaffold(body: CardMetadata(card: card)),
+          ),
+        );
+        expect(find.text('User +3'), findsOneWidget);
+        expect(
+          find.bySemanticsLabel(
+            RegExp('Assignees: User, Group, External recipient, Team name'),
+          ),
+          findsOneWidget,
+        );
+        expect(find.textContaining('opaque-'), findsNothing);
+        expect(find.textContaining('private'), findsNothing);
+      } finally {
+        semantics.dispose();
+      }
+    },
+  );
+
+  testWidgets(
+    'typed member filter uses human fallback without adding group filters',
+    (tester) async {
+      final board = DeckBoard.fromJson({
+        'id': 1,
+        'title': 'Board',
+        'color': '008080',
+        'archived': false,
+        'deletedAt': 0,
+        'permissions': {'PERMISSION_READ': true},
+        'users': [
+          {
+            'uid': 'opaque-user',
+            'displayname': {'private': 'value'},
+          },
+          {'uid': 'alice', 'displayname': 'Alice'},
+          {
+            'uid': {'bad': 'identity'},
+            'displayname': 'Invalid identity',
+          },
+        ],
+      });
+      final stack = DeckStack.fromJson({
+        'id': 10,
+        'boardId': 1,
+        'title': 'Column',
+        'order': 0,
+        'cards': [
+          task(
+            assigned: [
+              {'type': 0, 'participant': 'alice'},
+              {
+                'type': 1,
+                'participant': {'uid': 'group-id', 'displayname': 'A group'},
+              },
+            ],
+          ).raw,
+        ],
+      });
+      BoardCardFilter? chosen;
+      await tester.pumpWidget(
+        localizedTestApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () async {
+                  chosen = await showBoardFilters(
+                    context,
+                    filter: const BoardCardFilter(),
+                    board: board,
+                    stacks: [stack],
+                  );
+                },
+                child: const Text('Open filter'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Open filter'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('board-filter-member')));
+      await tester.pumpAndSettle();
+      expect(find.text('User').hitTestable(), findsOneWidget);
+      expect(find.text('Alice').hitTestable(), findsOneWidget);
+      expect(find.text('A group'), findsNothing);
+      expect(find.textContaining('opaque-user'), findsNothing);
+      expect(find.textContaining('private'), findsNothing);
+      expect(find.text('Invalid identity'), findsNothing);
+      await tester.tap(find.text('User').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply filters'));
+      await tester.pumpAndSettle();
+      expect(chosen?.memberId, 'opaque-user');
+    },
+  );
+
   test('board filters intersect query, member, label and calendar date', () {
     final now = DateTime(2030, 1, 15, 12);
     final card = task(due: DateTime(2030, 1, 15, 14).toIso8601String());
@@ -68,6 +356,47 @@ void main() {
       isTrue,
     );
   });
+
+  test(
+    'unassigned filter excludes existing group assignments without enabling group member filters',
+    () {
+      final groupOnly = task(
+        assigned: [
+          {
+            'type': 1,
+            'participant': {
+              'primaryKey': 'engineering',
+              'displayname': 'Engineering',
+            },
+          },
+        ],
+      );
+      expect(const BoardCardFilter(memberId: '').matches(groupOnly), isFalse);
+      expect(
+        const BoardCardFilter(memberId: '').matches(task(assigned: [])),
+        isTrue,
+      );
+      expect(
+        const BoardCardFilter(memberId: '').matches(
+          task(
+            assigned: [
+              {
+                'type': 1,
+                'participant': {
+                  'uid': {'invalid': 'identity'},
+                },
+              },
+            ],
+          ),
+        ),
+        isTrue,
+      );
+      expect(
+        const BoardCardFilter(memberId: 'engineering').matches(groupOnly),
+        isFalse,
+      );
+    },
+  );
 
   testWidgets(
     'card summary exposes working metadata without inventing counts',

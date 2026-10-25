@@ -59,8 +59,13 @@ final class BoardCardFilter {
     }
     if (memberId != null) {
       final people = cardPeople(card);
+      final hasAssignment = cardObjects(card.raw['assignedUsers']).any(
+        (assignment) =>
+            (assignment['type'] == null || assignment['type'] is int) &&
+            cardPerson(assignment['participant']) != null,
+      );
       if (memberId!.isEmpty
-          ? people.isNotEmpty
+          ? hasAssignment
           : !people.any((person) => person.id == memberId)) {
         return false;
       }
@@ -99,13 +104,25 @@ Future<BoardCardFilter?> showBoardFilters(
   required List<DeckStack> stacks,
 }) {
   final text = AppLocalizations.of(context)!;
-  final members = <String, String>{
-    for (final user in cardObjects(board.raw['users']))
-      if (cardPerson(user) case final person?) person.id: person.name,
-    for (final stack in stacks)
-      for (final card in stack.cards)
-        for (final person in cardPeople(card)) person.id: person.name,
-  };
+  final members = <String, String>{};
+  void addPerson(({String id, String name}) person) {
+    if (members[person.id]?.isNotEmpty != true) {
+      members[person.id] = person.name;
+    }
+  }
+
+  for (final user in cardObjects(board.raw['users'])) {
+    final person = cardPerson(user);
+    if (person != null) addPerson(person);
+  }
+  for (final stack in stacks) {
+    for (final card in stack.cards) {
+      for (final person in cardPeople(card)) {
+        addPerson(person);
+      }
+    }
+  }
+  members.updateAll((_, name) => name.isEmpty ? text.user : name);
   final labels = <int, String>{
     for (final label in cardObjects(board.raw['labels']))
       if (label['id'] case final int id) id: cardLabelName(label, text),
