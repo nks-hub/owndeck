@@ -2,7 +2,7 @@
 
 Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat výsledek a důkaz; nedokončený bod ponechat otevřený. Nové požadavky doplnit sem před implementací.
 
-- [x] P01 Soukromý `nks-hub/owndeck` založen a ověřen přes GitHub API; `VERSION` je `0.1.0+1`, pravidla v `docs/versioning.md`.
+- [x] P01 Soukromý `nks-hub/owndeck` založen a ověřen přes GitHub API; vydávaná verze je `0.1.0+2`, tag `v0.1.0+2`, pravidla v `docs/versioning.md`.
 
 - [x] P00 Ověřit výchozí stav a vytvořit plán před zahájením vývoje.
 - [x] A01 Projit aktuální kód OwnTalk/OwnNotes i MCP Memory; konkrétní soubory a revize v `docs/reuse.md`.
@@ -38,8 +38,17 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] D08 Volitelné Sentry/Rybbit, konfigurace přes CI, obě služby v našich buildech a oddělené přepínače hotové; doručení ze S9 ověřené, nastavení přežije restart na S9/S21. Sentry zachytává Dart/Flutter chyby, nativní crash/hang sběr není zapnutý.
 - [x] D09 České/anglické texty, srozumitelné chyby, společné přihlášení, vlastní launcher ikony a hlavní přístupnost zapojené; 200% text a malá výška ověřené testy, landscape editor i Cancel fyzicky na S9 v `ba364e0`. Formální TalkBack/VoiceOver audit se netvrdí.
 - [x] D10 Kopie karet, směrované vazby, hotový sloupec a přehled oznámení hotové a ověřené i na Decku 1.18.5. Vazby neblokují dokončení karty. OS push není zapnutý; chybí ověřený mobilní push kanál pro Deck.
+- [ ] D11 Dokončit nastavení vzhledu, jazyka, verze a účtů; Nastavení přidat jako třetí hlavní navigační cíl.
+- [ ] D12 Doplnit seznam/sloupce, uchování pohledu pro nástěnku, široké rozložení a tažení karty mezi sloupci.
+- [ ] D13 Doplnit serverovou kopii nástěnky a odkaz na podporované serverové možnosti importu.
+- [ ] D14 Napojit oznámení s odkazem na kartu na existující nativní otevírání karet.
+- [ ] B01 Reprodukovat a opravit migraci databáze z verzí 1–3, kde může vzniknout duplicitní sloupec editorDrafts.kind.
+- [ ] B02 Ověřit a opravit potvrzování již přijaté akce po následném přesunu karty jiným klientem, bez opakování zápisu.
+- [ ] B03 Ověřit odebrání přístupu při HTTP 403 pro otevřenou nástěnku; zneplatnit cizí cache a zachovat vlastní koncepty.
+- [ ] B04 Ověřit podporu startdate/color již v Decku 1.18.5 a opravit zbytečné omezení podle verze, pokud se potvrdí.
 - [x] T01 Oddělené paralelní sady prošly; vydávaný `7d13eb6` má úspěšné testy a analyzery všech tří balíků v CI, včetně regresí dialogů a obnovy fronty.
 - [ ] T02 Ověřit skutečný Nextcloud server, oba buildy a příjem bezpečných telemetrických událostí.
+- [ ] T02b Doplnit živé ověření sdílení čtenáři/editorovi a odebrání oprávnění se dvěma izolovanými účty na stejném serveru; dosavadní 21+8 kontrol tento scénář nepokrývá.
 - [ ] T03 Průběžně provádět fyzické testy S9/S21 na pozadí nad izolovanými kandidáty, nezávisle pro každý telefon, a samostatné ověření iOS; před dokončením doložit finální revizi.
 
 Aktuální krok: Google Play kontroluje první vydání 0.1.0+2 v uzavřeném kanálu alpha. API potvrdilo IN_REVIEW, přesný hash AAB, ikonu, grafiku, dva snímky v cs/en a tři skupiny převzaté z OwnNotes. Všech pět CI úloh `7d13eb6` prošlo; S9/S21 ověřily přílohy i náhled QR kamery po odstranění nepotřebných oprávnění. Podrobné revize a meze jsou v `docs/testing.md`.
@@ -48,4 +57,4 @@ Aktuální krok: Google Play kontroluje první vydání 0.1.0+2 v uzavřeném ka
 
 - [ ] R01 Při samostatné práci na OwnTalku ověřit také SAN certifikátů a oddělení přístupnosti prvků přihlašovací karty; v Decku a Notes jsou opravené, OwnTalk zde nebyl měněn.
 - [ ] R02 Google Play alpha 0.1.0+2 odesláno ke kontrole; API potvrzuje IN_REVIEW a všechny podklady/skupiny, po schválení ještě ověřit dostupnost testerům.
-- [ ] P01 Na S9 zlepšit p95 celého snímku při souvislém posunu 1 000 karet: naměřeno 24,388 ms proti cíli 16,7 ms; S21 splnil 10,268 ms, start z cache prošel na obou telefonech.
+- [ ] P02 Na S9 zlepšit p95 latence celého snímku při souvislém posunu 1 000 karet: naměřeno 24,388 ms proti cíli 16,7 ms; S21 splnil 10,268 ms, start z cache prošel na obou telefonech.
