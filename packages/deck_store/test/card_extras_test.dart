@@ -260,6 +260,9 @@ void main() {
         if (request.url.path.endsWith('/cards/30')) {
           return reply({...cardJson(id: 30), 'stackId': 4});
         }
+        if (request.url.path.endsWith('/stacks/2')) {
+          return reply(column(2, 1, []).raw);
+        }
         if (request.method == 'POST') {
           expect(request.url.path, endsWith('/cards/8/dependentCards/30'));
           links++;

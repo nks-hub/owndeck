@@ -142,29 +142,185 @@ extension CardActions on DeckDatabase {
     return false;
   }
 
-  Future<bool> confirmClonedCard(
+  Future<bool> confirmReconciledCard(
     StoredAccount account,
     String owner,
     PendingWrite write,
-    int boardId,
-    DeckCard card,
+    DeckCardContext context,
+    int epoch,
   ) => transaction(() async {
-    if (!await ownsLease(account, owner)) return false;
-    final row =
-        await (select(storedBoards)..where(
-              (b) =>
-                  b.accountId.equals(account.id) & b.remoteId.equals(boardId),
+    final current = await _ownedAppliedWrite(account, owner, write, epoch);
+    if (current == null) return false;
+    final receipt = object(jsonDecode(current.remote!));
+    final board = context.board;
+    final stack = context.stack;
+    final card = context.card;
+    if (card.id <= 0 ||
+        stack.id <= 0 ||
+        board.id <= 0 ||
+        card.id != receipt['cardId'] ||
+        stack.id != card.stackId ||
+        stack.boardId != board.id ||
+        !board.permissions.read ||
+        board.deletedAt != 0 ||
+        (stack.raw['deletedAt'] ?? 0) != 0 ||
+        (card.raw['deletedAt'] ?? 0) != 0) {
+      return false;
+    }
+    await into(storedBoards).insertOnConflictUpdate(
+      StoredBoardsCompanion.insert(
+        accountId: account.id,
+        remoteId: board.id,
+        payload: jsonEncode(board.raw),
+      ),
+    );
+    await into(storedStacks).insertOnConflictUpdate(
+      StoredStacksCompanion.insert(
+        accountId: account.id,
+        remoteId: stack.id,
+        boardId: board.id,
+        position: stack.order,
+        payload: jsonEncode({...stack.raw, 'cards': <Object?>[]}),
+      ),
+    );
+    if (!await confirmCard(
+      account,
+      owner,
+      write.copyWith(boardId: board.id),
+      card,
+      contentEpoch: epoch,
+    )) {
+      return false;
+    }
+    final oldBoardId = intField(receipt, 'boardId');
+    if (oldBoardId != board.id) {
+      await invalidateMutation(account.id, oldBoardId);
+      await (update(storedAttachments)..where(
+            (row) =>
+                row.accountId.equals(account.id) & row.cardId.equals(card.id),
+          ))
+          .write(StoredAttachmentsCompanion(boardId: Value(board.id)));
+    }
+    for (final later in await _laterCardWrites(account, write, card.id)) {
+      if (oldBoardId != board.id) {
+        await (update(
+          pendingWrites,
+        )..where((row) => row.id.equals(later.id))).write(
+          PendingWritesCompanion(
+            boardId: Value(board.id),
+            stackId: Value(stack.id),
+            state: const Value('conflict'),
+            error: const Value('concurrent_edit'),
+            remote: Value(jsonEncode(card.raw)),
+          ),
+        );
+      } else if (later.kind == 'updateCard' && later.stackId != stack.id) {
+        await (update(pendingWrites)..where((row) => row.id.equals(later.id)))
+            .write(PendingWritesCompanion(stackId: Value(stack.id)));
+      }
+    }
+    return true;
+  });
+
+  Future<bool> confirmAppliedUnavailable(
+    StoredAccount account,
+    String owner,
+    PendingWrite write,
+    int epoch,
+    String error,
+  ) => transaction(() async {
+    final current = await _ownedAppliedWrite(account, owner, write, epoch);
+    if (current == null) return false;
+    final receipt = object(jsonDecode(current.remote!));
+    final cardId = intField(receipt, 'cardId');
+    final acceptedCard = receipt['acceptedCard'];
+    if (acceptedCard != null) {
+      final accepted = DeckCard.fromJson(object(acceptedCard));
+      if (accepted.id != cardId || accepted.stackId != receipt['stackId']) {
+        return false;
+      }
+    } else if (current.kind == 'createCard') {
+      return false;
+    }
+    await (delete(storedCards)..where(
+          (row) =>
+              row.accountId.equals(account.id) & row.remoteId.equals(cardId),
+        ))
+        .go();
+    await (delete(storedComments)..where(
+          (row) => row.accountId.equals(account.id) & row.cardId.equals(cardId),
+        ))
+        .go();
+    await (delete(storedAttachments)..where(
+          (row) => row.accountId.equals(account.id) & row.cardId.equals(cardId),
+        ))
+        .go();
+    await (update(
+      pendingWrites,
+    )..where((row) => row.id.equals(write.id))).write(
+      PendingWritesCompanion(
+        state: const Value('confirmed'),
+        error: const Value(null),
+        // Dependent local creations still need the accepted server identity.
+        remote: acceptedCard == null
+            ? const Value.absent()
+            : Value(jsonEncode(acceptedCard)),
+      ),
+    );
+    for (final later in await _laterCardWrites(account, write, cardId)) {
+      await (update(
+        pendingWrites,
+      )..where((row) => row.id.equals(later.id))).write(
+        PendingWritesCompanion(
+          state: const Value('blocked'),
+          error: Value(error),
+        ),
+      );
+    }
+    await invalidateMutation(account.id, intField(receipt, 'boardId'));
+    return true;
+  });
+
+  Future<PendingWrite?> _ownedAppliedWrite(
+    StoredAccount account,
+    String owner,
+    PendingWrite write,
+    int epoch,
+  ) async {
+    if (!await ownsLease(account, owner) ||
+        (await this.account(account.id))?.contentEpoch != epoch) {
+      return null;
+    }
+    final current =
+        await (select(pendingWrites)..where(
+              (row) =>
+                  row.accountId.equals(account.id) & row.id.equals(write.id),
             ))
             .getSingleOrNull();
-    if (row == null) return false;
-    final board = DeckBoard.fromJson(object(jsonDecode(row.payload)));
-    if (!board.permissions.read || board.deletedAt != 0) return false;
-    await confirmCard(account, owner, write.copyWith(boardId: boardId), card);
-    return (await (select(
-          pendingWrites,
-        )..where((w) => w.id.equals(write.id))).getSingle()).state ==
-        'confirmed';
-  });
+    return current?.state == 'applied' && current?.remote != null
+        ? current
+        : null;
+  }
+
+  Future<List<PendingWrite>> _laterCardWrites(
+    StoredAccount account,
+    PendingWrite write,
+    int cardId,
+  ) async {
+    final result = <PendingWrite>[];
+    for (final later in await writesFor(account.id)) {
+      if (later.sequence <= write.sequence ||
+          later.state != 'queued' ||
+          later.cardId == null) {
+        continue;
+      }
+      final resolved =
+          await resolveId(account.id, later.cardId!, 'createCard') ??
+          later.cardId;
+      if (resolved == cardId) result.add(later);
+    }
+    return result;
+  }
 
   Future<void> markApplied(
     StoredAccount account,
@@ -177,7 +333,9 @@ extension CardActions on DeckDatabase {
           (w) =>
               w.accountId.equals(account.id) &
               w.id.equals(write.id) &
-              w.state.equals('sending'),
+              (w.state.equals('sending') |
+                  (w.state.equals('uncertain') &
+                      w.error.isIn(['permission_denied', 'not_found']))),
         ))
         .write(
           PendingWritesCompanion(

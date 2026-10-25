@@ -56,7 +56,21 @@ void main() {
           base: ServerBase.parse(account.server),
           loginName: 'user',
           appPassword: 'test-password',
-          transport: MockClient(callback),
+          transport: MockClient((request) async {
+            final path = request.url.pathSegments;
+            if (request.method == 'GET' && path[path.length - 2] == 'stacks') {
+              final id = int.parse(path.last);
+              expect([2, 3], contains(id));
+              return reply({
+                'id': id,
+                'boardId': 1,
+                'title': 'Column',
+                'order': id - 2,
+                'cards': [],
+              });
+            }
+            return callback(request);
+          }),
         ),
       );
 
@@ -191,6 +205,7 @@ void main() {
             : [],
       });
     }).run();
+    expect(await db.writesFor(account.id), isEmpty);
     final actual = (await db.watchCard(account.id, 1, 8).first)!;
     expect(actual.id, 8);
     expect(actual.title, 'Task');

@@ -7,7 +7,7 @@ extension DeckWrites on DeckDatabase {
           return;
         }
         final rounded = DateTime.fromMillisecondsSinceEpoch(
-      ((until.microsecondsSinceEpoch + 999999) ~/ 1000000) * 1000,
+          ((until.microsecondsSinceEpoch + 999999) ~/ 1000000) * 1000,
           isUtc: true,
         );
         final current = await this.account(account.id);
@@ -218,21 +218,39 @@ extension DeckWrites on DeckDatabase {
         );
   });
 
-  Future<void> confirmCard(
+  Future<bool> confirmCard(
     StoredAccount account,
     String owner,
     PendingWrite write,
-    DeckCard card,
-  ) => transaction(() async {
-    if (!await ownsLease(account, owner)) return;
+    DeckCard card, {
+    int? contentEpoch,
+  }) => transaction(() async {
+    if (card.id <= 0 ||
+        card.stackId <= 0 ||
+        write.boardId <= 0 ||
+        !await ownsLease(account, owner) ||
+        contentEpoch != null &&
+            (await this.account(account.id))?.contentEpoch != contentEpoch) {
+      return false;
+    }
     final current =
         await (select(pendingWrites)..where(
               (w) => w.accountId.equals(account.id) & w.id.equals(write.id),
             ))
             .getSingleOrNull();
     if (current == null || !{'sending', 'applied'}.contains(current.state)) {
-      return;
+      return false;
     }
+    final boardRow =
+        await (select(storedBoards)..where(
+              (board) =>
+                  board.accountId.equals(account.id) &
+                  board.remoteId.equals(write.boardId),
+            ))
+            .getSingleOrNull();
+    if (boardRow == null) return false;
+    final board = DeckBoard.fromJson(object(jsonDecode(boardRow.payload)));
+    if (!board.permissions.read || board.deletedAt != 0) return false;
     await into(storedCards).insertOnConflictUpdate(
       StoredCardsCompanion.insert(
         accountId: account.id,
@@ -251,6 +269,7 @@ extension DeckWrites on DeckDatabase {
       ),
     );
     await invalidateMutation(account.id, write.boardId);
+    return true;
   });
 
   Future<void> decideWrite(

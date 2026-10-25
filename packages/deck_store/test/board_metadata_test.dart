@@ -263,6 +263,15 @@ void main() {
             metadataBoard(labels: labelCreated ? [remoteLabel] : []),
           );
         }
+        if (request.url.path.endsWith('/stacks/2')) {
+          return reply({
+            'id': 2,
+            'boardId': 1,
+            'title': 'Todo',
+            'order': 0,
+            'cards': [],
+          });
+        }
         return reply({
           ...cardJson(),
           'labels': assigned ? [remoteLabel] : [],
