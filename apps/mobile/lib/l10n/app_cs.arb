@@ -277,5 +277,27 @@
   "serverSearchNotice": "Výsledky ze serveru neobsahují dosud neodeslané změny.",
   "serverMyTasksNotice": "Serverový přehled obsahuje aktivní nedokončené karty přiřazené vám.",
   "serverSearchLimited": "Server vrátil prvních 200 výsledků. Upřesněte hledání.",
-  "openingCardLink": "Otevírá se karta…"
+  "openingCardLink": "Otevírá se karta…",
+  "settings": "Nastavení",
+  "appearance": "Vzhled",
+  "language": "Jazyk",
+  "systemDefault": "Podle zařízení",
+  "lightTheme": "Světlý",
+  "darkTheme": "Tmavý",
+  "languageCzech": "Čeština",
+  "languageEnglish": "English",
+  "appVersion": "Verze aplikace",
+  "versionUnavailable": "Verzi aplikace se nepodařilo načíst.",
+  "preferenceStorageError": "Nastavení se nepodařilo načíst nebo uložit. Změny zatím platí jen pro toto spuštění aplikace.",
+  "versionBuild": "{version} ({build})",
+  "@versionBuild": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "build": {
+        "type": "String"
+      }
+    }
+  }
 }

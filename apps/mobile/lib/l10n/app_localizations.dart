@@ -1663,6 +1663,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Opening card…'**
   String get openingCardLink;
+
+  /// No description provided for @settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settings;
+
+  /// No description provided for @appearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get appearance;
+
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
+
+  /// No description provided for @systemDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Use device setting'**
+  String get systemDefault;
+
+  /// No description provided for @lightTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get lightTheme;
+
+  /// No description provided for @darkTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get darkTheme;
+
+  /// No description provided for @languageCzech.
+  ///
+  /// In en, this message translates to:
+  /// **'Čeština'**
+  String get languageCzech;
+
+  /// No description provided for @languageEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
+
+  /// No description provided for @appVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'App version'**
+  String get appVersion;
+
+  /// No description provided for @versionUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The app version could not be read.'**
+  String get versionUnavailable;
+
+  /// No description provided for @preferenceStorageError.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings could not be loaded or saved. Changes currently apply only to this app session.'**
+  String get preferenceStorageError;
+
+  /// No description provided for @versionBuild.
+  ///
+  /// In en, this message translates to:
+  /// **'{version} ({build})'**
+  String versionBuild(String version, String build);
 }
 
 class _AppLocalizationsDelegate

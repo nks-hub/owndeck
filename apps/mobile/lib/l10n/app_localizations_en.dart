@@ -858,4 +858,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get openingCardLink => 'Opening card…';
+
+  @override
+  String get settings => 'Settings';
+
+  @override
+  String get appearance => 'Appearance';
+
+  @override
+  String get language => 'Language';
+
+  @override
+  String get systemDefault => 'Use device setting';
+
+  @override
+  String get lightTheme => 'Light';
+
+  @override
+  String get darkTheme => 'Dark';
+
+  @override
+  String get languageCzech => 'Čeština';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get appVersion => 'App version';
+
+  @override
+  String get versionUnavailable => 'The app version could not be read.';
+
+  @override
+  String get preferenceStorageError =>
+      'Settings could not be loaded or saved. Changes currently apply only to this app session.';
+
+  @override
+  String versionBuild(String version, String build) {
+    return '$version ($build)';
+  }
 }

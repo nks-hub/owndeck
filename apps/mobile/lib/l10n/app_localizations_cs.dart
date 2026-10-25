@@ -862,4 +862,43 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get openingCardLink => 'Otevírá se karta…';
+
+  @override
+  String get settings => 'Nastavení';
+
+  @override
+  String get appearance => 'Vzhled';
+
+  @override
+  String get language => 'Jazyk';
+
+  @override
+  String get systemDefault => 'Podle zařízení';
+
+  @override
+  String get lightTheme => 'Světlý';
+
+  @override
+  String get darkTheme => 'Tmavý';
+
+  @override
+  String get languageCzech => 'Čeština';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get appVersion => 'Verze aplikace';
+
+  @override
+  String get versionUnavailable => 'Verzi aplikace se nepodařilo načíst.';
+
+  @override
+  String get preferenceStorageError =>
+      'Nastavení se nepodařilo načíst nebo uložit. Změny zatím platí jen pro toto spuštění aplikace.';
+
+  @override
+  String versionBuild(String version, String build) {
+    return '$version ($build)';
+  }
 }
