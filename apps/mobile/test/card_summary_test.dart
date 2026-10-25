@@ -147,4 +147,44 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+  testWidgets('detail metadata keeps every label and the start date', (
+    tester,
+  ) async {
+    final card = DeckCard.fromJson({
+      ...task().raw,
+      'startdate': '2030-01-14T09:00:00Z',
+      'labels': [
+        for (var i = 1; i <= 5; i++)
+          {'id': i, 'title': 'Label $i', 'color': '008080'},
+      ],
+    });
+    final semantics = tester.ensureSemantics();
+    try {
+      await tester.pumpWidget(
+        localizedTestApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                CardLabels(card: card),
+                CardMetadata(card: card, showStartDate: true),
+              ],
+            ),
+          ),
+        ),
+      );
+      for (var i = 1; i <= 5; i++) {
+        expect(find.text('Label $i'), findsOneWidget);
+      }
+      expect(find.bySemanticsLabel(RegExp('Start date:')), findsOneWidget);
+      await tester.pumpWidget(
+        localizedTestApp(
+          home: Scaffold(body: CardMetadata(card: card)),
+        ),
+      );
+      expect(find.bySemanticsLabel(RegExp('Start date:')), findsNothing);
+      expect(tester.takeException(), isNull);
+    } finally {
+      semantics.dispose();
+    }
+  });
 }

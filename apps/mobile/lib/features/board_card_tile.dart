@@ -2,6 +2,8 @@ import 'package:deck_protocol/deck_protocol.dart';
 import 'package:flutter/material.dart';
 
 import '../data/session.dart';
+import '../data/card_edits.dart';
+import '../core/errors.dart';
 import '../l10n/app_localizations.dart';
 import 'board_drag.dart';
 import 'board_moves.dart';
@@ -9,7 +11,7 @@ import 'card_detail.dart';
 import 'card_summary.dart';
 import 'pending.dart';
 
-class BoardCardTile extends StatelessWidget {
+class BoardCardTile extends StatefulWidget {
   const BoardCardTile({
     super.key,
     required this.session,
@@ -25,8 +27,41 @@ class BoardCardTile extends StatelessWidget {
   final BoardDragActivity activity;
 
   @override
+  State<BoardCardTile> createState() => _BoardCardTileState();
+}
+
+class _BoardCardTileState extends State<BoardCardTile> {
+  bool _savingDone = false;
+
+  Future<void> _setDone(bool completed) async {
+    if (_savingDone) return;
+    final session = widget.session;
+    setState(() => _savingDone = true);
+    try {
+      await setCardCompleted(session, widget.board.id, widget.card, completed);
+    } catch (error) {
+      if (mounted && widget.session == session) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage(error, AppLocalizations.of(context)!)),
+          ),
+        );
+      }
+    } finally {
+      if (mounted && widget.session == session) {
+        setState(() => _savingDone = false);
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context)!;
+    final session = widget.session;
+    final board = widget.board;
+    final card = widget.card;
+    final editable = widget.editable;
+    final activity = widget.activity;
     final drag = BoardCardDrag(
       accountId: session.account.id,
       generation: session.account.generation,
@@ -51,6 +86,11 @@ class BoardCardTile extends StatelessWidget {
         ),
         child: CardSummary(
           card: card,
+          onCompletedChanged:
+              editable && card.raw.containsKey('done') && !_savingDone
+              ? _setDone
+              : null,
+          changingCompletion: _savingDone,
           onOpen: () => Navigator.of(context).push(
             MaterialPageRoute<void>(
               settings: const RouteSettings(name: '/card'),
@@ -91,7 +131,7 @@ class BoardCardTile extends StatelessWidget {
     return LongPressDraggable<BoardCardDrag>(
       key: ValueKey(('drag-card', card.id)),
       data: drag,
-      maxSimultaneousDrags: 1,
+      maxSimultaneousDrags: _savingDone ? 0 : 1,
       dragAnchorStrategy: pointerDragAnchorStrategy,
       onDragStarted: () => activity.start(drag),
       onDragCompleted: activity.stop,

@@ -39,6 +39,8 @@ class CardSummary extends StatelessWidget {
     this.onOpen,
     this.trailing,
     this.showDescription = true,
+    this.onCompletedChanged,
+    this.changingCompletion = false,
   });
 
   final DeckCard card;
@@ -46,11 +48,12 @@ class CardSummary extends StatelessWidget {
   final VoidCallback? onOpen;
   final Widget? trailing;
   final bool showDescription;
+  final ValueChanged<bool>? onCompletedChanged;
+  final bool changingCompletion;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final labels = cardObjects(card.raw['labels']).toList(growable: false);
     final content = Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 8, 12),
       child: Column(
@@ -68,33 +71,35 @@ class CardSummary extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-          if (labels.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Wrap(
-                spacing: 4,
-                runSpacing: 4,
-                children: [
-                  for (final label in labels.take(3)) _LabelBadge(label),
-                  if (labels.length > 3)
-                    Tooltip(
-                      message: labels
-                          .skip(3)
-                          .map(
-                            (label) => cardLabelName(
-                              label,
-                              AppLocalizations.of(context)!,
-                            ),
-                          )
-                          .join(', '),
-                      child: Text('+${labels.length - 3}'),
-                    ),
-                ],
-              ),
-            ),
+          CardLabels(card: card, limit: 3),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (onCompletedChanged != null || changingCompletion)
+                SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: changingCompletion
+                      ? Center(
+                          child: SizedBox.square(
+                            dimension: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              semanticsLabel: AppLocalizations.of(
+                                context,
+                              )!.savingDraft,
+                            ),
+                          ),
+                        )
+                      : Checkbox(
+                          value: card.raw['done'] != null,
+                          semanticLabel:
+                              '${AppLocalizations.of(context)!.completed}: ${card.title}',
+                          onChanged: (value) {
+                            if (value != null) onCompletedChanged?.call(value);
+                          },
+                        ),
+                ),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
@@ -131,9 +136,48 @@ class CardSummary extends StatelessWidget {
   }
 }
 
-class CardMetadata extends StatefulWidget {
-  const CardMetadata({super.key, required this.card});
+class CardLabels extends StatelessWidget {
+  const CardLabels({super.key, required this.card, this.limit});
   final DeckCard card;
+  final int? limit;
+
+  @override
+  Widget build(BuildContext context) {
+    final labels = cardObjects(card.raw['labels']).toList(growable: false);
+    if (labels.isEmpty) return const SizedBox.shrink();
+    final text = AppLocalizations.of(context)!;
+    final visibleCount = limit == null
+        ? labels.length
+        : limit!.clamp(0, labels.length);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Wrap(
+        spacing: 4,
+        runSpacing: 4,
+        children: [
+          for (final label in labels.take(visibleCount)) _LabelBadge(label),
+          if (labels.length > visibleCount)
+            Tooltip(
+              message: labels
+                  .skip(visibleCount)
+                  .map((label) => cardLabelName(label, text))
+                  .join(', '),
+              child: Text('+${labels.length - visibleCount}'),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class CardMetadata extends StatefulWidget {
+  const CardMetadata({
+    super.key,
+    required this.card,
+    this.showStartDate = false,
+  });
+  final DeckCard card;
+  final bool showStartDate;
 
   @override
   State<CardMetadata> createState() => _CardMetadataState();
@@ -165,6 +209,9 @@ class _CardMetadataState extends State<CardMetadata> {
     final text = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final due = cardDueDate(card);
+    final start = widget.showStartDate
+        ? DateTime.tryParse(card.raw['startdate']?.toString() ?? '')?.toLocal()
+        : null;
     final completed = card.raw['done'] != null;
     final people = cardPeople(card);
     final comments = _count('commentsCount', 'comments');
@@ -192,6 +239,13 @@ class _CardMetadataState extends State<CardMetadata> {
       runSpacing: 6,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
+        if (start != null)
+          _MetadataBadge(
+            icon: Icons.event_outlined,
+            label: '${text.startDate}: ${local.formatMediumDate(start)}',
+            semanticLabel:
+                '${text.startDate}: ${local.formatMediumDate(start)} ${local.formatTimeOfDay(TimeOfDay.fromDateTime(start), alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context))}',
+          ),
         if (due != null || completed)
           _MetadataBadge(
             icon: completed ? Icons.task_alt : Icons.schedule_outlined,
