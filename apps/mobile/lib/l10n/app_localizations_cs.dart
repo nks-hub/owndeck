@@ -221,7 +221,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get savingDraft => 'Ukládám koncept…';
 
   @override
-  String get drafts => 'Rozepsané karty';
+  String get drafts => 'Koncepty';
 
   @override
   String get noDrafts => 'Nemáte žádné rozepsané karty.';
@@ -825,8 +825,7 @@ class AppLocalizationsCs extends AppLocalizations {
       'Odesílat pouze předem určené názvy obrazovek a akcí.';
 
   @override
-  String get telemetryUnavailable =>
-      'Tato služba není v tomto sestavení nastavená.';
+  String get telemetryUnavailable => 'Tato volba není v této verzi dostupná.';
 
   @override
   String get telemetrySaveFailed => 'Nastavení se nepodařilo uložit.';
@@ -1103,4 +1102,54 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get afterColumn => 'Za sloupec';
+
+  @override
+  String get pendingWaiting => 'Čeká na odeslání';
+
+  @override
+  String get pendingConflicts => 'Konflikty';
+
+  @override
+  String get pendingUncertain => 'Zkontrolovat výsledek';
+
+  @override
+  String get pendingEmptyGroup => 'V této skupině nejsou žádné změny.';
+
+  @override
+  String get pendingConflictHelp =>
+      'Porovnejte svoje změny s verzí na serveru a zvolte, co ponechat.';
+
+  @override
+  String get confirmUseLocalChanges =>
+      'Vaše změny se znovu odešlou po kontrole aktuální verze na serveru.';
+
+  @override
+  String get confirmKeepServerVersion =>
+      'Zahodí se pouze tato místní změna. Na serveru se nic nezmění.';
+
+  @override
+  String get changedField => 'Rozdílné hodnoty';
+
+  @override
+  String get draftLocationUnavailable => 'Původní umístění už není dostupné';
+
+  @override
+  String get settingsPersonalization => 'Vzhled a jazyk';
+
+  @override
+  String get settingsData => 'Účet a data';
+
+  @override
+  String get telemetryChoiceHelp =>
+      'Tyto volby můžete kdykoli změnit. Nemají vliv na vaše nástěnky ani úkoly.';
+
+  @override
+  String get selectionDone => 'Hotovo';
+
+  @override
+  String get telemetryEnabledByDefault =>
+      'Dostupné volby jsou ve výchozím stavu zapnuté. Každou můžete vypnout.';
+
+  @override
+  String get noMatchingBoards => 'Tomuto filtru neodpovídá žádná nástěnka.';
 }

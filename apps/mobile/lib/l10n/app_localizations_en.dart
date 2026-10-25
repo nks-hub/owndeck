@@ -220,7 +220,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get savingDraft => 'Saving draft…';
 
   @override
-  String get drafts => 'Card drafts';
+  String get drafts => 'Drafts';
 
   @override
   String get noDrafts => 'You have no card drafts.';
@@ -822,7 +822,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get telemetryUnavailable =>
-      'This service is not configured in this build.';
+      'This option is not available in this version.';
 
   @override
   String get telemetrySaveFailed => 'The setting could not be saved.';
@@ -1098,4 +1098,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get afterColumn => 'After a column';
+
+  @override
+  String get pendingWaiting => 'Waiting to sync';
+
+  @override
+  String get pendingConflicts => 'Conflicts';
+
+  @override
+  String get pendingUncertain => 'Check the result';
+
+  @override
+  String get pendingEmptyGroup => 'There are no changes in this group.';
+
+  @override
+  String get pendingConflictHelp =>
+      'Compare your changes with the server version before choosing what to keep.';
+
+  @override
+  String get confirmUseLocalChanges =>
+      'Your changes will be sent again after checking the current server version.';
+
+  @override
+  String get confirmKeepServerVersion =>
+      'Only this local change will be discarded. Nothing will be changed on the server.';
+
+  @override
+  String get changedField => 'Different values';
+
+  @override
+  String get draftLocationUnavailable =>
+      'Original location is no longer available';
+
+  @override
+  String get settingsPersonalization => 'Appearance and language';
+
+  @override
+  String get settingsData => 'Account and data';
+
+  @override
+  String get telemetryChoiceHelp =>
+      'You can change these options at any time. They do not affect your boards or tasks.';
+
+  @override
+  String get selectionDone => 'Done';
+
+  @override
+  String get telemetryEnabledByDefault =>
+      'Available options are on by default. You can turn each one off.';
+
+  @override
+  String get noMatchingBoards => 'No boards match this filter.';
 }

@@ -497,7 +497,7 @@ abstract class AppLocalizations {
   /// No description provided for @drafts.
   ///
   /// In en, this message translates to:
-  /// **'Card drafts'**
+  /// **'Drafts'**
   String get drafts;
 
   /// No description provided for @noDrafts.
@@ -1601,7 +1601,7 @@ abstract class AppLocalizations {
   /// No description provided for @telemetryUnavailable.
   ///
   /// In en, this message translates to:
-  /// **'This service is not configured in this build.'**
+  /// **'This option is not available in this version.'**
   String get telemetryUnavailable;
 
   /// No description provided for @telemetrySaveFailed.
@@ -2119,6 +2119,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'After a column'**
   String get afterColumn;
+
+  /// No description provided for @pendingWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting to sync'**
+  String get pendingWaiting;
+
+  /// No description provided for @pendingConflicts.
+  ///
+  /// In en, this message translates to:
+  /// **'Conflicts'**
+  String get pendingConflicts;
+
+  /// No description provided for @pendingUncertain.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the result'**
+  String get pendingUncertain;
+
+  /// No description provided for @pendingEmptyGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no changes in this group.'**
+  String get pendingEmptyGroup;
+
+  /// No description provided for @pendingConflictHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare your changes with the server version before choosing what to keep.'**
+  String get pendingConflictHelp;
+
+  /// No description provided for @confirmUseLocalChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Your changes will be sent again after checking the current server version.'**
+  String get confirmUseLocalChanges;
+
+  /// No description provided for @confirmKeepServerVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Only this local change will be discarded. Nothing will be changed on the server.'**
+  String get confirmKeepServerVersion;
+
+  /// No description provided for @changedField.
+  ///
+  /// In en, this message translates to:
+  /// **'Different values'**
+  String get changedField;
+
+  /// No description provided for @draftLocationUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Original location is no longer available'**
+  String get draftLocationUnavailable;
+
+  /// No description provided for @settingsPersonalization.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance and language'**
+  String get settingsPersonalization;
+
+  /// No description provided for @settingsData.
+  ///
+  /// In en, this message translates to:
+  /// **'Account and data'**
+  String get settingsData;
+
+  /// No description provided for @telemetryChoiceHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'You can change these options at any time. They do not affect your boards or tasks.'**
+  String get telemetryChoiceHelp;
+
+  /// No description provided for @selectionDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get selectionDone;
+
+  /// No description provided for @telemetryEnabledByDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Available options are on by default. You can turn each one off.'**
+  String get telemetryEnabledByDefault;
+
+  /// No description provided for @noMatchingBoards.
+  ///
+  /// In en, this message translates to:
+  /// **'No boards match this filter.'**
+  String get noMatchingBoards;
 }
 
 class _AppLocalizationsDelegate
