@@ -44,6 +44,22 @@ DeckClient api(Future<http.Response> Function(http.Request) request) =>
 
 void main() {
   test(
+    'stack reorder uses OCS and accepts indexed object acknowledgements',
+    () async {
+      await api((request) async {
+        expect(request.method, 'PUT');
+        expect(
+          request.url.path,
+          '/nextcloud/ocs/v2.php/apps/deck/api/v1.0/stacks/2/reorder',
+        );
+        expect(jsonDecode(request.body), {'boardId': 1, 'order': 0});
+        expect(request.followRedirects, isFalse);
+        return json(ocs({'1': stack(3), '0': stack(2)}));
+      }).reorderStack(1, 2, 0);
+    },
+  );
+
+  test(
     'clone uses the OCS route with its documented bare-card response',
     () async {
       final copied = await api((request) async {

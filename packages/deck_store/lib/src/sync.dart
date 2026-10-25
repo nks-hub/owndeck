@@ -15,6 +15,7 @@ part 'board_metadata_sync.dart';
 part 'attachments_sync.dart';
 part 'board_clone_sync.dart';
 part 'applied_card_reads.dart';
+part 'stack_reorder_sync.dart';
 
 bool _shouldRetry(DeckException error, bool mutationStarted) =>
     error.status == 401 ||
@@ -71,6 +72,7 @@ final class DeckSync {
       await database.recoverWrites(account, _owner);
       final attemptedReadbacks = <String>{};
       while (!_closed) {
+        await database.normalizeStackOrders(account, _owner);
         final applied = (await database.writesFor(account.id))
             .where(
               (w) => w.state == 'applied' && !attemptedReadbacks.contains(w.id),
@@ -82,6 +84,8 @@ final class DeckSync {
           if (resolved != null) {
             if (resolved.kind == 'boardClone') {
               await _finishClonedBoard(resolved);
+            } else if (resolved.kind == 'stackReorder') {
+              await _finishStackReorder(resolved);
             } else if (resolved.kind == 'setDoneStack') {
               await _finishDoneStack(resolved);
             } else if (attachmentKinds.contains(resolved.kind)) {
@@ -111,10 +115,15 @@ final class DeckSync {
             continue;
           }
           if (await database.hasEarlierCardWrite(candidate)) continue;
+          if (await database.hasEarlierStackWrite(candidate)) continue;
           queued = await database.resolveWrite(candidate);
           if (queued != null) break;
         }
         if (queued == null) return;
+        if (queued.kind == 'stackReorder') {
+          if (!await _sendStackReorder(queued)) return;
+          continue;
+        }
         if (queued.kind == 'boardClone') {
           if (!await _sendBoardClone(queued)) return;
           continue;

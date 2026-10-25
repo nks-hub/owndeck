@@ -8,6 +8,7 @@ extension _StructureSync on DeckSync {
       final proposal = object(jsonDecode(write.proposal));
       final isBoard = write.kind.endsWith('Board');
       JsonObject? current;
+      int? appendOrder;
       bool allowed;
       if (write.kind == 'createBoard') {
         final capabilities = await client.capabilities();
@@ -31,6 +32,15 @@ extension _StructureSync on DeckSync {
             (!board.archived || write.kind == 'updateBoard');
         if (isBoard) {
           current = board.raw;
+        } else if (write.kind == 'createStack') {
+          final siblings = await client.stacks(write.boardId);
+          if (siblings.any((stack) => stack.boardId != write.boardId)) {
+            throw const FormatException('invalid_stack_identity');
+          }
+          appendOrder = siblings.fold<int>(
+            0,
+            (next, stack) => stack.order >= next ? stack.order + 1 : next,
+          );
         } else if (write.kind != 'createStack') {
           current = object(
             (await client.rest('GET', [
@@ -138,7 +148,7 @@ extension _StructureSync on DeckSync {
             }
           : <String, Object?>{
               'title': proposal['title'] ?? current?['title'],
-              'order': proposal['order'] ?? current?['order'] ?? 999,
+              'order': appendOrder ?? current?['order'] ?? 0,
             };
       mutationStarted = true;
       final response = await client.rest(

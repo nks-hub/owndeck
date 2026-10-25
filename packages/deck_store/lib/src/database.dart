@@ -17,6 +17,7 @@ part 'board_access.dart';
 part 'board_clones.dart';
 part 'read_cards.dart';
 part 'card_snapshots.dart';
+part 'stack_reordering.dart';
 
 const attachmentKinds = {
   'uploadAttachment',

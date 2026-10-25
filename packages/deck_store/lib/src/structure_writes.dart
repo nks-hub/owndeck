@@ -103,7 +103,8 @@ extension StructureWrites on DeckDatabase {
           .where(
             (w) => kind.endsWith('Board')
                 ? w.kind.endsWith('Board') && w.boardId == boardId
-                : w.kind.endsWith('Stack') && w.stackId == stackId,
+                : (w.kind.endsWith('Stack') || w.kind == 'stackReorder') &&
+                      w.stackId == stackId,
           )
           .firstOrNull;
       if (existing != null) throw StateError('pending_decision');

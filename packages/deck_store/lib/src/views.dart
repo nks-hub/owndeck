@@ -71,6 +71,7 @@ extension DeckViews on DeckDatabase {
       'dependentBoardId': 'createBoard',
       'dependentStackId': 'createStack',
       'dependentCardId': 'createCard',
+      'anchorStackId': 'createStack',
     }.entries) {
       if (metadata[field.key] is int && (metadata[field.key] as int) < 0) {
         final id = await resolveId(
@@ -108,6 +109,7 @@ extension DeckViews on DeckDatabase {
         'dependentBoardId',
         'dependentStackId',
         'dependentCardId',
+        'anchorStackId',
       ])
         if (data[key] is int && (data[key] as int) < 0) -(data[key] as int),
       if (write.kind.endsWith('Comment'))
@@ -300,6 +302,14 @@ extension DeckViews on DeckDatabase {
       if (write.kind == 'createStack') {
         stacks[-write.sequence] = {
           ...data,
+          'order':
+              data['order'] ??
+              stacks.values.fold<int>(
+                0,
+                (next, stack) => intField(stack, 'order') >= next
+                    ? intField(stack, 'order') + 1
+                    : next,
+              ),
           'id': -write.sequence,
           'boardId': boardId,
           'cards': <JsonObject>[],
@@ -310,6 +320,45 @@ extension DeckViews on DeckDatabase {
       final stackId =
           await resolveId(accountId, write.stackId, 'createStack') ??
           write.stackId;
+      if (write.kind == 'stackReorder') {
+        final ordered =
+            stacks.values
+                .where((stack) => (stack['deletedAt'] ?? 0) == 0)
+                .toList()
+              ..sort(
+                (a, b) => intField(a, 'order') == intField(b, 'order')
+                    ? intField(a, 'id').compareTo(intField(b, 'id'))
+                    : intField(a, 'order').compareTo(intField(b, 'order')),
+              );
+        final source = ordered
+            .where((stack) => stack['id'] == stackId)
+            .firstOrNull;
+        if (source == null) continue;
+        final anchor = data['anchorStackId'];
+        if (anchor is int) {
+          data['anchorStackId'] =
+              await resolveId(accountId, anchor, 'createStack') ?? anchor;
+        }
+        ordered.remove(source);
+        try {
+          final index = stackReorderIndex(
+            ordered.map((stack) => intField(stack, 'id')).toList(),
+            data,
+          );
+          ordered.insert(index, source);
+          for (var index = 0; index < ordered.length; index++) {
+            final stack = ordered[index];
+            stacks[intField(stack, 'id')] = {
+              ...stack,
+              'order': index,
+              if (stack['id'] == stackId) 'syncState': write.state,
+            };
+          }
+        } on StateError {
+          // An unavailable anchor must not silently turn into another position.
+        }
+        continue;
+      }
       if (write.kind == 'updateStack' && stacks[stackId] != null) {
         stacks[stackId] = {
           ...stacks[stackId]!,

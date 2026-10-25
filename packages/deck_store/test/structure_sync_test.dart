@@ -109,6 +109,21 @@ void main() {
           }
           return reply(createdCard);
         }
+        if (path.endsWith('/stacks/archived')) return reply([]);
+        if (path.endsWith('/stacks')) {
+          return reply(
+            posted.any((path) => path.endsWith('/stacks'))
+                ? [
+                    {
+                      ...createdStack,
+                      'cards': posted.any((path) => path.endsWith('/cards'))
+                          ? [createdCard]
+                          : [],
+                    },
+                  ]
+                : [],
+          );
+        }
         if (path.endsWith('/stacks/20')) return reply(createdStack);
         if (path.endsWith('/cards/30')) return reply(createdCard);
         if (path.endsWith('/capabilities')) {
@@ -220,6 +235,7 @@ void main() {
       expect((await db.writesFor(account.id)).map((w) => w.state).toList(), [
         'uncertain',
         'queued',
+        'queued',
       ]);
     },
   );
@@ -242,7 +258,11 @@ void main() {
         requests++;
         return reply({});
       }).run();
-      final child = (await db.writesFor(account.id)).single;
+      final remaining = await db.writesFor(account.id);
+      expect(remaining.every((write) => write.state == 'blocked'), isTrue);
+      final child = remaining.singleWhere(
+        (write) => write.kind == 'createStack',
+      );
       expect(child.state, 'blocked');
       expect(child.error, 'dependency_unavailable');
       expect(object(jsonDecode(child.proposal))['title'], 'Keep this');

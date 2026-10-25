@@ -61,6 +61,17 @@ final class DeckNotifications {
 }
 
 extension DeckCardExtras on DeckClient {
+  Future<void> reorderStack(int boardId, int stackId, int order) async {
+    if (boardId <= 0 || stackId <= 0 || order < 0) {
+      throw ArgumentError('invalid_stack_position');
+    }
+    await ocs(
+      'PUT',
+      ['apps', 'deck', 'api', 'v1.0', 'stacks', '$stackId', 'reorder'],
+      body: {'boardId': boardId, 'order': order},
+    );
+  }
+
   Future<DeckCard> cloneCard(int cardId, int destinationStackId) async {
     if (cardId <= 0 || destinationStackId <= 0) {
       throw ArgumentError('invalid_clone_destination');
