@@ -173,8 +173,16 @@ void main() {
     expect(find.text('Delete card'), findsNothing);
     await tester.tap(find.text('Copy card'));
     await tester.pumpAndSettle();
-    expect(find.text('Writable'), findsOneWidget);
-    expect(find.text('Read only'), findsNothing);
+    final destinations = find.byType(BottomSheet);
+    expect(destinations, findsOneWidget);
+    expect(
+      find.descendant(of: destinations, matching: find.text('Writable')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: destinations, matching: find.text('Read only')),
+      findsNothing,
+    );
     expect(requests, 0);
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();
