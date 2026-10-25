@@ -4,7 +4,7 @@ Podle upřesnění zadání se automatické testy smějí spouštět během výv
 
 Podle dalšího upřesnění zadání jsou také fyzické S9/S21 součástí průběžných testů na pozadí, nikoli až krokem po vývoji. Každý telefon má vlastní proces a kandidáta z odděleného pracovního stromu. Stejné zařízení nesmějí řídit dva procesy současně. Během implementace probíhá statická kontrola typů a stylu; ta neprokazuje funkčnost na serveru ani zařízení.
 
-## Automatické ověření po vývoji
+## Průběžné automatické ověření
 
 První průběžný běh na izolované revizi `95b19ed4f1a500ff512d4c57fe77b42769ccdfa6` dne 24. 10. 2026: protokol 13/13, databáze a fronta 38/38, bez přeskočení. Obě sady běžely na pozadí souběžně a skončily kódem 0. Tento výsledek nepokrývá UI, skutečný server, telemetrii ani telefony. Další změny vyžadují ověření nové revize.
 
@@ -45,11 +45,11 @@ Testované kombinace verzí se doplní podle dostupného prostředí. Jedna zele
 |---|---|---|
 | Samsung Galaxy S9+ | Android 10: kandidát `9134c05`, start a HTTPS validace prošly | Instalace, přihlášení, čtení, všechny hlavní zápisy, offline/restart, velká nástěnka, klávesnice, TalkBack, telemetrie. |
 | Samsung Galaxy S21 | Android 15: kandidát `79c1be8`, nové přihlášení a HTTPS validace prošly | Totéž, přepnutí sítě, návrat z prohlížeče, systémové Zpět, soubory a oprávnění aktuálního OS. |
-| iPhone | Konkrétní dostupný model zjistit před T03 | Systémový prohlížeč, Keychain, návrat gestem, výběr přílohy, VoiceOver, životní cyklus a telemetrie. |
+| iOS simulátor na macOS | Uživatel výslovně zvolil simulátor; konkrétní model a runtime zaznamenat při rezervaci Macu | Systémový prohlížeč, Keychain, návrat gestem, výběr přílohy, přístupnost, životní cyklus a telemetrie; omezení simulátoru přiznat. |
 
 Před testem zapsat skutečný model, verzi OS, revizi, verzi balíčku a SHA-256 artefaktu. Pro každou hlavní akci ověřit výsledek v aplikaci i na serveru. U výkonu zaznamenat nejméně 5 studených startů a 30 s scrollování po zahřátí; měřit v profile/release režimu, ne debug.
 
-Oprava po fyzickém testu vytváří nového kandidáta. Znovu ověřit opravený scénář a související regresi na dotčených zařízeních; staré výsledky nepřenášet automaticky. Nedostupný iPhone nezmění fyzický Android test na ověření iOS.
+Oprava po fyzickém testu vytváří nového kandidáta. Znovu ověřit opravený scénář a související regresi na dotčených zařízeních; staré výsledky nepřenášet automaticky. Podle upřesnění uživatele se iOS ověří v simulátoru na macOS; výsledek neoznačovat za fyzický test iPhonu.
 
 ## Záznam důkazu
 
@@ -82,7 +82,18 @@ Na stejném kandidátu S21 následně prošel celý tok s odděleným lokálním
 
 ## Google Play 0.1.0+2
 
-Publikační API potvrdilo kanál alpha, pouze versionCode 2, stav tracku `completed` a samostatný stav kontroly `RELEASE_LIFECYCLE_STATE_IN_REVIEW`. `completed` zde neznamená, že Google kontrolu dokončil. AAB SHA-256: `2f923fe2e7105d173403b63ed5f8a6da2969edca67c836fea83c4451d9daa360`. Ověřená je shoda všech tří skupin s referenční aplikací, cs/en texty a hashe ikony, grafiky a dvou finálních snímků. Dostupnost testerům se ověří po schválení.
+Průběžné změny po vydané revizi mají vlastní důkazy. Výsledky vydání se na ně automaticky nepřenášejí.
+
+Publikační API dne 25. 10. 2026 v 09:41 UTC potvrdilo kanál alpha, pouze versionCode 2 a stav `RELEASE_LIFECYCLE_STATE_PUBLISHED`. AAB SHA-256: `2f923fe2e7105d173403b63ed5f8a6da2969edca67c836fea83c4451d9daa360`. Ověřená je shoda všech tří skupin s referenční aplikací, cs/en texty a hashe ikony, grafiky a dvou finálních snímků. [Vstup do uzavřeného testu](https://play.google.com/apps/testing/com.nkshub.nextclouddeck).
+
+## Následná průběžná ověření
+
+- `a329d28`: všech osm migrací databáze 1–8 zachovalo účty, koncepty a čekající zápisy; původní schémata 1–3 před opravou selhala na duplicitním sloupci.
+- `77cea35`, `ca8c723`, `41b25b3`: 107 databázových testů a analyzer prošly pro potvrzené zápisy po cizím přesunu karty; opakované načtení neodesílá další mutaci.
+- Nextcloud 34.0.4 / Deck 1.18.5: 12 živých scénářů ověřilo READ/EDIT, odebrání sdílení, vyřazení cache se zachováním vlastních změn a vytvoření/změnu/vymazání startdate a color. Vlastní testovací účty a soubory byly odstraněny.
+- [CI 40186299133](https://github.com/nks-hub/owndeck/actions/runs/40186299133), zdroj `20c400c`: izolovaný Nextcloud 35.0.2 / Deck 1.19.1 prošel 15 scénáři. Devět kopií nástěnky ověřilo šest voleb, READ zdroje a oprávnění vytvářet nástěnky. Test používá produkční HTTP klient, nepokrývá nové UI ani trvalou frontu. Kontejner a soukromé soubory byly odstraněny.
+- `7d13eb6`: iPhone 16 simulátor / iOS 26.2, macOS 15.7.4, Xcode 26.3: šest scénářů ověřilo přihlášení v Safari, skutečný Keychain a restart, warm/cold odkaz na kartu, systémový picker a export souboru se shodným SHA-256. Jde o simulátor a místní HTTPS testovací server; novější zdroj tato zkouška nepokrývá.
+- `4fc690b`: 122 databázových testů a analyzer ověřily frontu kopie nástěnky, uložení přijatého výsledku a načtení bez dalšího POST. UI v `708defd` prošlo devíti cílenými scénáři, včetně READ zdroje, staršího serveru, šesti voleb, čekajících změn a návratu z prohlížeče. Pozdější propojení hlavní navigace v `2cbef2a` má samostatné průběžné ověření; výsledky zařízení zatím nejsou uzavřené.
 
 ## Výkon na Androidu
 
