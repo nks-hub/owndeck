@@ -6,6 +6,7 @@ import 'package:deck_store/deck_store.dart';
 import 'package:flutter/material.dart';
 
 import '../data/session.dart';
+import '../core/errors.dart';
 import '../l10n/app_localizations.dart';
 import 'color_choices.dart';
 
@@ -244,9 +245,7 @@ class _CardEditorState extends State<CardEditor> {
       if (mounted) {
         setState(() {
           _saving = false;
-          _error = error is StateError && error.message == 'pending_decision'
-              ? text.pendingDecision
-              : text.storageError;
+          _error = localWriteErrorMessage(error, text);
         });
       }
     }
@@ -275,7 +274,7 @@ class _CardEditorState extends State<CardEditor> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(text.unsavedChanges),
-        content: Text(text.storageError),
+        content: Text(text.localSaveError),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -460,7 +459,7 @@ class _CardEditorState extends State<CardEditor> {
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         child: Text(
                           _persistFailed
-                              ? text.storageError
+                              ? text.localSaveError
                               : _revision == _persistedRevision
                               ? text.draftSaved
                               : text.savingDraft,

@@ -5,6 +5,7 @@ import 'package:deck_store/deck_store.dart';
 import 'package:flutter/material.dart';
 
 import '../data/session.dart';
+import '../core/errors.dart';
 import '../l10n/app_localizations.dart';
 import 'sharing.dart';
 import 'sync_notice.dart';

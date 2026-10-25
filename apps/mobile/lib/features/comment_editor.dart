@@ -6,6 +6,7 @@ import 'package:deck_store/deck_store.dart';
 import 'package:flutter/material.dart';
 
 import '../data/session.dart';
+import '../core/errors.dart';
 import '../l10n/app_localizations.dart';
 
 Future<void> openCommentEditor(
@@ -163,7 +164,7 @@ class _CommentEditorState extends State<CommentEditor> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(text.unsavedChanges),
-        content: Text(text.storageError),
+        content: Text(text.localSaveError),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -209,10 +210,7 @@ class _CommentEditorState extends State<CommentEditor> {
       if (mounted) {
         setState(() {
           _saving = false;
-          _error =
-              failure is StateError && failure.message == 'identity_unavailable'
-              ? text.identityUnavailable
-              : text.storageError;
+          _error = localWriteErrorMessage(failure, text);
         });
       }
     }
@@ -278,7 +276,7 @@ class _CommentEditorState extends State<CommentEditor> {
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       child: Text(
                         _persistFailed
-                            ? text.storageError
+                            ? text.localSaveError
                             : _savedRevision == _revision
                             ? text.localDraftSaved
                             : text.savingDraft,

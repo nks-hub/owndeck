@@ -137,10 +137,7 @@ class _StructureFormState extends State<_StructureForm> {
                 : board == null
                 ? 'createBoard'
                 : 'updateBoard',
-            {
-              'title': title,
-              if (!column) 'color': value.toLowerCase(),
-            },
+            {'title': title, if (!column) 'color': value.toLowerCase()},
             boardId: board?.id ?? 0,
             stackId: stack?.id ?? 0,
             base: column ? stack?.raw : board?.raw,
@@ -166,9 +163,11 @@ class _StructureFormState extends State<_StructureForm> {
       if (mounted) {
         setState(() {
           _saving = false;
-          _error = error is StateError && error.message == 'pending_decision'
-              ? text.pendingDecision
-              : text.loadError;
+          _error = localWriteErrorMessage(
+            error,
+            text,
+            pendingMessage: text.pendingBoardDecision,
+          );
         });
       }
     }
