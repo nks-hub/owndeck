@@ -2,6 +2,7 @@ import 'package:deck_protocol/deck_protocol.dart';
 import 'package:flutter/material.dart';
 
 import '../core/markdown_tasks.dart';
+import '../core/markdown_preview.dart';
 import '../l10n/app_localizations.dart';
 
 Iterable<JsonObject> cardObjects(Object? value) => switch (value) {
@@ -116,23 +117,71 @@ class CardSummary extends StatelessWidget {
               ?trailing,
             ],
           ),
-          if (showDescription && card.description.trim().isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 2, bottom: 8),
-              child: Text(
-                card.description.trim().replaceAll(RegExp(r'\s+'), ' '),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
+          if (showDescription && card.description.isNotEmpty)
+            CardDescriptionPreview(description: card.description),
           CardMetadata(card: card),
         ],
       ),
     );
     return onOpen == null ? content : InkWell(onTap: onOpen, child: content);
+  }
+}
+
+class CardDescriptionPreview extends StatefulWidget {
+  const CardDescriptionPreview({
+    super.key,
+    required this.description,
+    this.buildPreview = markdownPreview,
+  });
+
+  final String description;
+  @visibleForTesting
+  final String Function(String) buildPreview;
+
+  @override
+  State<CardDescriptionPreview> createState() => _CardDescriptionPreviewState();
+}
+
+class _CardDescriptionPreviewState extends State<CardDescriptionPreview> {
+  late String _input;
+  late String _preview;
+
+  @override
+  void initState() {
+    super.initState();
+    _input = markdownPreviewInput(widget.description);
+    _preview = widget.buildPreview(_input);
+  }
+
+  @override
+  void didUpdateWidget(covariant CardDescriptionPreview oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (identical(widget.description, oldWidget.description) &&
+        widget.buildPreview == oldWidget.buildPreview) {
+      return;
+    }
+    final input = markdownPreviewInput(widget.description);
+    if (input != _input || widget.buildPreview != oldWidget.buildPreview) {
+      _input = input;
+      _preview = widget.buildPreview(input);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_preview.isEmpty) return const SizedBox.shrink();
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(top: 2, bottom: 8),
+      child: Text(
+        _preview,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
   }
 }
 
