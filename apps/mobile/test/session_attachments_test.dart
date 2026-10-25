@@ -363,8 +363,9 @@ void main() {
             },
           }, ocs: true);
         }
-        if (request.method == 'POST') {
-          posts++;
+        if (request.method == 'POST' ||
+            request.url.path.endsWith('/boards/1/stacks/2/cards/8')) {
+          if (request.method == 'POST') posts++;
           return response({
             'id': 8,
             'stackId': 2,
@@ -374,6 +375,15 @@ void main() {
             'order': 0,
             'owner': 'user',
             'archived': false,
+          });
+        }
+        if (request.url.path.endsWith('/boards/1/stacks/2')) {
+          return response({
+            'id': 2,
+            'boardId': 1,
+            'title': 'Column',
+            'order': 0,
+            'cards': [],
           });
         }
         return response(
