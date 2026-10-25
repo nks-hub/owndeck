@@ -87,8 +87,8 @@
   "deletedBoards": "Smazané",
   "restoreBoard": "Obnovit nástěnku",
   "invalidName": "Název musí mít 1 až 100 znaků.",
-  "invalidColor": "Barvu zadejte šesti hexadecimálními znaky, například 008080.",
-  "invalidPosition": "Pořadí musí být celé nezáporné číslo.",
+  "invalidColor": "Vyberte barvu.",
+  "invalidPosition": "Vyberte umístění položky.",
   "boardActions": "Akce nástěnky",
   "stackActions": "Akce sloupce",
   "dependencyUnavailable": "Nadřazená nástěnka nebo sloupec byly zrušeny. Místní obsah zůstal zachovaný.",
@@ -374,5 +374,8 @@
   "keepServerVersion": "Ponechat verzi serveru",
   "allChanges": "Všechny změny",
   "needsDecision": "Vyžaduje rozhodnutí",
-  "boardSearchHint": "Najít nástěnku"
+  "boardSearchHint": "Najít nástěnku",
+  "unnamedLabel": "Štítek bez názvu",
+  "keepPosition": "Ponechat na současném místě",
+  "afterColumn": "Za sloupec"
 }

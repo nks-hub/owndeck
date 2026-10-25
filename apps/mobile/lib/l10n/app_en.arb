@@ -87,8 +87,8 @@
   "deletedBoards": "Deleted",
   "restoreBoard": "Restore board",
   "invalidName": "The name must contain 1 to 100 characters.",
-  "invalidColor": "Enter a six-digit hexadecimal color, for example 008080.",
-  "invalidPosition": "Position must be a non-negative integer.",
+  "invalidColor": "Choose a color.",
+  "invalidPosition": "Choose where to place the item.",
   "boardActions": "Board actions",
   "stackActions": "Column actions",
   "dependencyUnavailable": "The parent board or column was discarded. Your local content has been preserved.",
@@ -374,5 +374,8 @@
   "keepServerVersion": "Keep the server version",
   "allChanges": "All changes",
   "needsDecision": "Needs a decision",
-  "boardSearchHint": "Find a board"
+  "boardSearchHint": "Find a board",
+  "unnamedLabel": "Unnamed label",
+  "keepPosition": "Keep the current position",
+  "afterColumn": "After a column"
 }

@@ -623,13 +623,13 @@ abstract class AppLocalizations {
   /// No description provided for @invalidColor.
   ///
   /// In en, this message translates to:
-  /// **'Enter a six-digit hexadecimal color, for example 008080.'**
+  /// **'Choose a color.'**
   String get invalidColor;
 
   /// No description provided for @invalidPosition.
   ///
   /// In en, this message translates to:
-  /// **'Position must be a non-negative integer.'**
+  /// **'Choose where to place the item.'**
   String get invalidPosition;
 
   /// No description provided for @boardActions.
@@ -2101,6 +2101,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Find a board'**
   String get boardSearchHint;
+
+  /// No description provided for @unnamedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed label'**
+  String get unnamedLabel;
+
+  /// No description provided for @keepPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the current position'**
+  String get keepPosition;
+
+  /// No description provided for @afterColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'After a column'**
+  String get afterColumn;
 }
 
 class _AppLocalizationsDelegate

@@ -286,11 +286,10 @@ class AppLocalizationsCs extends AppLocalizations {
   String get invalidName => 'Název musí mít 1 až 100 znaků.';
 
   @override
-  String get invalidColor =>
-      'Barvu zadejte šesti hexadecimálními znaky, například 008080.';
+  String get invalidColor => 'Vyberte barvu.';
 
   @override
-  String get invalidPosition => 'Pořadí musí být celé nezáporné číslo.';
+  String get invalidPosition => 'Vyberte umístění položky.';
 
   @override
   String get boardActions => 'Akce nástěnky';
@@ -1095,4 +1094,13 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get boardSearchHint => 'Najít nástěnku';
+
+  @override
+  String get unnamedLabel => 'Štítek bez názvu';
+
+  @override
+  String get keepPosition => 'Ponechat na současném místě';
+
+  @override
+  String get afterColumn => 'Za sloupec';
 }

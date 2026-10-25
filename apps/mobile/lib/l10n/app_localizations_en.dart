@@ -285,11 +285,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get invalidName => 'The name must contain 1 to 100 characters.';
 
   @override
-  String get invalidColor =>
-      'Enter a six-digit hexadecimal color, for example 008080.';
+  String get invalidColor => 'Choose a color.';
 
   @override
-  String get invalidPosition => 'Position must be a non-negative integer.';
+  String get invalidPosition => 'Choose where to place the item.';
 
   @override
   String get boardActions => 'Board actions';
@@ -1090,4 +1089,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get boardSearchHint => 'Find a board';
+
+  @override
+  String get unnamedLabel => 'Unnamed label';
+
+  @override
+  String get keepPosition => 'Keep the current position';
+
+  @override
+  String get afterColumn => 'After a column';
 }
