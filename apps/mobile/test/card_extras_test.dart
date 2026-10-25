@@ -307,33 +307,165 @@ void main() {
     },
   );
 
-  testWidgets(
-    'notifications show only Deck and open the account URL without API credentials',
-    (tester) async {
-      Uri? opened;
-      await tester.pumpWidget(
-        app(
-          NotificationsScreen(
-            session: session,
-            openLink: (uri) async {
-              opened = uri;
-              return true;
-            },
-          ),
+  testWidgets('notification link override receives the filtered account URL', (
+    tester,
+  ) async {
+    Uri? opened;
+    await tester.pumpWidget(
+      app(
+        NotificationsScreen(
+          session: session,
+          openLink: (uri) async {
+            opened = uri;
+            return true;
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Card updated'), findsOneWidget);
+    expect(find.text('Other app content'), findsNothing);
+    await tester.tap(find.text('Open card link'));
+    await tester.pumpAndSettle();
+    expect(
+      opened,
+      Uri.parse('https://cloud.example.com/apps/deck/board/1/card/8'),
+    );
+    expect(requests, 2);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('card notification fetches and opens its native account card', (
+    tester,
+  ) async {
+    const browser = MethodChannel('plugins.flutter.io/url_launcher');
+    final launches = <MethodCall>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(browser, (call) async {
+          launches.add(call);
+          return true;
+        });
+    final seen = <http.Request>[];
+    final origin = Uri.parse(account.server).origin;
+    final authorization =
+        'Basic ${base64Encode(utf8.encode('${account.loginName}:test-password'))}';
+    final fetchedCard = {
+      ...card.raw,
+      'title': 'Fetched notification card',
+      'description': 'Loaded from the original account.',
+    };
+    final fetchedStack = {
+      ...stack.raw,
+      'cards': [fetchedCard],
+    };
+    http.Response raw(Object data) => http.Response(
+      jsonEncode(data),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+    await tester.runAsync(() async {
+      session.dispose();
+      session = DeckSession(
+        db,
+        account,
+        DeckClient(
+          base: ServerBase.parse(account.server),
+          loginName: account.loginName,
+          appPassword: 'test-password',
+          transport: MockClient((request) async {
+            seen.add(request);
+            if (request.url.origin != origin ||
+                request.headers['authorization'] != authorization) {
+              return http.Response('', 403);
+            }
+            final path = request.url.path;
+            if (path.endsWith('/capabilities')) {
+              return reply({
+                'capabilities': {
+                  'notifications': {
+                    'ocs-endpoints': ['list'],
+                  },
+                },
+              });
+            }
+            if (path.endsWith('/notifications')) {
+              return reply([
+                {
+                  'notification_id': 7,
+                  'app': 'deck',
+                  'subject': 'Open this card',
+                  'message': '',
+                  'datetime': '2026-01-01T12:00:00Z',
+                  'link': '$origin/index.php/apps/deck/board/1/card/8',
+                },
+              ]);
+            }
+            if (path.endsWith('/boards/1')) return raw(board.raw);
+            if (path.endsWith('/boards/1/stacks')) return raw([fetchedStack]);
+            if (path.endsWith('/boards/1/stacks/archived')) return raw([]);
+            if (path.endsWith('/boards/1/stacks/2')) return raw(fetchedStack);
+            if (path.endsWith('/boards/1/stacks/2/cards/8')) {
+              return raw(fetchedCard);
+            }
+            return http.Response('', 404);
+          }),
         ),
       );
-      await tester.pumpAndSettle();
-      expect(find.text('Card updated'), findsOneWidget);
-      expect(find.text('Other app content'), findsNothing);
-      await tester.tap(find.text('Open in Nextcloud'));
-      await tester.pumpAndSettle();
+    });
+    Future<void> until(Finder finder) async {
+      for (
+        var attempt = 0;
+        attempt < 100 && finder.evaluate().isEmpty;
+        attempt++
+      ) {
+        await tester.pump(const Duration(milliseconds: 30));
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 10)),
+        );
+      }
+      expect(finder, findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 300));
+    }
+
+    try {
+      await tester.pumpWidget(app(NotificationsScreen(session: session)));
+      await until(find.text('Open card link'));
+      await tester.tap(find.text('Open card link'));
+      await until(find.byType(CardScreen));
+      await until(find.text('Fetched notification card'));
+      final screen = tester.widget<CardScreen>(find.byType(CardScreen));
+      expect(screen.session, same(session));
+      expect(screen.session.account.id, account.id);
+      expect(screen.board.id, 1);
+      expect(screen.card.id, 8);
+      expect(find.text('Loaded from the original account.'), findsOneWidget);
+      expect(launches, isEmpty);
+      expect(seen.every((request) => request.url.origin == origin), isTrue);
       expect(
-        opened,
-        Uri.parse('https://cloud.example.com/apps/deck/board/1/card/8'),
+        seen.every(
+          (request) => request.headers['authorization'] == authorization,
+        ),
+        isTrue,
       );
-      expect(requests, 2);
+      expect(seen.every((request) => request.method == 'GET'), isTrue);
+      const prefix = '/index.php/apps/deck/api/v1.1/boards/1';
+      expect(
+        seen.map((request) => request.url.path),
+        containsAll([
+          prefix,
+          '$prefix/stacks',
+          '$prefix/stacks/archived',
+          '$prefix/stacks/2',
+          '$prefix/stacks/2/cards/8',
+        ]),
+      );
+      expect(tester.takeException(), isNull);
+    } finally {
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpAndSettle();
-    },
-  );
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(browser, null);
+    }
+  });
 }
