@@ -118,6 +118,10 @@ class _Fixture {
                 labels.singleWhere((label) => label['id'] == id),
               );
               confirmed.add('label:$id');
+            } else if (path.endsWith('/removeLabel')) {
+              final id = body['labelId'];
+              remoteLabels.removeWhere((label) => label['id'] == id);
+              confirmed.add('remove-label:$id');
             } else if (path.endsWith('/assignUser')) {
               final id = body['userId'];
               remoteUsers.add({
@@ -125,6 +129,15 @@ class _Fixture {
                 'participant': users.singleWhere((user) => user['uid'] == id),
               });
               confirmed.add('user:$id');
+            } else if (path.endsWith('/unassignUser')) {
+              final id = body['userId'];
+              final type = body['type'];
+              remoteUsers.removeWhere(
+                (assignment) =>
+                    (assignment['participant'] as Map)['uid'] == id &&
+                    assignment['type'] == type,
+              );
+              confirmed.add('remove-user:$id');
             } else {
               throw StateError('unexpected_mutation');
             }
@@ -162,6 +175,24 @@ class _Fixture {
   Future<void> revokeEdit() async {
     canEdit = false;
     await database.saveBoards(account.id, account.generation, [board], null);
+  }
+
+  Future<void> seedPriorMembership({bool named = true}) async {
+    remoteLabels.add({
+      'id': 33,
+      'title': named ? 'Previous label' : {'internal': 'opaque-label'},
+      'color': '008080',
+    });
+    remoteUsers.add({
+      'type': 0,
+      'participant': {
+        'uid': 'previous-user',
+        if (named) 'displayname': 'Former teammate',
+      },
+    });
+    await database.saveStacks(account.id, account.generation, 1, [
+      DeckStack.fromJson(stack),
+    ], null);
   }
 }
 
@@ -222,7 +253,12 @@ Future<void> _using(
   }
 }
 
-Future<void> _open(WidgetTester tester, _Fixture fixture, String action) async {
+Future<void> _open(
+  WidgetTester tester,
+  _Fixture fixture,
+  String action, {
+  int optionCount = 2,
+}) async {
   await tester.pumpWidget(
     _app(
       CardScreen(
@@ -239,10 +275,201 @@ Future<void> _open(WidgetTester tester, _Fixture fixture, String action) async {
   await tester.ensureVisible(find.widgetWithText(TextButton, action));
   await tester.tap(find.widgetWithText(TextButton, action));
   await tester.pumpAndSettle();
-  expect(find.byType(CheckboxListTile), findsNWidgets(2));
+  expect(find.byType(CheckboxListTile), findsNWidgets(optionCount));
 }
 
 void main() {
+  testWidgets(
+    'removing an old group preserves the assignment type when a user has the same identifier',
+    (tester) async {
+      await _using(tester, (fixture) async {
+        await tester.runAsync(() async {
+          fixture.remoteUsers.add({
+            'type': 1,
+            'participant': {'uid': 'alice', 'displayname': 'Previous team'},
+          });
+          await fixture.database.saveStacks(
+            fixture.account.id,
+            fixture.account.generation,
+            1,
+            [DeckStack.fromJson(fixture.stack)],
+            null,
+          );
+        });
+        await _open(tester, fixture, 'Assignees', optionCount: 3);
+        expect(
+          tester
+              .widget<CheckboxListTile>(
+                find.widgetWithText(CheckboxListTile, 'Previous team'),
+              )
+              .value,
+          isTrue,
+        );
+        expect(
+          tester
+              .widget<CheckboxListTile>(
+                find.widgetWithText(CheckboxListTile, 'Alice'),
+              )
+              .value,
+          isFalse,
+        );
+        await tester.tap(
+          find.widgetWithText(CheckboxListTile, 'Previous team'),
+        );
+        await tester.pump();
+        await tester.tap(find.widgetWithText(CheckboxListTile, 'Alice'));
+        await tester.pump();
+        await tester.tap(find.widgetWithText(FilledButton, 'Done'));
+        await _until(
+          tester,
+          () =>
+              fixture.confirmed.length == 2 &&
+              find.byType(CheckboxListTile).evaluate().isEmpty &&
+              !fixture.session.loading('board:1'),
+        );
+        final remove = fixture.requests.singleWhere(
+          (request) => request.url.path.endsWith('/unassignUser'),
+        );
+        final add = fixture.requests.singleWhere(
+          (request) => request.url.path.endsWith('/assignUser'),
+        );
+        expect(object(jsonDecode(remove.body)), {'userId': 'alice', 'type': 1});
+        expect(object(jsonDecode(add.body)), {'userId': 'alice', 'type': 0});
+        expect(fixture.remoteUsers.single['type'], 0);
+        expect(
+          (await tester.runAsync(
+            () => fixture.database.writesFor(fixture.account.id),
+          ))!,
+          isEmpty,
+        );
+      });
+    },
+  );
+
+  for (final action in ['Labels', 'Assignees']) {
+    testWidgets(
+      '$action can keep or remove assignments from the previous board',
+      (tester) async {
+        await _using(tester, (fixture) async {
+          await tester.runAsync(fixture.seedPriorMembership);
+          final outsider = action == 'Labels'
+              ? 'Previous label'
+              : 'Former teammate';
+          final available = action == 'Labels' ? 'Urgent' : 'Alice';
+          await _open(tester, fixture, action, optionCount: 3);
+          final oldOption = find.widgetWithText(CheckboxListTile, outsider);
+          expect(tester.widget<CheckboxListTile>(oldOption).value, isTrue);
+          await tester.tap(oldOption);
+          await tester.pump();
+          await tester.tap(oldOption);
+          await tester.pump();
+          await tester.tap(find.widgetWithText(FilledButton, 'Done'));
+          await _until(
+            tester,
+            () =>
+                find.byType(CheckboxListTile).evaluate().isEmpty &&
+                !fixture.session.loading('board:1'),
+          );
+          expect(
+            fixture.requests.where((request) => request.method != 'GET'),
+            isEmpty,
+          );
+          expect(
+            (await tester.runAsync(
+              () => fixture.database.writesFor(fixture.account.id),
+            ))!,
+            isEmpty,
+          );
+          await tester.tap(find.widgetWithText(TextButton, action));
+          await tester.pumpAndSettle();
+          await tester.tap(find.widgetWithText(CheckboxListTile, outsider));
+          await tester.pump();
+          await tester.tap(find.widgetWithText(CheckboxListTile, available));
+          await tester.pump();
+          await tester.tap(find.widgetWithText(FilledButton, 'Done'));
+          await _until(
+            tester,
+            () =>
+                fixture.confirmed.length == 2 &&
+                find.byType(CheckboxListTile).evaluate().isEmpty &&
+                !fixture.session.loading('board:1'),
+          );
+          expect(fixture.firstMutationWrites, hasLength(2));
+          expect(
+            fixture.firstMutationWrites.map((write) => write.kind),
+            unorderedEquals(
+              action == 'Labels'
+                  ? ['assignLabel', 'removeLabel']
+                  : ['assignUser', 'unassignUser'],
+            ),
+          );
+          expect(
+            (await tester.runAsync(
+              () => fixture.database.writesFor(fixture.account.id),
+            ))!,
+            isEmpty,
+          );
+          final assignments = action == 'Labels'
+              ? fixture.remoteLabels
+              : fixture.remoteUsers;
+          expect(assignments, hasLength(1));
+          if (action == 'Labels') {
+            expect(assignments.single['id'], 11);
+          } else {
+            expect((assignments.single['participant'] as Map)['uid'], 'alice');
+          }
+          final mutations = fixture.requests
+              .where((request) => request.method != 'GET')
+              .toList();
+          expect(mutations, hasLength(2));
+          expect(
+            mutations
+                .where(
+                  (request) => request.url.path.endsWith(
+                    action == 'Labels' ? '/assignLabel' : '/assignUser',
+                  ),
+                )
+                .map(
+                  (request) => object(
+                    jsonDecode(request.body),
+                  )[action == 'Labels' ? 'labelId' : 'userId'],
+                ),
+            [action == 'Labels' ? 11 : 'alice'],
+          );
+          await tester.tap(find.widgetWithText(TextButton, action));
+          await tester.pumpAndSettle();
+          expect(find.widgetWithText(CheckboxListTile, outsider), findsNothing);
+          expect(find.byType(CheckboxListTile), findsNWidgets(2));
+        });
+      },
+    );
+  }
+
+  testWidgets('unnamed prior assignments do not expose internal identifiers', (
+    tester,
+  ) async {
+    await _using(tester, (fixture) async {
+      await tester.runAsync(() => fixture.seedPriorMembership(named: false));
+      await _open(tester, fixture, 'Assignees', optionCount: 3);
+      expect(find.widgetWithText(CheckboxListTile, 'User'), findsOneWidget);
+      expect(
+        find.widgetWithText(CheckboxListTile, 'previous-user'),
+        findsNothing,
+      );
+      await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(TextButton, 'Labels'));
+      await tester.pumpAndSettle();
+      expect(
+        find.widgetWithText(CheckboxListTile, 'Unnamed label'),
+        findsOneWidget,
+      );
+      expect(find.widgetWithText(CheckboxListTile, '33'), findsNothing);
+      expect(find.textContaining('opaque-label'), findsNothing);
+      expect(fixture.requests, isEmpty);
+    });
+  });
+
   for (final action in ['Labels', 'Assignees']) {
     testWidgets(
       '$action keeps two choices open until Done and persists both before sending',
