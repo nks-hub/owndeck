@@ -184,6 +184,18 @@ class AppLocalizationsCs extends AppLocalizations {
   String get serverVersion => 'Verze na serveru';
 
   @override
+  String get pendingValueNotSet => 'Nenastaveno';
+
+  @override
+  String get pendingValueUnavailable => 'Hodnota není dostupná';
+
+  @override
+  String get pendingNotCompleted => 'Nedokončeno';
+
+  @override
+  String get pendingCompletion => 'Dokončení';
+
+  @override
   String get confirmRetry =>
       'Opakování může vytvořit duplicitní položku. Opravdu odeslat znovu?';
 

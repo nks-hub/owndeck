@@ -428,6 +428,30 @@ abstract class AppLocalizations {
   /// **'Server version'**
   String get serverVersion;
 
+  /// No description provided for @pendingValueNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get pendingValueNotSet;
+
+  /// No description provided for @pendingValueUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Value unavailable'**
+  String get pendingValueUnavailable;
+
+  /// No description provided for @pendingNotCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Not completed'**
+  String get pendingNotCompleted;
+
+  /// No description provided for @pendingCompletion.
+  ///
+  /// In en, this message translates to:
+  /// **'Completion'**
+  String get pendingCompletion;
+
   /// No description provided for @confirmRetry.
   ///
   /// In en, this message translates to:

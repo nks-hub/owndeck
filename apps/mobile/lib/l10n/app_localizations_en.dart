@@ -183,6 +183,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get serverVersion => 'Server version';
 
   @override
+  String get pendingValueNotSet => 'Not set';
+
+  @override
+  String get pendingValueUnavailable => 'Value unavailable';
+
+  @override
+  String get pendingNotCompleted => 'Not completed';
+
+  @override
+  String get pendingCompletion => 'Completion';
+
+  @override
   String get confirmRetry =>
       'Retrying may create a duplicate item. Send again?';
 

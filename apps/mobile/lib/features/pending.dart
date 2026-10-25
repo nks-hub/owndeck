@@ -17,6 +17,61 @@ class PendingScreen extends StatefulWidget {
 }
 
 class _PendingScreenState extends State<PendingScreen> {
+  String _cardSummary(JsonObject value, Set<String> fields) {
+    final text = AppLocalizations.of(context)!;
+    String textField(String key) => switch (value[key]) {
+      String value => value,
+      null => '',
+      _ => text.pendingValueUnavailable,
+    };
+    String dateValue(Object? value) {
+      if (value == null || value == '') return text.pendingValueNotSet;
+      final date = switch (value) {
+        String value => DateTime.tryParse(value),
+        int value when value >= 0 && value <= 253402300799 =>
+          DateTime.fromMillisecondsSinceEpoch(value * 1000, isUtc: true),
+        _ => null,
+      };
+      if (date == null || date.year < 1 || date.year > 9999) {
+        return text.pendingValueUnavailable;
+      }
+      final localDate = date.toLocal();
+      final local = MaterialLocalizations.of(context);
+      final time = local.formatTimeOfDay(
+        TimeOfDay.fromDateTime(localDate),
+        alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
+      );
+      return '${local.formatMediumDate(localDate)} $time';
+    }
+
+    String dateField(String key) => value.containsKey(key)
+        ? dateValue(value[key])
+        : text.pendingValueUnavailable;
+    final color = value['color'];
+    final colorValue = !value.containsKey('color')
+        ? text.pendingValueUnavailable
+        : color == null || color == ''
+        ? text.pendingValueNotSet
+        : color is String && RegExp(r'^[0-9a-fA-F]{6}$').hasMatch(color)
+        ? '#${color.toUpperCase()}'
+        : text.pendingValueUnavailable;
+    final done = value['done'];
+    final completion = !value.containsKey('done')
+        ? text.pendingValueUnavailable
+        : done == null
+        ? text.pendingNotCompleted
+        : dateValue(done);
+    return [
+      '${text.cardTitle}: ${textField('title')}',
+      '${text.description}: ${textField('description')}',
+      '${text.dueDate}: ${dateField('duedate')}',
+      if (fields.contains('startdate'))
+        '${text.startDate}: ${dateField('startdate')}',
+      if (fields.contains('color')) '${text.cardColor}: $colorValue',
+      if (fields.contains('done')) '${text.pendingCompletion}: $completion',
+    ].join('\n');
+  }
+
   String _attachmentSummary(JsonObject value) {
     final name = (value['name'] ?? value['data'] ?? '').toString();
     final modified = value['lastModified'];
@@ -115,12 +170,22 @@ class _PendingScreenState extends State<PendingScreen> {
               final write = writes[index];
               final changes = object(jsonDecode(write.proposal));
               final attachment = attachmentKinds.contains(write.kind);
+              final card =
+                  write.kind == 'createCard' || write.kind == 'updateCard';
               final base = write.base == null
                   ? <String, Object?>{}
                   : object(jsonDecode(write.base!));
               final remote = write.remote == null
                   ? null
                   : object(jsonDecode(write.remote!));
+              final localCard = {...base, ...changes};
+              final remoteCard = card && remote?['acceptedCard'] is Map
+                  ? object(remote!['acceptedCard'])
+                  : remote;
+              final cardFields = {
+                ...localCard.keys,
+                if (remoteCard != null) ...remoteCard.keys,
+              };
               final state = switch (write.state) {
                 'queued' => text.queued,
                 'sending' => text.sending,
@@ -159,6 +224,8 @@ class _PendingScreenState extends State<PendingScreen> {
                       SelectableText(
                         attachment
                             ? _attachmentSummary({...base, ...changes})
+                            : card
+                            ? _cardSummary(localCard, cardFields)
                             : (changes['message'] ??
                                       changes['description'] ??
                                       base['message'] ??
@@ -175,6 +242,8 @@ class _PendingScreenState extends State<PendingScreen> {
                         SelectableText(
                           attachment
                               ? _attachmentSummary(remote)
+                              : card
+                              ? _cardSummary(remoteCard!, cardFields)
                               : '${remote['title'] ?? ''}\n${remote['message'] ?? remote['description'] ?? ''}',
                         ),
                       ],
