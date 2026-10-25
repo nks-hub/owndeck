@@ -75,6 +75,41 @@ void main() {
       );
 
   test(
+    'pending move positions count active cards without moving archived cards',
+    () async {
+      await db.saveStacks(account.id, account.generation, 1, [
+        DeckStack.fromJson({
+          'id': 2,
+          'boardId': 1,
+          'title': 'Source',
+          'order': 0,
+          'cards': [card.raw],
+        }),
+        DeckStack.fromJson({
+          'id': 3,
+          'boardId': 1,
+          'title': 'Target',
+          'order': 1,
+          'cards': [
+            {...cardJson(id: 9), 'stackId': 3, 'archived': true, 'order': 0},
+            {...cardJson(id: 10), 'stackId': 3, 'order': 0},
+            {...cardJson(id: 11), 'stackId': 3, 'order': 1},
+          ],
+        }),
+      ], null);
+      await db.queueCardAction(account, 1, card, 'moveCard', {
+        'stackId': 3,
+        'order': 1,
+      });
+      final target = (await db.stackView(account.id, 1)).last;
+      final active = target.cards.where((item) => !item.archived);
+      expect(active.map((item) => item.id), [10, 8, 11]);
+      expect(active.map((item) => item.order), [0, 1, 2]);
+      expect(target.cards.singleWhere((item) => item.id == 9).order, 0);
+    },
+  );
+
+  test(
     'move uses destination in route and body and accepts the array response',
     () async {
       await db.queueCardAction(account, 1, card, 'moveCard', {

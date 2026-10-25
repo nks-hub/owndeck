@@ -378,13 +378,21 @@ extension DeckViews on DeckDatabase {
             if (target != null) {
               sourceCards.removeAt(index);
               final targetCards = target['cards'] as List<JsonObject>;
-              final position = intField(
+              final activePositions = [
+                for (var i = 0; i < targetCards.length; i++)
+                  if (_activeCard(targetCards[i])) i,
+              ];
+              final activeOrder = intField(
                 data,
                 'order',
-              ).clamp(0, targetCards.length);
+              ).clamp(0, activePositions.length);
+              final position = activeOrder == activePositions.length
+                  ? targetCards.length
+                  : activePositions[activeOrder];
               targetCards.insert(position, {...projected, 'stackId': targetId});
-              for (var i = 0; i < targetCards.length; i++) {
-                targetCards[i] = {...targetCards[i], 'order': i};
+              _renumberActiveCards(sourceCards);
+              if (!identical(sourceCards, targetCards)) {
+                _renumberActiveCards(targetCards);
               }
             }
           } else {
@@ -445,5 +453,15 @@ extension DeckViews on DeckDatabase {
     }
     return stacks.values.map(DeckStack.fromJson).toList()
       ..sort((a, b) => a.order.compareTo(b.order));
+  }
+}
+
+bool _activeCard(JsonObject card) =>
+    card['archived'] != true && (card['deletedAt'] ?? 0) == 0;
+
+void _renumberActiveCards(List<JsonObject> cards) {
+  var order = 0;
+  for (var i = 0; i < cards.length; i++) {
+    if (_activeCard(cards[i])) cards[i] = {...cards[i], 'order': order++};
   }
 }
