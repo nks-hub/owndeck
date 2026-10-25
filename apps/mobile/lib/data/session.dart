@@ -148,6 +148,19 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
     return result;
   }
 
+  Future<DeckCardContext> readCardContext(
+    int boardId,
+    int cardId, {
+    int? stackId,
+  }) => readServer(
+    (api) => api.readCardContext(
+      boardId,
+      cardId,
+      stackId: stackId,
+      loadBoard: _readAccessibleBoard,
+    ),
+  );
+
   late final DeckSync sync;
   late final StreamSubscription<List<ConnectivityResult>> _connection;
   late final StreamSubscription<List<PendingWrite>> _pending;

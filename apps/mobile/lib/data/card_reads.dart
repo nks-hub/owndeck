@@ -11,9 +11,7 @@ extension SessionCardReads on DeckSession {
   }) async {
     final epoch = (await database.account(account.id))?.contentEpoch;
     if (epoch == null) throw StateError('account_unavailable');
-    final result = await readServer(
-      (api) => api.readCardContext(boardId, cardId, stackId: stackId),
-    );
+    final result = await readCardContext(boardId, cardId, stackId: stackId);
     if (!await database.saveReadCard(account, result, epoch)) {
       throw StateError('stale_response');
     }

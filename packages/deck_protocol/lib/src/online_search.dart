@@ -104,13 +104,16 @@ extension DeckOnlineSearch on DeckClient {
     int boardId,
     int cardId, {
     int? stackId,
+    Future<DeckBoard> Function(int boardId)? loadBoard,
   }) async {
     if (boardId <= 0 || cardId <= 0 || stackId != null && stackId <= 0) {
       throw ArgumentError('invalid_card_identity');
     }
-    final board = DeckBoard.fromJson(
-      object((await rest('GET', ['boards', '$boardId'])).data),
-    );
+    final board = loadBoard == null
+        ? DeckBoard.fromJson(
+            object((await rest('GET', ['boards', '$boardId'])).data),
+          )
+        : await loadBoard(boardId);
     if (board.id != boardId ||
         !board.permissions.read ||
         board.deletedAt != 0) {

@@ -126,4 +126,63 @@ void main() {
     );
     expect(requests, 1);
   });
+
+  test(
+    'card context uses its board loader once and validates its scope',
+    () async {
+      var boardReads = 0;
+      var resourceReads = 0;
+      final api = client(
+        MockClient((request) async {
+          resourceReads++;
+          final data = request.url.path.endsWith('/stacks/2')
+              ? {
+                  'id': 2,
+                  'boardId': 1,
+                  'title': 'Column',
+                  'order': 0,
+                  'cards': [],
+                }
+              : card(8);
+          return http.Response(
+            jsonEncode(data),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }),
+      );
+      Future<DeckBoard> loadBoard(int id) async {
+        boardReads++;
+        expect(id, 1);
+        return DeckBoard.fromJson({
+          'id': 1,
+          'title': 'Board',
+          'color': '008080',
+          'deletedAt': 0,
+          'permissions': {'PERMISSION_READ': true},
+        });
+      }
+
+      final result = await api.readCardContext(
+        1,
+        8,
+        stackId: 2,
+        loadBoard: loadBoard,
+      );
+      expect(result.card.id, 8);
+      expect(boardReads, 1);
+      expect(resourceReads, 2);
+      await expectLater(
+        api.readCardContext(
+          1,
+          8,
+          stackId: 2,
+          loadBoard: (_) async =>
+              DeckBoard.fromJson({...result.board.raw, 'id': 3}),
+        ),
+        throwsA(isA<DeckException>()),
+      );
+      expect(resourceReads, 2);
+    },
+  );
 }
