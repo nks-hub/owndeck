@@ -203,7 +203,7 @@ extension _AttachmentSync on DeckSync {
           !{'file', 'deck_file'}.contains(receipt['type'])) {
         return false;
       }
-      final context = await _readAppliedCard(
+      final context = await _readCurrentCardContext(
         write.boardId,
         write.stackId,
         write.cardId!,
@@ -227,7 +227,7 @@ extension _AttachmentSync on DeckSync {
         context,
         epoch,
       );
-    } on _AppliedCardUnavailable catch (error) {
+    } on _CardContextUnavailable catch (error) {
       if (error.boardId != null) {
         if (!await database.revokeBoardAccess(
           account,

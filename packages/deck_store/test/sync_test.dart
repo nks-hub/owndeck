@@ -111,6 +111,15 @@ void main() {
       var puts = 0;
       final sync = engine((request) async {
         if (request.method == 'PUT') puts++;
+        if (request.url.path.endsWith('/stacks/2')) {
+          return response({
+            'id': 2,
+            'boardId': 1,
+            'title': 'Todo',
+            'order': 0,
+            'cards': [],
+          });
+        }
         return response(
           request.url.path.endsWith('/boards/1')
               ? board(1, 'Board', edit: true).raw
@@ -139,6 +148,12 @@ void main() {
         }
         if (request.method == 'PUT') {
           serverCard = cardJson(description: 'Local');
+          return response({
+            'ocs': {
+              'meta': {'status': 'ok', 'statuscode': 200},
+              'data': serverCard,
+            },
+          });
         }
         if (request.url.path.endsWith('/stacks/2')) {
           return response({

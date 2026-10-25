@@ -110,12 +110,28 @@ class _Fixture {
             });
           }
           if (request.method == 'PUT' && path.endsWith('/cards/8')) {
+            expect(path, '/ocs/v2.php/apps/deck/api/v1.0/cards/8');
             final writes = await database.writesFor(account.id);
             expect(writes, hasLength(1));
             expect(writes.single.kind, 'updateCard');
             queuedBeforePut.add(object(jsonDecode(writes.single.proposal)));
-            remoteCard = {...remoteCard, ...object(jsonDecode(request.body))};
-            return _json(remoteCard);
+            final body = object(jsonDecode(request.body));
+            expect(body['archived'], isNull);
+            expect(body['deletedAt'], isNull);
+            remoteCard = {
+              ...remoteCard,
+              for (final field in body.entries)
+                if (field.key != 'boardId' &&
+                    (!{'archived', 'deletedAt'}.contains(field.key) ||
+                        field.value != null))
+                  field.key: field.value,
+            };
+            return _json({
+              'ocs': {
+                'meta': {'status': 'ok', 'statuscode': 200},
+                'data': remoteCard,
+              },
+            });
           }
           expect(request.method, 'GET');
           if (path.endsWith('/cards/8')) return _json(remoteCard);

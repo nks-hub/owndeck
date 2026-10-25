@@ -6,6 +6,7 @@ export 'src/collaboration.dart';
 export 'src/card_extras.dart';
 export 'src/board_clone.dart';
 export 'src/card_link.dart';
+export 'src/card_updates.dart';
 export 'src/online_search.dart';
 export 'src/attachments.dart';
 export 'src/qr_login.dart';

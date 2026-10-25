@@ -227,7 +227,7 @@ extension _CardActionSync on DeckSync {
         if (card.id != receipt['cardId'] || card.id <= 0) return false;
         return await _finishUnavailableCard(write, epoch, 'not_found');
       }
-      final context = await _readAppliedCard(
+      final context = await _readCurrentCardContext(
         intField(receipt, 'boardId'),
         intField(receipt, 'stackId'),
         intField(receipt, 'cardId'),
@@ -239,7 +239,7 @@ extension _CardActionSync on DeckSync {
         context,
         epoch,
       );
-    } on _AppliedCardUnavailable catch (error) {
+    } on _CardContextUnavailable catch (error) {
       return _finishUnavailableCard(
         write,
         epoch,

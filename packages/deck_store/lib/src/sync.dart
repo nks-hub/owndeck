@@ -14,7 +14,7 @@ part 'comments_sync.dart';
 part 'board_metadata_sync.dart';
 part 'attachments_sync.dart';
 part 'board_clone_sync.dart';
-part 'applied_card_reads.dart';
+part 'card_context_reads.dart';
 part 'stack_reorder_sync.dart';
 
 bool _shouldRetry(DeckException error, bool mutationStarted) =>
@@ -174,7 +174,7 @@ final class DeckSync {
             : queued.kind.endsWith('Comment')
             ? await _sendComment(queued)
             : {'createCard', 'updateCard'}.contains(queued.kind)
-            ? await _send(queued)
+            ? await _send(queued, board)
             : await _sendCardAction(queued);
         if (!shouldContinue) return;
       }
@@ -187,8 +187,9 @@ final class DeckSync {
     }
   }
 
-  Future<bool> _send(PendingWrite write) async {
+  Future<bool> _send(PendingWrite write, DeckBoard board) async {
     var mutationStarted = false;
+    int? readEpoch;
     try {
       final proposal = object(jsonDecode(write.proposal));
       final path = [
@@ -198,11 +199,11 @@ final class DeckSync {
         '${write.stackId}',
         'cards',
       ];
-      DeckResponse response;
+      late final DeckCard card;
       if (write.kind == 'createCard') {
         if (_closed || !await database.ownsLease(account, _owner)) return false;
         mutationStarted = true;
-        response = await client.rest(
+        final response = await client.rest(
           'POST',
           path,
           body: {
@@ -218,12 +219,72 @@ final class DeckSync {
               if (proposal.containsKey(key)) key: proposal[key],
           },
         );
+        card = DeckCard.fromJson(object(response.data));
       } else if (write.kind == 'updateCard') {
-        path.add('${write.cardId}');
-        final current = DeckCard.fromJson(
-          object((await client.rest('GET', path)).data),
+        const editable = {
+          'title',
+          'description',
+          'duedate',
+          'startdate',
+          'color',
+          'done',
+        };
+        if (proposal.keys.any((key) => !editable.contains(key))) {
+          await database.markWrite(
+            account,
+            _owner,
+            write.id,
+            'blocked',
+            error: 'unsupported_operation',
+          );
+          return true;
+        }
+        final epoch = (await database.account(account.id))?.contentEpoch;
+        if (epoch == null) return false;
+        readEpoch = epoch;
+        final context = await _readCurrentCardContext(
+          write.boardId,
+          write.stackId,
+          write.cardId!,
+          knownBoard: board,
         );
+        final current = context.card;
+        if (context.board.id != write.boardId ||
+            current.stackId != write.stackId) {
+          final saved = await database.flagMovedCardWrite(
+            account,
+            _owner,
+            write,
+            context,
+            epoch,
+          );
+          if (!saved) {
+            await database.markWrite(
+              account,
+              _owner,
+              write.id,
+              'queued',
+              error: 'stale_response',
+            );
+          }
+          return saved;
+        }
+        if (!context.board.permissions.edit || current.archived) {
+          await database.markWrite(
+            account,
+            _owner,
+            write.id,
+            'blocked',
+            error: 'card_unavailable',
+          );
+          return true;
+        }
         final base = object(jsonDecode(write.base!));
+        for (final field in ['done', 'startdate', 'color']) {
+          if (base.containsKey(field) && !current.raw.containsKey(field)) {
+            throw const FormatException('incomplete_card_snapshot');
+          }
+        }
         final conflict =
             current.stackId != write.stackId ||
             proposal.keys.any(
@@ -242,15 +303,17 @@ final class DeckSync {
           );
           return true;
         }
+        final request = CardUpdateRequest.fromCard(
+          current,
+          boardId: write.boardId,
+          changes: proposal,
+        );
         if (_closed || !await database.acquireLease(account, _owner)) {
+          await database.markWrite(account, _owner, write.id, 'queued');
           return false;
         }
         mutationStarted = true;
-        response = await client.rest(
-          'PUT',
-          path,
-          body: current.updateBody(proposal),
-        );
+        card = await client.updateCardSafely(request);
       } else {
         await database.markWrite(
           account,
@@ -261,7 +324,6 @@ final class DeckSync {
         );
         return true;
       }
-      final card = DeckCard.fromJson(object(response.data));
       if (card.id <= 0 ||
           card.stackId <= 0 ||
           write.kind == 'updateCard' && card.id != write.cardId) {
@@ -275,6 +337,26 @@ final class DeckSync {
       };
       await database.markApplied(account, _owner, write, receipt);
       return _finishApplied(write.copyWith(remote: Value(jsonEncode(receipt))));
+    } on _CardContextUnavailable catch (error) {
+      if (readEpoch != null) {
+        final blocked = await database.blockUnavailableCardWrite(
+          account,
+          _owner,
+          write,
+          readEpoch,
+          error.code,
+          deniedBoardId: error.boardId,
+        );
+        if (blocked) return true;
+      }
+      await database.markWrite(
+        account,
+        _owner,
+        write.id,
+        'queued',
+        error: 'stale_response',
+      );
+      return false;
     } on DeckException catch (error) {
       final uncertain = mutationStarted && error.uncertain;
       final retryable = _shouldRetry(error, mutationStarted);
