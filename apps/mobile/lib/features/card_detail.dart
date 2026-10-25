@@ -272,7 +272,11 @@ class _CardScreenState extends State<CardScreen> {
                 if (card.archived) Chip(label: Text(text.archivedCards)),
                 CardLabels(card: card),
                 const SizedBox(height: 8),
-                CardMetadata(card: card, showStartDate: true),
+                CardMetadata(
+                  card: card,
+                  showStartDate: true,
+                  showAllAssignees: true,
+                ),
                 if (card.rgbColor != null)
                   Align(
                     alignment: AlignmentDirectional.centerStart,
