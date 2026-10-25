@@ -1807,6 +1807,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Resolve the pending changes on this board first.'**
   String get pendingBoardDecision;
+
+  /// No description provided for @boardView.
+  ///
+  /// In en, this message translates to:
+  /// **'Board view'**
+  String get boardView;
+
+  /// No description provided for @boardColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'Columns'**
+  String get boardColumns;
+
+  /// No description provided for @boardList.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get boardList;
+
+  /// No description provided for @dropCardHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop card here'**
+  String get dropCardHere;
+
+  /// No description provided for @boardMovePositionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Position from 0 to {maximum}'**
+  String boardMovePositionHint(int maximum);
+
+  /// No description provided for @invalidBoardMovePosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a position from 0 to {maximum}.'**
+  String invalidBoardMovePosition(int maximum);
 }
 
 class _AppLocalizationsDelegate

@@ -941,4 +941,26 @@ class AppLocalizationsCs extends AppLocalizations {
   @override
   String get pendingBoardDecision =>
       'Nejprve vyřešte neodeslané změny této nástěnky.';
+
+  @override
+  String get boardView => 'Zobrazení nástěnky';
+
+  @override
+  String get boardColumns => 'Sloupce';
+
+  @override
+  String get boardList => 'Seznam';
+
+  @override
+  String get dropCardHere => 'Sem přetáhněte kartu';
+
+  @override
+  String boardMovePositionHint(int maximum) {
+    return 'Pozice od 0 do $maximum';
+  }
+
+  @override
+  String invalidBoardMovePosition(int maximum) {
+    return 'Zadejte pozici od 0 do $maximum.';
+  }
 }

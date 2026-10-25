@@ -937,4 +937,26 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get pendingBoardDecision =>
       'Resolve the pending changes on this board first.';
+
+  @override
+  String get boardView => 'Board view';
+
+  @override
+  String get boardColumns => 'Columns';
+
+  @override
+  String get boardList => 'List';
+
+  @override
+  String get dropCardHere => 'Drop card here';
+
+  @override
+  String boardMovePositionHint(int maximum) {
+    return 'Position from 0 to $maximum';
+  }
+
+  @override
+  String invalidBoardMovePosition(int maximum) {
+    return 'Choose a position from 0 to $maximum.';
+  }
 }

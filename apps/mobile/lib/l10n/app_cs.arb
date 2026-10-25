@@ -311,5 +311,25 @@
   "copyBoardInBrowser": "Tento server umožňuje kopírování nástěnek ve webovém rozhraní. Otevřete nástěnku v Nextcloudu a vytvořte kopii tam.",
   "importInNextcloud": "Importovat v Nextcloudu",
   "importInNextcloudHint": "Otevřete Deck v prohlížeči a použijte zdroje importu podporované vaším serverem, například Trello.",
-  "pendingBoardDecision": "Nejprve vyřešte neodeslané změny této nástěnky."
+  "pendingBoardDecision": "Nejprve vyřešte neodeslané změny této nástěnky.",
+  "boardView": "Zobrazení nástěnky",
+  "boardColumns": "Sloupce",
+  "boardList": "Seznam",
+  "dropCardHere": "Sem přetáhněte kartu",
+  "boardMovePositionHint": "Pozice od 0 do {maximum}",
+  "invalidBoardMovePosition": "Zadejte pozici od 0 do {maximum}.",
+  "@boardMovePositionHint": {
+    "placeholders": {
+      "maximum": {
+        "type": "int"
+      }
+    }
+  },
+  "@invalidBoardMovePosition": {
+    "placeholders": {
+      "maximum": {
+        "type": "int"
+      }
+    }
+  }
 }

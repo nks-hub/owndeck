@@ -7,14 +7,15 @@ import '../data/session.dart';
 import '../core/telemetry_bootstrap.dart';
 import '../l10n/app_localizations.dart';
 import 'accounts.dart';
-import 'card_column.dart';
+import 'board_view.dart';
+
+export 'board_view.dart' show BoardScreen;
 import 'pending.dart';
 import 'sync_notice.dart';
 import 'structure_editor.dart';
 import 'search.dart';
 import 'notifications.dart';
 import 'settings.dart';
-import 'package:deck_store/deck_store.dart';
 
 class BoardsScreen extends StatefulWidget {
   const BoardsScreen({super.key, required this.session});
@@ -263,171 +264,6 @@ class _BoardsScreenState extends State<BoardsScreen> {
                 },
               ),
             ),
-    );
-  }
-}
-
-class BoardScreen extends StatefulWidget {
-  const BoardScreen({super.key, required this.session, required this.board});
-  final DeckSession session;
-  final DeckBoard board;
-  @override
-  State<BoardScreen> createState() => _BoardScreenState();
-}
-
-class _BoardScreenState extends State<BoardScreen> {
-  late DeckBoard _board = widget.board;
-  bool _unavailable = false;
-  bool _showArchived = false;
-  StreamSubscription<DeckBoard?>? _boardChanges;
-  late final Stream<List<DeckStack>> _stacks = widget.session.watchStacks(
-    widget.board.id,
-  );
-  Future<void> _refresh() => widget.session.refreshStacks(widget.board.id);
-  @override
-  void initState() {
-    super.initState();
-    _boardChanges = widget.session.database
-        .watchBoard(widget.session.account.id, widget.board.id)
-        .listen(
-          (board) {
-            if (mounted) {
-              setState(() {
-                _unavailable = board == null || !board.permissions.read;
-                if (board != null) _board = board;
-              });
-            }
-          },
-          onError: (Object _) {
-            if (mounted) setState(() => _unavailable = true);
-          },
-        );
-    scheduleMicrotask(() {
-      if (mounted) widget.session.openBoard(widget.board.id);
-    });
-  }
-
-  @override
-  void dispose() {
-    unawaited(_boardChanges?.cancel());
-    widget.session.closeBoard(widget.board.id);
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final text = AppLocalizations.of(context)!;
-    final session = widget.session;
-    if (_unavailable || _board.deletedAt != 0) {
-      return Scaffold(
-        appBar: AppBar(title: Text(_board.title)),
-        body: Center(child: Text(text.permissionError)),
-      );
-    }
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_board.title),
-        actions: [
-          IconButton(
-            tooltip: _showArchived ? text.activeCards : text.archivedCards,
-            icon: Icon(
-              _showArchived ? Icons.unarchive_outlined : Icons.archive_outlined,
-            ),
-            onPressed: () => setState(() => _showArchived = !_showArchived),
-          ),
-          if (_board.permissions.manage && !_board.archived)
-            IconButton(
-              tooltip: text.addStack,
-              icon: const Icon(Icons.add),
-              onPressed: () =>
-                  editStructure(context, session, board: _board, column: true),
-            ),
-          BoardActions(session: session, board: _board),
-          IconButton(
-            onPressed: _refresh,
-            tooltip: text.refresh,
-            icon: const Icon(Icons.refresh),
-          ),
-        ],
-      ),
-      body: ListenableBuilder(
-        listenable: session,
-        builder: (context, _) => StreamBuilder<List<DeckStack>>(
-          stream: _stacks,
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return Center(child: Text(text.storageError));
-            }
-            final stacks = (snapshot.data ?? <DeckStack>[])
-                .map(
-                  (stack) => DeckStack.fromJson({
-                    ...stack.raw,
-                    'cards': stack.cards
-                        .where(
-                          (card) =>
-                              card.archived == _showArchived &&
-                              (card.raw['deletedAt'] ?? 0) == 0,
-                        )
-                        .map((card) => card.raw)
-                        .toList(),
-                  }),
-                )
-                .toList();
-            return Column(
-              children: [
-                SyncNotice(
-                  session: session,
-                  scope: 'board:${widget.board.id}',
-                  retry: _refresh,
-                  hasData: stacks.isNotEmpty,
-                ),
-                Expanded(
-                  child: !snapshot.hasData
-                      ? const Center(child: CircularProgressIndicator())
-                      : stacks.isEmpty
-                      ? Center(child: Text(text.noStacks))
-                      : DefaultTabController(
-                          length: stacks.length,
-                          child: Column(
-                            children: [
-                              TabBar(
-                                isScrollable: true,
-                                tabs: [
-                                  for (final stack in stacks)
-                                    Tab(
-                                      icon: stack.isDoneColumn
-                                          ? Icon(
-                                              Icons.check_circle_outline,
-                                              semanticLabel: text.doneColumn,
-                                            )
-                                          : null,
-                                      text:
-                                          '${stack.title} (${stack.cards.length})',
-                                    ),
-                                ],
-                              ),
-                              Expanded(
-                                child: TabBarView(
-                                  children: [
-                                    for (final stack in stacks)
-                                      CardColumn(
-                                        session: session,
-                                        board: _board,
-                                        stack: stack,
-                                        archivedView: _showArchived,
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
     );
   }
 }
