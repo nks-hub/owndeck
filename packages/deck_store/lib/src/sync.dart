@@ -245,8 +245,19 @@ final class DeckSync {
         return true;
       }
       final card = DeckCard.fromJson(object(response.data));
-      await database.confirmCard(account, _owner, write, card);
-      return true;
+      if (card.id <= 0 ||
+          card.stackId <= 0 ||
+          write.kind == 'updateCard' && card.id != write.cardId) {
+        throw const FormatException('invalid_card_identity');
+      }
+      final receipt = <String, Object?>{
+        'boardId': write.boardId,
+        'stackId': card.stackId,
+        'cardId': card.id,
+        'acceptedCard': card.raw,
+      };
+      await database.markApplied(account, _owner, write, receipt);
+      return _finishApplied(write.copyWith(remote: Value(jsonEncode(receipt))));
     } on DeckException catch (error) {
       final uncertain = mutationStarted && error.uncertain;
       final retryable = _shouldRetry(error, mutationStarted);
