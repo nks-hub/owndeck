@@ -184,6 +184,7 @@ class _PendingScreenState extends State<PendingScreen> {
       'updateStack' || 'stackReorder' => text.editStack,
       'deleteStack' => text.deleteStack,
       'setDoneStack' => text.doneColumn,
+      'createAcl' || 'updateAcl' || 'deleteAcl' => text.sharing,
       'createComment' => text.addComment,
       'updateComment' => text.editComment,
       'deleteComment' => text.deleteComment,
@@ -279,7 +280,8 @@ class _PendingScreenState extends State<PendingScreen> {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (field.key == text.cardColor &&
+                          if ((field.key == text.cardColor ||
+                                  field.key == text.color) &&
                               color is String &&
                               RegExp(r'^[0-9a-fA-F]{6}$').hasMatch(color))
                             Container(
@@ -314,15 +316,70 @@ class _PendingScreenState extends State<PendingScreen> {
   }
 
   Widget _cardComparison(JsonObject local, JsonObject? remote) {
-    final text = AppLocalizations.of(context)!;
     final keys = {...local.keys, if (remote != null) ...remote.keys};
-    final localFields = _cardFields(local, keys);
-    final serverFields = remote == null ? null : _cardFields(remote, keys);
+    return _versions(
+      _cardFields(local, keys),
+      remote == null ? null : _cardFields(remote, keys),
+      localColor: local['color'],
+      remoteColor: remote?['color'],
+    );
+  }
+
+  Map<String, String> _metadataFields(JsonObject value, Set<String> fields) {
+    final text = AppLocalizations.of(context)!;
+    String field(String key) => !value.containsKey(key)
+        ? text.pendingValueUnavailable
+        : _textValue(value[key]);
+    final participant = value['participant'];
+    final displayName =
+        value['displayName'] ??
+        (participant is Map
+            ? participant['displayname'] ?? participant['displayName']
+            : null);
+    return {
+      if (fields.contains('title')) text.name: field('title'),
+      if (fields.contains('displayName') || fields.contains('participant'))
+        text.name: displayName is String && displayName.isNotEmpty
+            ? displayName
+            : text.pendingValueUnavailable,
+      if (fields.contains('color'))
+        text.color: value.containsKey('color')
+            ? colorName(value['color'], text)
+            : text.pendingValueUnavailable,
+      if (fields.contains('archived'))
+        text.archive: !value.containsKey('archived')
+            ? text.pendingValueUnavailable
+            : value['archived'] == true
+            ? text.archivedBoards
+            : text.activeBoards,
+      for (final entry in <String, String>{
+        'permissionRead': text.permissionRead,
+        'permissionEdit': text.permissionEdit,
+        'permissionShare': text.permissionShare,
+        'permissionManage': text.permissionManage,
+      }.entries)
+        if (fields.contains(entry.key))
+          entry.value: value[entry.key] is! bool
+              ? text.pendingValueUnavailable
+              : value[entry.key] == true
+              ? text.permissionAllowed
+              : text.permissionNotAllowed,
+    };
+  }
+
+  Widget _versions(
+    Map<String, String> localFields,
+    Map<String, String>? serverFields, {
+    Object? localColor,
+    Object? remoteColor,
+  }) {
+    final text = AppLocalizations.of(context)!;
     final changed = <String>{
       if (serverFields != null)
         for (final key in localFields.keys)
           if (localFields[key] != serverFields[key] ||
-              key == text.cardColor && local['color'] != remote!['color'])
+              (key == text.cardColor || key == text.color) &&
+                  localColor != remoteColor)
             key,
     };
     return LayoutBuilder(
@@ -331,14 +388,14 @@ class _PendingScreenState extends State<PendingScreen> {
           text.localVersion,
           localFields,
           changed,
-          color: local['color'],
+          color: localColor,
         );
         if (serverFields == null) return localWidget;
         final serverWidget = _version(
           text.serverVersion,
           serverFields,
           changed,
-          color: remote?['color'],
+          color: remoteColor,
         );
         if (constraints.maxWidth / MediaQuery.textScalerOf(context).scale(1) >=
             620) {
@@ -381,6 +438,29 @@ class _PendingScreenState extends State<PendingScreen> {
       changes['title'],
       base['title'],
     ].whereType<String>().where((value) => value.trim().isNotEmpty).firstOrNull;
+    final metadata = const {
+      'createBoard',
+      'updateBoard',
+      'restoreBoard',
+      'deleteBoard',
+      'createStack',
+      'updateStack',
+      'deleteStack',
+      'createLabel',
+      'updateLabel',
+      'deleteLabel',
+      'createAcl',
+      'updateAcl',
+      'deleteAcl',
+    }.contains(write.kind);
+    final fields = {
+      ...base.keys,
+      ...changes.keys,
+      if (remote != null) ...remote.keys,
+    };
+    final localMetadata = metadata
+        ? _metadataFields({...base, ...changes}, fields)
+        : <String, String>{};
     final busy = _deciding.contains(write.id) || write.state == 'sending';
     return Card(
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
@@ -427,6 +507,15 @@ class _PendingScreenState extends State<PendingScreen> {
                 children: [
                   _cardComparison({...base, ...changes}, remoteCard),
                 ],
+              )
+            else if (metadata && localMetadata.isNotEmpty)
+              _versions(
+                localMetadata,
+                remote == null ? null : _metadataFields(remote, fields),
+                localColor: changes.containsKey('color')
+                    ? changes['color']
+                    : base['color'],
+                remoteColor: remote?['color'],
               )
             else ...[
               Text(

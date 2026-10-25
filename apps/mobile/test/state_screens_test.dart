@@ -197,6 +197,91 @@ Future<void> _using(
 }
 
 void main() {
+  testWidgets(
+    'metadata conflicts show named permissions and colors without identifiers',
+    (tester) async {
+      await _using(tester, (fixture) async {
+        await tester.runAsync(() async {
+          final acl = <String, Object?>{
+            'id': 90,
+            'participant': {'uid': 'internal-user-42', 'displayname': 'Alice'},
+            'permissionRead': true,
+            'permissionEdit': false,
+            'permissionShare': false,
+            'permissionManage': false,
+          };
+          await fixture.database
+              .into(fixture.database.pendingWrites)
+              .insert(
+                PendingWritesCompanion.insert(
+                  id: 'acl-write',
+                  accountId: fixture.account.id,
+                  kind: 'updateAcl',
+                  boardId: 1,
+                  stackId: 0,
+                  state: const Value('conflict'),
+                  proposal: jsonEncode({
+                    'aclId': 90,
+                    'permissionEdit': true,
+                    'permissionShare': true,
+                  }),
+                  base: Value(jsonEncode(acl)),
+                  remote: Value(jsonEncode({...acl, 'permissionManage': true})),
+                ),
+              );
+          await fixture.database
+              .into(fixture.database.pendingWrites)
+              .insert(
+                PendingWritesCompanion.insert(
+                  id: 'label-write',
+                  accountId: fixture.account.id,
+                  kind: 'updateLabel',
+                  boardId: 1,
+                  stackId: 0,
+                  state: const Value('conflict'),
+                  proposal: jsonEncode({
+                    'labelId': 71,
+                    'title': 'Ready',
+                    'color': '2563eb',
+                  }),
+                  base: Value(
+                    jsonEncode({
+                      'id': 71,
+                      'title': 'Important',
+                      'color': '008080',
+                    }),
+                  ),
+                  remote: Value(
+                    jsonEncode({
+                      'id': 71,
+                      'title': 'Important',
+                      'color': 'dc2626',
+                    }),
+                  ),
+                ),
+              );
+        });
+        await tester.pumpWidget(_app(PendingScreen(session: fixture.session)));
+        await _until(tester, () => find.text('Alice').evaluate().isNotEmpty);
+        expect(find.text('Alice'), findsNWidgets(2));
+        expect(find.text('Allowed'), findsWidgets);
+        expect(find.text('Not allowed'), findsWidgets);
+        expect(find.byTooltip('Different values'), findsWidgets);
+        expect(find.textContaining('internal-user-42'), findsNothing);
+        expect(find.textContaining('permissionEdit'), findsNothing);
+        await tester.scrollUntilVisible(
+          find.text('Blue'),
+          250,
+          scrollable: find.byType(Scrollable).first,
+        );
+        expect(find.text('Blue'), findsOneWidget);
+        expect(find.text('Red'), findsOneWidget);
+        expect(find.textContaining('2563eb'), findsNothing);
+        expect(find.textContaining('dc2626'), findsNothing);
+      });
+    },
+  );
+
   testWidgets('empty group does not claim other queued work was confirmed', (
     tester,
   ) async {
