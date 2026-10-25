@@ -1155,4 +1155,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get permissionNotAllowed => 'Not allowed';
+
+  @override
+  String get localSaveError =>
+      'Changes could not be saved on this device. Try again.';
+
+  @override
+  String get writePermissionError =>
+      'You do not have permission to save this change.';
 }

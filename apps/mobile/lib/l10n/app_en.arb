@@ -394,5 +394,7 @@
   "telemetryEnabledByDefault": "Available options are on by default. You can turn each one off.",
   "noMatchingBoards": "No boards match this filter.",
   "permissionAllowed": "Allowed",
-  "permissionNotAllowed": "Not allowed"
+  "permissionNotAllowed": "Not allowed",
+  "localSaveError": "Changes could not be saved on this device. Try again.",
+  "writePermissionError": "You do not have permission to save this change."
 }

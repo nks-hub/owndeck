@@ -2221,6 +2221,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not allowed'**
   String get permissionNotAllowed;
+
+  /// No description provided for @localSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes could not be saved on this device. Try again.'**
+  String get localSaveError;
+
+  /// No description provided for @writePermissionError.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have permission to save this change.'**
+  String get writePermissionError;
 }
 
 class _AppLocalizationsDelegate

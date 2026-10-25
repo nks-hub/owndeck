@@ -1158,4 +1158,11 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get permissionNotAllowed => 'Nepovoleno';
+
+  @override
+  String get localSaveError =>
+      'Změny se nepodařilo uložit v zařízení. Zkuste to znovu.';
+
+  @override
+  String get writePermissionError => 'Nemáte oprávnění tuto změnu uložit.';
 }

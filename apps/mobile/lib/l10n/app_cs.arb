@@ -394,5 +394,7 @@
   "telemetryEnabledByDefault": "Dostupné volby jsou ve výchozím stavu zapnuté. Každou můžete vypnout.",
   "noMatchingBoards": "Tomuto filtru neodpovídá žádná nástěnka.",
   "permissionAllowed": "Povoleno",
-  "permissionNotAllowed": "Nepovoleno"
+  "permissionNotAllowed": "Nepovoleno",
+  "localSaveError": "Změny se nepodařilo uložit v zařízení. Zkuste to znovu.",
+  "writePermissionError": "Nemáte oprávnění tuto změnu uložit."
 }
