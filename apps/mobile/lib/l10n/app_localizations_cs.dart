@@ -907,7 +907,7 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get copyBoardDescription =>
-      'Zkopíruje se aktuální stav na serveru včetně sloupců, štítků a sdílení. Komentáře a přílohy se nekopírují.';
+      'Zkopíruje se aktuální stav na serveru včetně sloupců, štítků a sdílení. Deck 1.19 nekopíruje komentáře, přílohy, začátky ani barvy karet.';
 
   @override
   String get copyBoardWithCards => 'Včetně karet';
@@ -937,4 +937,8 @@ class AppLocalizationsCs extends AppLocalizations {
   @override
   String get importInNextcloudHint =>
       'Otevřete Deck v prohlížeči a použijte zdroje importu podporované vaším serverem, například Trello.';
+
+  @override
+  String get pendingBoardDecision =>
+      'Nejprve vyřešte neodeslané změny této nástěnky.';
 }

@@ -903,7 +903,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get copyBoardDescription =>
-      'Copy the current server version, including columns, label definitions and sharing. Comments and attachments are not copied.';
+      'Copy the current server version, including columns, label definitions and sharing. Deck 1.19 does not copy comments, attachments, start dates or card colors.';
 
   @override
   String get copyBoardWithCards => 'Include cards';
@@ -933,4 +933,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get importInNextcloudHint =>
       'Open Deck in your browser to use the import sources supported by your server, such as Trello.';
+
+  @override
+  String get pendingBoardDecision =>
+      'Resolve the pending changes on this board first.';
 }

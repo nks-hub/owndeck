@@ -1745,7 +1745,7 @@ abstract class AppLocalizations {
   /// No description provided for @copyBoardDescription.
   ///
   /// In en, this message translates to:
-  /// **'Copy the current server version, including columns, label definitions and sharing. Comments and attachments are not copied.'**
+  /// **'Copy the current server version, including columns, label definitions and sharing. Deck 1.19 does not copy comments, attachments, start dates or card colors.'**
   String get copyBoardDescription;
 
   /// No description provided for @copyBoardWithCards.
@@ -1801,6 +1801,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open Deck in your browser to use the import sources supported by your server, such as Trello.'**
   String get importInNextcloudHint;
+
+  /// No description provided for @pendingBoardDecision.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolve the pending changes on this board first.'**
+  String get pendingBoardDecision;
 }
 
 class _AppLocalizationsDelegate
