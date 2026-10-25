@@ -189,7 +189,10 @@ class _AttachmentListState extends State<_AttachmentList> {
         );
         final bytes = save ? await downloaded.file.readAsBytes() : null;
         if (!mounted) return;
-        await widget.session.ensureAttachmentAccess(widget.board.id);
+        await widget.session.ensureAttachmentAccess(
+          widget.board.id,
+          attachment.cardId,
+        );
         if (!mounted) return;
         final text = AppLocalizations.of(context)!;
         if (downloaded.offline) _message(text.offlineAttachment);

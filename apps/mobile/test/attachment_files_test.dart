@@ -37,6 +37,29 @@ void main() {
     return source.bytes.expand((chunk) => chunk).toList();
   }
 
+  test('revoked access during a cache write never exposes the file', () async {
+    var readable = true;
+    await expectLater(
+      files.cache(
+        'account-a',
+        1,
+        attachment(),
+        [1, 2, 3],
+        ensureAccess: () async {
+          if (!readable) throw StateError('permission_denied');
+          readable = false;
+        },
+      ),
+      throwsStateError,
+    );
+    expect(await files.cached('account-a', 1, attachment()), isNull);
+    final persisted = await root
+        .list(recursive: true)
+        .where((entry) => entry is File)
+        .toList();
+    expect(persisted, isEmpty);
+  });
+
   test('staged bytes and metadata survive reopening storage', () async {
     final staged = await files.stage(
       'account-a',

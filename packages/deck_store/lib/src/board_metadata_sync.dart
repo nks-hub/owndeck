@@ -206,15 +206,29 @@ extension _BoardMetadataSync on DeckSync {
 
   Future<bool> _finishBoardMetadata(PendingWrite write) async {
     if (_closed || !await database.acquireLease(account, _owner)) return false;
+    final epoch = (await database.account(account.id))?.contentEpoch;
+    if (epoch == null) return false;
     try {
       final board = DeckBoard.fromJson(
         object((await client.rest('GET', ['boards', '${write.boardId}'])).data),
       );
-      await database.confirmBoardMetadata(account, _owner, write, board);
+      await database.confirmBoardMetadata(
+        account,
+        _owner,
+        write,
+        board,
+        contentEpoch: epoch,
+      );
       return true;
     } on DeckException catch (error) {
       if (error.status == 403 || error.status == 404) {
-        await database.confirmBoardMetadata(account, _owner, write, null);
+        await database.confirmBoardMetadata(
+          account,
+          _owner,
+          write,
+          null,
+          contentEpoch: epoch,
+        );
         return true;
       }
       return false;

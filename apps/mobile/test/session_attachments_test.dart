@@ -77,6 +77,23 @@ void main() {
         'permissions': {'PERMISSION_READ': true, 'PERMISSION_EDIT': true},
       }),
     ], null);
+    await database.saveStacks(account.id, account.generation, 1, [
+      DeckStack.fromJson({
+        'id': 2,
+        'boardId': 1,
+        'title': 'Column',
+        'order': 0,
+        'cards': [
+          {
+            'id': 8,
+            'stackId': 2,
+            'title': 'Card',
+            'description': '',
+            'order': 0,
+          },
+        ],
+      }),
+    ], null);
   });
   tearDown(() async {
     session?.dispose();
@@ -102,6 +119,210 @@ void main() {
     files: () async => files,
     onAuthenticationRequired: onAuthenticationRequired,
   );
+
+  Future<DeckStack> seedPrivateContent() async {
+    final board = (await database.boardView(account.id)).single;
+    await database.saveBoards(account.id, account.generation, [
+      board,
+      DeckBoard.fromJson({...board.raw, 'id': 3, 'title': 'Other board'}),
+    ], null);
+    DeckStack stack(int boardId, int stackId, int cardId) =>
+        DeckStack.fromJson({
+          'id': stackId,
+          'boardId': boardId,
+          'title': 'Column',
+          'order': 0,
+          'cards': [
+            {
+              'id': cardId,
+              'stackId': stackId,
+              'title': 'Server task',
+              'description': 'Server content',
+              'order': 0,
+            },
+          ],
+        });
+    final first = stack(1, 2, 8);
+    await database.saveStacks(account.id, account.generation, 1, [first], null);
+    await database.saveStacks(account.id, account.generation, 3, [
+      stack(3, 4, 9),
+    ], null);
+    for (final cardId in [8, 9]) {
+      await database.saveComments(account, cardId, [
+        DeckComment.fromJson({
+          'id': cardId,
+          'objectId': cardId,
+          'actorId': 'other',
+          'actorType': 'users',
+          'message': 'Server comment',
+          'creationDateTime': '2026-10-24T12:00:00Z',
+        }),
+      ], 0);
+    }
+    await database.saveAttachments(account, 1, 8, [attachment(10)], 0);
+    await files.cache(account.id, 1, attachment(10), [1, 2]);
+    await database.saveEditorDraft(account, 'draft', 1, 2, {
+      'title': 'My draft',
+      'description': 'Keep my text',
+    }, first.cards.single);
+    return first;
+  }
+
+  for (final status in [403, 404]) {
+    test(
+      'board $status removes server cache but preserves local work',
+      () async {
+        final stack = await seedPrivateContent();
+        await database.saveCardDraft(account, 1, 2, {
+          'description': 'Pending text',
+        }, original: stack.cards.single);
+        final active = connect(
+          MockClient((request) async {
+            expect(request.method, 'GET');
+            expect(request.url.path, endsWith('/boards/1'));
+            return http.Response('', status);
+          }),
+        );
+        final oldEpoch = (await database.account(account.id))!.contentEpoch;
+        await active.refreshStacks(1);
+        expect((active.error('board:1') as DeckException).status, status);
+        expect((await database.boardView(account.id)).map((b) => b.id), [3]);
+        expect(await database.stackView(account.id, 1), isEmpty);
+        expect(await database.watchComments(account.id, 8).first, isEmpty);
+        expect(await database.watchComments(account.id, 9).first, hasLength(1));
+        expect(await database.attachmentsFor(account.id, 8), isEmpty);
+        expect(await files.cached(account.id, 1, attachment(10)), isNull);
+        expect(
+          jsonDecode(
+            (await database.editorDraft(account.id, 'draft'))!.payload,
+          ),
+          {'title': 'My draft', 'description': 'Keep my text'},
+        );
+        final write = (await database.writesFor(account.id)).single;
+        expect(write.state, 'blocked');
+        expect(jsonDecode(write.proposal)['description'], 'Pending text');
+        await database.saveStacks(
+          account.id,
+          account.generation,
+          1,
+          [stack],
+          null,
+          contentEpoch: oldEpoch,
+        );
+        expect(await database.select(database.storedCards).get(), hasLength(1));
+      },
+    );
+  }
+
+  test('unreachable board keeps its offline copy and drafts', () async {
+    await seedPrivateContent();
+    final active = connect(
+      MockClient((_) async => throw http.ClientException('offline')),
+    );
+    await active.refreshStacks(1);
+    expect(await database.stackView(account.id, 1), hasLength(1));
+    expect(await database.watchComments(account.id, 8).first, hasLength(1));
+    expect(await files.cached(account.id, 1, attachment(10)), isNotNull);
+    expect(await database.editorDraft(account.id, 'draft'), isNotNull);
+  });
+
+  test(
+    'a missing card cannot keep or reuse files from its readable board',
+    () async {
+      await seedPrivateContent();
+      final board = (await database.boardView(account.id)).first;
+      final active = connect(
+        MockClient(
+          (request) async => http.Response(
+            jsonEncode(request.url.path.endsWith('/boards/1') ? board.raw : []),
+            200,
+            headers: {'content-type': 'application/json'},
+          ),
+        ),
+      );
+      await active.refreshStacks(1);
+      expect(
+        (await database.boardView(account.id)).any((b) => b.id == 1),
+        isTrue,
+      );
+      expect(await files.cached(account.id, 1, attachment(10)), isNull);
+      await expectLater(
+        active.downloadAttachment(1, 2, attachment(10)),
+        throwsStateError,
+      );
+    },
+  );
+
+  test('revoking a board preserves the user file waiting for upload', () async {
+    final active = connect(MockClient((_) async => http.Response('', 403)));
+    await active.uploadAttachment(
+      1,
+      2,
+      8,
+      name: 'local.txt',
+      mime: 'text/plain',
+      bytes: Stream.value([7, 8, 9]),
+    );
+    await active.refreshStacks(1);
+    final write = (await database.writesFor(account.id)).single;
+    expect(write.state, 'blocked');
+    final staged = await files.readUpload(
+      account.id,
+      jsonDecode(write.proposal)['uploadId'] as String,
+    );
+    expect(await staged.bytes.expand((chunk) => chunk).toList(), [7, 8, 9]);
+  });
+
+  test(
+    'a forbidden stack endpoint alone does not revoke a readable board',
+    () async {
+      await seedPrivateContent();
+      final board = (await database.boardView(account.id)).first;
+      var boardReads = 0;
+      final active = connect(
+        MockClient((request) async {
+          if (request.url.path.endsWith('/boards/1')) {
+            boardReads++;
+            return http.Response(
+              jsonEncode(board.raw),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          return http.Response('', 403);
+        }),
+      );
+      await active.refreshStacks(1);
+      expect(boardReads, 2);
+      expect(await database.stackView(account.id, 1), hasLength(1));
+      expect(await files.cached(account.id, 1, attachment(10)), isNotNull);
+    },
+  );
+
+  test('late board denial cannot revoke a reauthenticated account', () async {
+    await seedPrivateContent();
+    final requested = Completer<void>();
+    final response = Completer<http.Response>();
+    final active = connect(
+      MockClient((_) {
+        requested.complete();
+        return response.future;
+      }),
+    );
+    final refresh = active.refreshStacks(1);
+    await requested.future;
+    await accounts.add(
+      LoginCredentials(
+        server: ServerBase.parse(account.server),
+        loginName: account.loginName,
+        appPassword: 'replacement-test-password',
+      ),
+    );
+    response.complete(http.Response('', 403));
+    await refresh;
+    expect(await database.stackView(account.id, 1), hasLength(1));
+    expect(await files.cached(account.id, 1, attachment(10)), isNotNull);
+  });
 
   test(
     'queued changes resume in the foreground without an open board',

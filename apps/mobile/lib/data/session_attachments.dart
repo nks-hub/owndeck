@@ -7,8 +7,8 @@ final class DownloadedAttachment {
 }
 
 extension SessionAttachments on DeckSession {
-  Future<void> ensureAttachmentAccess(int boardId) =>
-      _checkAttachmentBoard(boardId);
+  Future<void> ensureAttachmentAccess(int boardId, int cardId) =>
+      _checkAttachmentBoard(boardId, cardId: cardId);
   Future<void> _cleanAttachmentFiles() async {
     final files = await _attachmentFiles();
     if (_disposed || !await database.accepts(account.id, account.generation)) {
@@ -21,6 +21,10 @@ extension SessionAttachments on DeckSession {
           if (board.permissions.read && board.deletedAt == 0) board.id,
       },
     );
+    await files.pruneUnavailableCards(
+      account.id,
+      () => database.cachedCardScopes(account.id),
+    );
     await _cleanUploads(files);
   }
 
@@ -29,7 +33,7 @@ extension SessionAttachments on DeckSession {
     return _files();
   }
 
-  Future<void> _checkAttachmentBoard(int boardId) async {
+  Future<void> _checkAttachmentBoard(int boardId, {int? cardId}) async {
     if (_disposed || !await database.accepts(account.id, account.generation)) {
       throw StateError('account_unavailable');
     }
@@ -41,6 +45,14 @@ extension SessionAttachments on DeckSession {
         !board.permissions.read ||
         board.deletedAt != 0) {
       throw StateError('permission_denied');
+    }
+    if (cardId != null) {
+      final readable = await database.hasCachedCard(
+        account.id,
+        boardId,
+        cardId,
+      );
+      if (_disposed || !readable) throw StateError('permission_denied');
     }
   }
 
@@ -137,13 +149,13 @@ extension SessionAttachments on DeckSession {
     final stack = await database.resolveId(account.id, stackId, 'createStack');
     final card = await database.resolveId(account.id, cardId, 'createCard');
     if (_disposed || board == null || stack == null || card == null) return;
-    await _checkAttachmentBoard(board);
+    await _checkAttachmentBoard(board, cardId: card);
     final epoch = (await database.account(account.id))?.contentEpoch;
     if (epoch == null) return;
     final items = await client.attachments(board, stack, card);
     if (_disposed) return;
     await database.saveAttachments(account, board, card, items, epoch);
-    await _checkAttachmentBoard(board);
+    await _checkAttachmentBoard(board, cardId: card);
     final files = await _attachmentFiles();
     await files.pruneCard(
       account.id,
@@ -172,22 +184,29 @@ extension SessionAttachments on DeckSession {
     DeckAttachment attachment,
   ) async {
     await _prepareRequest();
-    await _checkAttachmentBoard(boardId);
+    await _checkAttachmentBoard(boardId, cardId: attachment.cardId);
     final files = await _attachmentFiles();
     try {
       final bytes = await readServer(
         (client) => client.downloadAttachment(boardId, stackId, attachment),
       );
-      await _checkAttachmentBoard(boardId);
+      await _checkAttachmentBoard(boardId, cardId: attachment.cardId);
       return DownloadedAttachment(
-        await files.cache(account.id, boardId, attachment, bytes),
+        await files.cache(
+          account.id,
+          boardId,
+          attachment,
+          bytes,
+          ensureAccess: () =>
+              _checkAttachmentBoard(boardId, cardId: attachment.cardId),
+        ),
       );
     } on DeckException catch (error) {
       if ({401, 403, 404}.contains(error.status)) {
         await files.forgetCached(account.id, boardId, attachment);
       }
       if (!{'transport_failed', 'timeout'}.contains(error.code)) rethrow;
-      await _checkAttachmentBoard(boardId);
+      await _checkAttachmentBoard(boardId, cardId: attachment.cardId);
       final cached = await files.cached(account.id, boardId, attachment);
       if (cached == null) rethrow;
       return DownloadedAttachment(cached, offline: true);

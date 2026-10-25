@@ -21,6 +21,9 @@ extension CommentStore on DeckDatabase {
         for (final write in (await writesFor(
           accountId,
         )).where((w) => w.kind.endsWith('Comment'))) {
+          if ({'permission_denied', 'not_found'}.contains(write.error)) {
+            continue;
+          }
           final target =
               await resolveId(accountId, write.cardId!, 'createCard') ??
               write.cardId;

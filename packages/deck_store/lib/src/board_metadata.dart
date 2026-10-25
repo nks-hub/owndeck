@@ -109,16 +109,21 @@ extension BoardMetadata on DeckDatabase {
     StoredAccount account,
     String owner,
     PendingWrite write,
-    DeckBoard? board,
-  ) => transaction(() async {
+    DeckBoard? board, {
+    int? contentEpoch,
+  }) => transaction(() async {
     if (!await ownsLease(account, owner)) return;
+    if (contentEpoch != null &&
+        (await this.account(account.id))?.contentEpoch != contentEpoch) {
+      return;
+    }
     final pending =
         await (select(pendingWrites)..where(
               (w) => w.accountId.equals(account.id) & w.id.equals(write.id),
             ))
             .getSingleOrNull();
     if (pending?.state != 'applied') return;
-    if (board != null) {
+    if (board != null && board.permissions.read) {
       if (board.id != write.boardId) {
         throw const FormatException('board_mismatch');
       }
@@ -169,43 +174,7 @@ extension BoardMetadata on DeckDatabase {
         }
       }
     } else {
-      final cards =
-          await (select(storedCards)..where(
-                (c) =>
-                    c.accountId.equals(account.id) &
-                    c.boardId.equals(write.boardId),
-              ))
-              .get();
-      await (delete(storedComments)..where(
-            (c) =>
-                c.accountId.equals(account.id) &
-                c.cardId.isIn(cards.map((c) => c.remoteId)),
-          ))
-          .go();
-      await (delete(storedAttachments)..where(
-            (a) =>
-                a.accountId.equals(account.id) &
-                a.boardId.equals(write.boardId),
-          ))
-          .go();
-      await (delete(storedCards)..where(
-            (c) =>
-                c.accountId.equals(account.id) &
-                c.boardId.equals(write.boardId),
-          ))
-          .go();
-      await (delete(storedStacks)..where(
-            (s) =>
-                s.accountId.equals(account.id) &
-                s.boardId.equals(write.boardId),
-          ))
-          .go();
-      await (delete(storedBoards)..where(
-            (b) =>
-                b.accountId.equals(account.id) &
-                b.remoteId.equals(write.boardId),
-          ))
-          .go();
+      await revokeBoardAccess(account, write.boardId);
     }
     await (update(pendingWrites)..where((w) => w.id.equals(write.id))).write(
       const PendingWritesCompanion(

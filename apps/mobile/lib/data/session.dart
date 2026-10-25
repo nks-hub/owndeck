@@ -98,6 +98,38 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
+  Future<void> _revokeBoardAccess(int boardId, DeckException error) async {
+    if (_disposed) return;
+    final changed = await database.revokeBoardAccess(
+      account,
+      boardId,
+      reason: error.code,
+    );
+    if (changed && _files != null && !_disposed) {
+      await _cleanAttachmentFiles();
+    }
+  }
+
+  Future<DeckBoard> _readAccessibleBoard(int boardId) async {
+    try {
+      final board = DeckBoard.fromJson(
+        object((await client.rest('GET', ['boards', '$boardId'])).data),
+      );
+      if (board.id != boardId) {
+        throw const DeckException('invalid_response');
+      }
+      if (!board.permissions.read) {
+        throw const DeckException('permission_denied', status: 403);
+      }
+      return board;
+    } on DeckException catch (error) {
+      if (error.status == 403 || error.status == 404) {
+        await _revokeBoardAccess(boardId, error);
+      }
+      rethrow;
+    }
+  }
+
   /// Reads stay bound to this account; mutations belong in the durable outbox.
   Future<T> readServer<T>(
     Future<T> Function(DeckClient client) operation,
@@ -193,26 +225,35 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
       final cached = await database.checkpoint(account.id, 'board:$resolved');
       final epoch = (await database.account(account.id))?.contentEpoch;
       if (_disposed || epoch == null) return;
-      final details = DeckBoard.fromJson(
-        object((await client.rest('GET', ['boards', '$resolved'])).data),
-      );
+      final details = await _readAccessibleBoard(resolved);
       if (_disposed) return;
       await database.saveBoard(account, details, epoch);
-      final response = await client.rest('GET', [
-        'boards',
-        '$resolved',
-        'stacks',
-      ], etag: cached?.etag);
-      if (_disposed || response.notModified) return;
-      final active = objects(response.data).map(DeckStack.fromJson).toList();
-      final archived = objects(
-        (await client.rest('GET', [
+      if (details.deletedAt != 0) return;
+      late DeckResponse response;
+      late List<DeckStack> archived;
+      try {
+        response = await client.rest('GET', [
           'boards',
           '$resolved',
           'stacks',
-          'archived',
-        ])).data,
-      ).map(DeckStack.fromJson).toList();
+        ], etag: cached?.etag);
+        if (_disposed || response.notModified) return;
+        archived = objects(
+          (await client.rest('GET', [
+            'boards',
+            '$resolved',
+            'stacks',
+            'archived',
+          ])).data,
+        ).map(DeckStack.fromJson).toList();
+      } on DeckException catch (error) {
+        if (error.status == 403 || error.status == 404) {
+          await _readAccessibleBoard(resolved);
+        }
+        rethrow;
+      }
+      if (_disposed || response.notModified) return;
+      final active = objects(response.data).map(DeckStack.fromJson).toList();
       if (_disposed) return;
       final combined = {for (final stack in active) stack.id: stack};
       for (final stack in archived) {

@@ -13,6 +13,7 @@ part 'card_actions.dart';
 part 'comments.dart';
 part 'board_metadata.dart';
 part 'attachments.dart';
+part 'board_access.dart';
 
 const attachmentKinds = {
   'uploadAttachment',
@@ -240,6 +241,10 @@ class DeckDatabase extends _$DeckDatabase {
         (await this.account(account.id))?.contentEpoch != contentEpoch) {
       return;
     }
+    if (!board.permissions.read) {
+      await revokeBoardAccess(account, board.id);
+      return;
+    }
     await into(storedBoards).insertOnConflictUpdate(
       StoredBoardsCompanion.insert(
         accountId: account.id,
@@ -273,7 +278,10 @@ class DeckDatabase extends _$DeckDatabase {
         (await account(accountId))?.contentEpoch != contentEpoch) {
       return;
     }
-    final ids = boards.map((b) => b.id).toSet();
+    final ids = boards
+        .where((b) => b.permissions.read)
+        .map((b) => b.id)
+        .toSet();
     final readableIds = boards
         .where((board) => board.permissions.read && board.deletedAt == 0)
         .map((board) => board.id);
@@ -284,30 +292,14 @@ class DeckDatabase extends _$DeckDatabase {
     final previous = await (select(
       storedBoards,
     )..where((b) => b.accountId.equals(accountId))).get();
+    final currentAccount = (await account(accountId))!;
     for (final missing in previous.where((b) => !ids.contains(b.remoteId))) {
-      await (delete(storedCards)..where(
-            (c) =>
-                c.accountId.equals(accountId) &
-                c.boardId.equals(missing.remoteId),
-          ))
-          .go();
-      await (delete(storedStacks)..where(
-            (s) =>
-                s.accountId.equals(accountId) &
-                s.boardId.equals(missing.remoteId),
-          ))
-          .go();
-      await (delete(syncCheckpoints)..where(
-            (c) =>
-                c.accountId.equals(accountId) &
-                c.scope.equals('board:${missing.remoteId}'),
-          ))
-          .go();
+      await revokeBoardAccess(currentAccount, missing.remoteId);
     }
     await (delete(
       storedBoards,
     )..where((b) => b.accountId.equals(accountId))).go();
-    for (final board in boards) {
+    for (final board in boards.where((b) => b.permissions.read)) {
       await into(storedBoards).insert(
         StoredBoardsCompanion.insert(
           accountId: accountId,

@@ -128,15 +128,11 @@ final class DeckSync {
           ]);
         } on DeckException catch (error) {
           if (error.status != 403 && error.status != 404) rethrow;
-          if (await database.startWrite(account, _owner, queued.id)) {
-            await database.markWrite(
-              account,
-              _owner,
-              queued.id,
-              'blocked',
-              error: error.code,
-            );
-          }
+          await database.revokeBoardAccess(
+            account,
+            queued.boardId,
+            reason: error.code,
+          );
           continue;
         }
         final board = DeckBoard.fromJson(object(boardResponse.data));

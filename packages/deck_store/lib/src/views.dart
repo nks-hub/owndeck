@@ -246,6 +246,20 @@ extension DeckViews on DeckDatabase {
     final boardId =
         await resolveId(accountId, requestedBoard, 'createBoard') ??
         requestedBoard;
+    if (boardId > 0) {
+      final row =
+          await (select(storedBoards)..where(
+                (b) =>
+                    b.accountId.equals(accountId) & b.remoteId.equals(boardId),
+              ))
+              .getSingleOrNull();
+      if (row == null ||
+          !DeckBoard.fromJson(
+            object(jsonDecode(row.payload)),
+          ).permissions.read) {
+        return [];
+      }
+    }
     final rows =
         await (select(storedStacks)..where(
               (s) => s.accountId.equals(accountId) & s.boardId.equals(boardId),
@@ -326,6 +340,10 @@ extension DeckViews on DeckDatabase {
             : await resolveId(accountId, write.cardId!, 'createCard') ??
                   write.cardId;
         final index = entries.indexWhere((c) => c['id'] == cardId);
+        if (index < 0 &&
+            {'permission_denied', 'not_found'}.contains(write.error)) {
+          continue;
+        }
         final original = index < 0
             ? object(jsonDecode(write.base!))
             : entries[index];

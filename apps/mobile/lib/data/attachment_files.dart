@@ -194,9 +194,11 @@ final class AttachmentFiles {
     String accountId,
     int boardId,
     DeckAttachment attachment,
-    List<int> bytes,
-  ) => _serial(() async {
+    List<int> bytes, {
+    Future<void> Function()? ensureAccess,
+  }) => _serial(() async {
     _available(accountId);
+    await ensureAccess?.call();
     if (bytes.length > attachmentMaxBytes) throw const AttachmentTooLarge();
     final parent = _cache(accountId, boardId, attachment);
     final id = const Uuid().v4();
@@ -207,6 +209,7 @@ final class AttachmentFiles {
     try {
       await File('${temporary.path}/$name').writeAsBytes(bytes, flush: true);
       _available(accountId);
+      await ensureAccess?.call();
       // Each version has its own directory; open viewers never hold a file we replace.
       await temporary.rename(destination.path);
       final result = File('${destination.path}/$name');
@@ -290,6 +293,31 @@ final class AttachmentFiles {
         entry.uri.pathSegments.where((part) => part.isNotEmpty).last,
       );
       if (!keep.contains(id)) await entry.delete(recursive: true);
+    }
+  });
+
+  Future<void> pruneUnavailableCards(
+    String accountId,
+    Future<Set<(int, int)>> Function() retained,
+  ) => _serial(() async {
+    _available(accountId);
+    final keep = await retained();
+    final folder = Directory('${_account(accountId).path}/downloads');
+    if (!await folder.exists()) return;
+    await for (final board in folder.list(followLinks: false)) {
+      if (board is! Directory) continue;
+      final boardId = int.tryParse(
+        board.uri.pathSegments.where((part) => part.isNotEmpty).last,
+      );
+      await for (final card in board.list(followLinks: false)) {
+        if (card is! Directory) continue;
+        final cardId = int.tryParse(
+          card.uri.pathSegments.where((part) => part.isNotEmpty).last,
+        );
+        if (!keep.contains((boardId, cardId))) {
+          await card.delete(recursive: true);
+        }
+      }
     }
   });
 
