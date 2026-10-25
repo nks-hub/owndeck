@@ -243,6 +243,12 @@ def restrict_creation(run, private):
     occ(state["container"], ["group:add", "qa-creators"])
     occ(state["container"], ["group:adduser", "qa-creators", "qa-owner"])
     occ(state["container"], ["config:app:set", "deck", "groupLimit", "--value=qa-creators"])
+    if occ(state["container"], ["config:app:get", "deck", "groupLimit"]).strip() != "qa-creators":
+        raise RuntimeError("creation_policy_not_stored")
+    for uid, expected in [("qa-owner", True), ("qa-reader", False)]:
+        user = json.loads(occ(state["container"], ["user:info", uid, "--output=json"]))
+        if ("qa-creators" in user["groups"]) != expected:
+            raise RuntimeError("creation_group_membership_mismatch")
 
 
 def cleanup(run, private, report):
