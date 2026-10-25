@@ -14,6 +14,7 @@ part 'comments.dart';
 part 'board_metadata.dart';
 part 'attachments.dart';
 part 'board_access.dart';
+part 'board_clones.dart';
 
 const attachmentKinds = {
   'uploadAttachment',

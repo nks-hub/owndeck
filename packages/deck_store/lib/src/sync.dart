@@ -13,6 +13,7 @@ part 'card_actions_sync.dart';
 part 'comments_sync.dart';
 part 'board_metadata_sync.dart';
 part 'attachments_sync.dart';
+part 'board_clone_sync.dart';
 
 bool _shouldRetry(DeckException error, bool mutationStarted) =>
     error.status == 401 ||
@@ -78,7 +79,9 @@ final class DeckSync {
           final resolved = await database.resolveWrite(applied);
           attemptedReadbacks.add(applied.id);
           if (resolved != null) {
-            if (resolved.kind == 'setDoneStack') {
+            if (resolved.kind == 'boardClone') {
+              await _finishClonedBoard(resolved);
+            } else if (resolved.kind == 'setDoneStack') {
               await _finishDoneStack(resolved);
             } else if (attachmentKinds.contains(resolved.kind)) {
               await _finishAttachment(resolved);
@@ -111,6 +114,10 @@ final class DeckSync {
           if (queued != null) break;
         }
         if (queued == null) return;
+        if (queued.kind == 'boardClone') {
+          if (!await _sendBoardClone(queued)) return;
+          continue;
+        }
         if (boardMetadataKinds.contains(queued.kind)) {
           if (!await _sendBoardMetadata(queued)) return;
           continue;
