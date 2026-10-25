@@ -1,5 +1,7 @@
 # Testovací plán
 
+Poslední pokyn uživatele z 25. 10. 2026 další testy odkládá. Do nového pokynu se nespouštějí testy, analyzéry ani měření na zařízeních. Níže uvedené výsledky zůstávají historickými důkazy konkrétních revizí; nově sloučený kód jimi není automaticky ověřený.
+
 Podle upřesnění zadání se automatické testy smějí spouštět během vývoje pouze neblokujícím způsobem na pozadí. Nezávislé sady běží souběžně v izolovaném pracovním stromu s přesnou revizí. Hlavní pracovní strom se během testů může měnit. Každý proces má uložené ID, log a konečný návratový kód; samotné spuštění není výsledek.
 
 Podle dalšího upřesnění zadání jsou také fyzické S9/S21 součástí průběžných testů na pozadí, nikoli až krokem po vývoji. Každý telefon má vlastní proces a kandidáta z odděleného pracovního stromu. Stejné zařízení nesmějí řídit dva procesy současně. Během implementace probíhá statická kontrola typů a stylu; ta neprokazuje funkčnost na serveru ani zařízení.
