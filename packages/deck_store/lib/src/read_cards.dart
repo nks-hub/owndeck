@@ -1,9 +1,4 @@
-import 'dart:convert';
-
-import 'package:deck_protocol/deck_protocol.dart';
-import 'package:drift/drift.dart';
-
-import 'database.dart';
+part of 'database.dart';
 
 extension DeckReadCards on DeckDatabase {
   Future<bool> saveReadCard(
@@ -33,11 +28,7 @@ extension DeckReadCards on DeckDatabase {
                   row.remoteId.equals(card.id),
             ))
             .getSingleOrNull();
-    if (previous != null) {
-      final old = object(jsonDecode(previous.payload))['lastModified'];
-      final fresh = card.raw['lastModified'];
-      if (old is int && fresh is int && old > fresh) return false;
-    }
+    if (_olderCardSnapshot(card, previous)) return false;
     await into(storedBoards).insertOnConflictUpdate(
       StoredBoardsCompanion.insert(
         accountId: account.id,
@@ -54,16 +45,11 @@ extension DeckReadCards on DeckDatabase {
         payload: jsonEncode({...stack.raw, 'cards': <Object?>[]}),
       ),
     );
-    await into(storedCards).insertOnConflictUpdate(
-      StoredCardsCompanion.insert(
-        accountId: account.id,
-        remoteId: card.id,
-        boardId: board.id,
-        stackId: stack.id,
-        position: card.order,
-        payload: jsonEncode(card.raw),
-      ),
-    );
+    if (await _storeObservedCard(account.id, board.id, card, previous)) {
+      for (final scope in {previous!.boardId, board.id}) {
+        await invalidateMutation(account.id, scope);
+      }
+    }
     return true;
   });
 }

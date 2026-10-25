@@ -15,6 +15,8 @@ part 'board_metadata.dart';
 part 'attachments.dart';
 part 'board_access.dart';
 part 'board_clones.dart';
+part 'read_cards.dart';
+part 'card_snapshots.dart';
 
 const attachmentKinds = {
   'uploadAttachment',
@@ -325,6 +327,25 @@ class DeckDatabase extends _$DeckDatabase {
         (await account(accountId))?.contentEpoch != contentEpoch) {
       return;
     }
+    final previous = {
+      for (final card in await (select(
+        storedCards,
+      )..where((row) => row.accountId.equals(accountId))).get())
+        card.remoteId: card,
+    };
+    final ids = <int>{};
+    for (final stack in stacks) {
+      if (stack.boardId != boardId) {
+        throw const FormatException('stack_board_mismatch');
+      }
+      for (final card in stack.cards) {
+        if (card.stackId != stack.id || !ids.add(card.id)) {
+          throw const FormatException('card_stack_mismatch');
+        }
+        if (_olderCardSnapshot(card, previous[card.id])) return;
+      }
+    }
+    final movedScopes = <int>{};
     await (delete(storedCards)..where(
           (c) => c.accountId.equals(accountId) & c.boardId.equals(boardId),
         ))
@@ -347,20 +368,14 @@ class DeckDatabase extends _$DeckDatabase {
         ),
       );
       for (final card in stack.cards) {
-        if (card.stackId != stack.id) {
-          throw const FormatException('card_stack_mismatch');
+        final old = previous[card.id];
+        if (await _storeObservedCard(accountId, boardId, card, old)) {
+          movedScopes.addAll([old!.boardId, boardId]);
         }
-        await into(storedCards).insert(
-          StoredCardsCompanion.insert(
-            accountId: accountId,
-            remoteId: card.id,
-            boardId: boardId,
-            stackId: stack.id,
-            position: card.order,
-            payload: jsonEncode(card.raw),
-          ),
-        );
       }
+    }
+    for (final scope in movedScopes) {
+      await invalidateMutation(accountId, scope);
     }
     await _checkpoint(accountId, 'board:$boardId', etag);
   });
