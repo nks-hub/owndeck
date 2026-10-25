@@ -9,6 +9,8 @@ enum AppLanguage { system, cs, en }
 
 enum BoardViewMode { columns, list }
 
+typedef CardDestination = ({int boardId, int stackId});
+
 abstract interface class AppPreferenceStore {
   Future<String?> read(String key);
   Future<void> write(String key, String value);
@@ -41,6 +43,8 @@ final class AppPreferences extends ChangeNotifier {
   final _changed = <String>{};
   final _failed = <String>{};
   final _boardModes = <String, BoardViewMode>{};
+  final _cardDestinations = <String, CardDestination>{};
+  final _destinationLoads = <String, Future<void>>{};
   final _boardLoads = <String, Future<void>>{};
   Future<void>? _loading;
   Future<void> _writes = Future.value();
@@ -81,6 +85,23 @@ final class AppPreferences extends ChangeNotifier {
         (language) => language.name == value,
         orElse: () => AppLanguage.system,
       );
+    } else if (key.startsWith('app.last-card.')) {
+      if (value == null) return;
+      try {
+        final decoded = jsonDecode(value);
+        if (decoded is Map &&
+            decoded['boardId'] is int &&
+            decoded['boardId'] != 0 &&
+            decoded['stackId'] is int &&
+            decoded['stackId'] != 0) {
+          _cardDestinations[key] = (
+            boardId: decoded['boardId'] as int,
+            stackId: decoded['stackId'] as int,
+          );
+        }
+      } on FormatException {
+        // A damaged preference must not select an unrelated destination.
+      }
     } else {
       _boardModes[key] = BoardViewMode.values.firstWhere(
         (mode) => mode.name == value,
@@ -131,6 +152,36 @@ final class AppPreferences extends ChangeNotifier {
     return _persist(key, value.name);
   }
 
+  static String _destinationKey(String accountId) =>
+      'app.last-card.${base64Url.encode(utf8.encode(accountId))}';
+
+  Future<CardDestination?> lastCardDestination(String accountId) async {
+    final key = _destinationKey(accountId);
+    await _destinationLoads.putIfAbsent(key, () async {
+      _applyLoaded(key, await _read(key));
+    });
+    return _cardDestinations[key];
+  }
+
+  Future<bool> rememberCardDestination(
+    String accountId,
+    int boardId,
+    int stackId,
+  ) {
+    if (boardId == 0 || stackId == 0) {
+      throw ArgumentError('invalid_destination');
+    }
+    final key = _destinationKey(accountId);
+    _cardDestinations[key] = (boardId: boardId, stackId: stackId);
+    _changed.add(key);
+    return _persist(key, _destinationValue(key));
+  }
+
+  String _destinationValue(String key) {
+    final value = _cardDestinations[key]!;
+    return jsonEncode({'boardId': value.boardId, 'stackId': value.stackId});
+  }
+
   Future<bool> retryPersistence() async {
     final results = await Future.wait([
       for (final key in _failed.toList())
@@ -138,6 +189,9 @@ final class AppPreferences extends ChangeNotifier {
             ? _persist(key, switch (key) {
                 themeKey => _themeMode.name,
                 languageKey => _language.name,
+                _ when key.startsWith('app.last-card.') => _destinationValue(
+                  key,
+                ),
                 _ => _boardModes[key]!.name,
               })
             : _retryRead(key),
