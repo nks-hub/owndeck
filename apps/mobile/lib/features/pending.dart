@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import '../data/session.dart';
 import '../l10n/app_localizations.dart';
 import 'drafts.dart';
+import 'color_choices.dart';
 
 class PendingScreen extends StatefulWidget {
   const PendingScreen({super.key, required this.session});
@@ -53,7 +54,7 @@ class _PendingScreenState extends State<PendingScreen> {
         : color == null || color == ''
         ? text.pendingValueNotSet
         : color is String && RegExp(r'^[0-9a-fA-F]{6}$').hasMatch(color)
-        ? '#${color.toUpperCase()}'
+        ? colorName(color, text)
         : text.pendingValueUnavailable;
     final done = value['done'];
     final completion = !value.containsKey('done')
