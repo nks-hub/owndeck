@@ -5,22 +5,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../core/app_preferences.dart';
+import '../data/session.dart';
 import '../l10n/app_localizations.dart';
 import 'accounts.dart';
 import 'telemetry_settings.dart';
+import 'server_tools.dart';
 
 final packageInfoProvider = FutureProvider<PackageInfo>(
   (ref) => PackageInfo.fromPlatform(),
 );
 
 class SettingsView extends ConsumerWidget {
-  const SettingsView({super.key});
+  const SettingsView({super.key, this.session});
+  final DeckSession? session;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final text = AppLocalizations.of(context)!;
     final preferences = ref.watch(appPreferencesProvider);
     final package = ref.watch(packageInfoProvider);
+    final activeSession = session;
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -89,6 +93,21 @@ class SettingsView extends ConsumerWidget {
             ),
           ),
         const SizedBox(height: 16),
+        if (activeSession != null)
+          ListenableBuilder(
+            listenable: activeSession,
+            builder: (context, _) =>
+                activeSession.capabilities?.canCreateBoards == true
+                ? ListTile(
+                    leading: const Icon(Icons.file_upload_outlined),
+                    title: Text(text.importInNextcloud),
+                    subtitle: Text(
+                      '${activeSession.account.loginName}\n${activeSession.account.server}',
+                    ),
+                    onTap: () => showServerImport(context, activeSession),
+                  )
+                : const SizedBox.shrink(),
+          ),
         ListTile(
           leading: const Icon(Icons.account_circle_outlined),
           title: Text(text.accounts),

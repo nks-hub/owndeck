@@ -8,6 +8,7 @@ import '../data/session.dart';
 import '../l10n/app_localizations.dart';
 import 'sharing.dart';
 import 'sync_notice.dart';
+import 'board_clone_dialog.dart';
 
 part 'board_labels.dart';
 part 'structure_form.dart';
@@ -19,8 +20,14 @@ class BoardActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final canCopy =
+        board.id > 0 &&
+        board.permissions.read &&
+        board.deletedAt == 0 &&
+        session.capabilities?.canCreateBoards == true;
     if (!board.permissions.manage &&
-        (!board.permissions.share || board.deletedAt != 0)) {
+        (!board.permissions.share || board.deletedAt != 0) &&
+        !canCopy) {
       return const SizedBox.shrink();
     }
     final text = AppLocalizations.of(context)!;
@@ -28,6 +35,8 @@ class BoardActions extends StatelessWidget {
       tooltip: text.boardActions,
       onSelected: (action) {
         switch (action) {
+          case 'copy':
+            unawaited(showBoardClone(context, session, board));
           case 'sharing':
             unawaited(
               Navigator.of(context).push(
@@ -70,7 +79,10 @@ class BoardActions extends StatelessWidget {
         if (board.deletedAt != 0 && board.permissions.manage)
           PopupMenuItem(value: 'restore', child: Text(text.restoreBoard)),
         if (board.deletedAt == 0) ...[
-          PopupMenuItem(value: 'sharing', child: Text(text.sharing)),
+          if (canCopy)
+            PopupMenuItem(value: 'copy', child: Text(text.copyBoard)),
+          if (board.permissions.share || board.permissions.manage)
+            PopupMenuItem(value: 'sharing', child: Text(text.sharing)),
           if (board.permissions.manage) ...[
             PopupMenuItem(value: 'labels', child: Text(text.manageLabels)),
             PopupMenuItem(value: 'edit', child: Text(text.editBoard)),

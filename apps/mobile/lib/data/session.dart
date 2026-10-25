@@ -155,6 +155,7 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
   final _openBoards = <int>{};
   bool _foreground = true;
   bool _hasPending = false;
+  bool _refreshBoardListOnResume = false;
   final _running = <String, Future<void>>{};
   final _errors = <String, Object>{};
   bool _disposed = false;
@@ -168,6 +169,10 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   void closeBoard(int boardId) => _openBoards.remove(boardId);
+
+  void refreshBoardsOnNextResume() {
+    if (!_disposed) _refreshBoardListOnResume = true;
+  }
 
   void _refreshVisible() {
     if (_disposed || !_foreground) return;
@@ -183,7 +188,17 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     _foreground = state == AppLifecycleState.resumed;
-    if (_foreground) _refreshVisible();
+    if (!_foreground) return;
+    if (_refreshBoardListOnResume) {
+      _refreshBoardListOnResume = false;
+      unawaited(
+        refreshBoards().then((_) {
+          if (!_disposed && _openBoards.isNotEmpty) _refreshVisible();
+        }),
+      );
+    } else {
+      _refreshVisible();
+    }
   }
 
   bool loading(String scope) => _running.containsKey(scope);
