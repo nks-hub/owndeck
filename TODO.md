@@ -42,7 +42,7 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [ ] T02 Ověřit skutečný Nextcloud server, oba buildy a příjem bezpečných telemetrických událostí.
 - [ ] T03 Průběžně provádět fyzické testy S9/S21 na pozadí nad izolovanými kandidáty, nezávisle pro každý telefon, a samostatné ověření iOS; před dokončením doložit finální revizi.
 
-Aktuální krok: Google Play kontroluje první vydání 0.1.0+2 v uzavřeném kanálu alpha. API potvrdilo IN_REVIEW, přesný hash AAB, ikonu, grafiku, dva snímky v cs/en a tři skupiny převzaté z OwnNotes. Všech pět CI úloh `7d13eb6` prošlo; fyzické ověření příloh po odstranění nepotřebných oprávnění běží samostatně. Podrobné revize a meze jsou v `docs/testing.md`.
+Aktuální krok: Google Play kontroluje první vydání 0.1.0+2 v uzavřeném kanálu alpha. API potvrdilo IN_REVIEW, přesný hash AAB, ikonu, grafiku, dva snímky v cs/en a tři skupiny převzaté z OwnNotes. Všech pět CI úloh `7d13eb6` prošlo; S9/S21 ověřily přílohy i náhled QR kamery po odstranění nepotřebných oprávnění. Podrobné revize a meze jsou v `docs/testing.md`.
 
 - [x] N01 Související práce na OwnNotes je dokončená; přesný rozsah a důkazy jsou v jeho vlastním TODO.
 
