@@ -897,4 +897,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String versionBuild(String version, String build) {
     return '$version ($build)';
   }
+
+  @override
+  String get copyBoard => 'Copy board';
+
+  @override
+  String get copyBoardDescription =>
+      'Copy the current server version, including columns, label definitions and sharing. Comments and attachments are not copied.';
+
+  @override
+  String get copyBoardWithCards => 'Include cards';
+
+  @override
+  String get copyBoardWithAssignments => 'Keep card assignments';
+
+  @override
+  String get copyBoardWithLabels => 'Keep labels on cards';
+
+  @override
+  String get copyBoardWithDueDate => 'Keep due dates';
+
+  @override
+  String get copyBoardMoveCards => 'Move all cards to the first column';
+
+  @override
+  String get copyBoardRestoreArchived => 'Restore archived cards';
+
+  @override
+  String get copyBoardInBrowser =>
+      'This server provides board copying in the web interface. Open the board in Nextcloud to make a copy.';
+
+  @override
+  String get importInNextcloud => 'Import in Nextcloud';
+
+  @override
+  String get importInNextcloudHint =>
+      'Open Deck in your browser to use the import sources supported by your server, such as Trello.';
 }

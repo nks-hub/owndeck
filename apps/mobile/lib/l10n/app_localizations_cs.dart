@@ -901,4 +901,40 @@ class AppLocalizationsCs extends AppLocalizations {
   String versionBuild(String version, String build) {
     return '$version ($build)';
   }
+
+  @override
+  String get copyBoard => 'Kopírovat nástěnku';
+
+  @override
+  String get copyBoardDescription =>
+      'Zkopíruje se aktuální stav na serveru včetně sloupců, štítků a sdílení. Komentáře a přílohy se nekopírují.';
+
+  @override
+  String get copyBoardWithCards => 'Včetně karet';
+
+  @override
+  String get copyBoardWithAssignments => 'Zachovat přiřazení lidí';
+
+  @override
+  String get copyBoardWithLabels => 'Zachovat štítky na kartách';
+
+  @override
+  String get copyBoardWithDueDate => 'Zachovat termíny';
+
+  @override
+  String get copyBoardMoveCards => 'Přesunout karty do prvního sloupce';
+
+  @override
+  String get copyBoardRestoreArchived => 'Obnovit archivované karty';
+
+  @override
+  String get copyBoardInBrowser =>
+      'Tento server umožňuje kopírování nástěnek ve webovém rozhraní. Otevřete nástěnku v Nextcloudu a vytvořte kopii tam.';
+
+  @override
+  String get importInNextcloud => 'Importovat v Nextcloudu';
+
+  @override
+  String get importInNextcloudHint =>
+      'Otevřete Deck v prohlížeči a použijte zdroje importu podporované vaším serverem, například Trello.';
 }

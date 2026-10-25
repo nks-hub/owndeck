@@ -299,5 +299,16 @@
         "type": "String"
       }
     }
-  }
+  },
+  "copyBoard": "Copy board",
+  "copyBoardDescription": "Copy the current server version, including columns, label definitions and sharing. Comments and attachments are not copied.",
+  "copyBoardWithCards": "Include cards",
+  "copyBoardWithAssignments": "Keep card assignments",
+  "copyBoardWithLabels": "Keep labels on cards",
+  "copyBoardWithDueDate": "Keep due dates",
+  "copyBoardMoveCards": "Move all cards to the first column",
+  "copyBoardRestoreArchived": "Restore archived cards",
+  "copyBoardInBrowser": "This server provides board copying in the web interface. Open the board in Nextcloud to make a copy.",
+  "importInNextcloud": "Import in Nextcloud",
+  "importInNextcloudHint": "Open Deck in your browser to use the import sources supported by your server, such as Trello."
 }

@@ -1735,6 +1735,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{version} ({build})'**
   String versionBuild(String version, String build);
+
+  /// No description provided for @copyBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy board'**
+  String get copyBoard;
+
+  /// No description provided for @copyBoardDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy the current server version, including columns, label definitions and sharing. Comments and attachments are not copied.'**
+  String get copyBoardDescription;
+
+  /// No description provided for @copyBoardWithCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Include cards'**
+  String get copyBoardWithCards;
+
+  /// No description provided for @copyBoardWithAssignments.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep card assignments'**
+  String get copyBoardWithAssignments;
+
+  /// No description provided for @copyBoardWithLabels.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep labels on cards'**
+  String get copyBoardWithLabels;
+
+  /// No description provided for @copyBoardWithDueDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep due dates'**
+  String get copyBoardWithDueDate;
+
+  /// No description provided for @copyBoardMoveCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Move all cards to the first column'**
+  String get copyBoardMoveCards;
+
+  /// No description provided for @copyBoardRestoreArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore archived cards'**
+  String get copyBoardRestoreArchived;
+
+  /// No description provided for @copyBoardInBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'This server provides board copying in the web interface. Open the board in Nextcloud to make a copy.'**
+  String get copyBoardInBrowser;
+
+  /// No description provided for @importInNextcloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Import in Nextcloud'**
+  String get importInNextcloud;
+
+  /// No description provided for @importInNextcloudHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Deck in your browser to use the import sources supported by your server, such as Trello.'**
+  String get importInNextcloudHint;
 }
 
 class _AppLocalizationsDelegate

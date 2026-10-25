@@ -299,5 +299,16 @@
         "type": "String"
       }
     }
-  }
+  },
+  "copyBoard": "Kopírovat nástěnku",
+  "copyBoardDescription": "Zkopíruje se aktuální stav na serveru včetně sloupců, štítků a sdílení. Komentáře a přílohy se nekopírují.",
+  "copyBoardWithCards": "Včetně karet",
+  "copyBoardWithAssignments": "Zachovat přiřazení lidí",
+  "copyBoardWithLabels": "Zachovat štítky na kartách",
+  "copyBoardWithDueDate": "Zachovat termíny",
+  "copyBoardMoveCards": "Přesunout karty do prvního sloupce",
+  "copyBoardRestoreArchived": "Obnovit archivované karty",
+  "copyBoardInBrowser": "Tento server umožňuje kopírování nástěnek ve webovém rozhraní. Otevřete nástěnku v Nextcloudu a vytvořte kopii tam.",
+  "importInNextcloud": "Importovat v Nextcloudu",
+  "importInNextcloudHint": "Otevřete Deck v prohlížeči a použijte zdroje importu podporované vaším serverem, například Trello."
 }
