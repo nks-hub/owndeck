@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../core/errors.dart';
+import '../data/card_reads.dart';
 import '../data/session.dart';
 import '../l10n/app_localizations.dart';
+import 'card_detail.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key, required this.session, this.openLink});
@@ -15,16 +17,42 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
+  int? _opening;
   late Future<DeckNotifications> _result = _load();
   Future<DeckNotifications> _load() =>
       widget.session.readServer((client) => client.notifications());
   void _refresh() => setState(() => _result = _load());
 
+  DeckCardLink? _nativeLink(Uri uri) {
+    final link = parseDeckCardLink(uri.toString());
+    return link?.server.uri == widget.session.client.base.uri ? link : null;
+  }
+
   Future<void> _open(DeckNotification notification) async {
     final uri = notification.deckLink(widget.session.client.base);
-    if (uri == null) return;
+    if (uri == null || _opening != null) return;
     final text = AppLocalizations.of(context)!;
+    final cardLink = _nativeLink(uri);
+    setState(() => _opening = notification.id);
     try {
+      if (cardLink != null && widget.openLink == null) {
+        final result = await widget.session.openRemoteCard(
+          cardLink.boardId,
+          cardLink.cardId,
+        );
+        if (!mounted) return;
+        await Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            settings: const RouteSettings(name: '/card'),
+            builder: (_) => CardScreen(
+              session: widget.session,
+              board: result.board,
+              card: result.card,
+            ),
+          ),
+        );
+        return;
+      }
       final opened =
           await (widget.openLink?.call(uri) ??
               launchUrl(uri, mode: LaunchMode.externalApplication));
@@ -33,12 +61,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           context,
         ).showSnackBar(SnackBar(content: Text(text.browserError)));
       }
-    } catch (_) {
+    } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(text.browserError)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              cardLink == null ? text.browserError : errorMessage(error, text),
+            ),
+          ),
+        );
       }
+    } finally {
+      if (mounted) setState(() => _opening = null);
     }
   }
 
@@ -92,6 +126,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             itemCount: result.items.length,
             itemBuilder: (context, index) {
               final item = result.items[index];
+              final uri = item.deckLink(widget.session.client.base);
+              final cardLink = uri == null ? null : _nativeLink(uri);
               final local = MaterialLocalizations.of(context);
               final created = item.created.toLocal();
               return Card(
@@ -115,11 +151,23 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       Text(
                         '${local.formatMediumDate(created)} ${local.formatTimeOfDay(TimeOfDay.fromDateTime(created))}',
                       ),
-                      if (item.deckLink(widget.session.client.base) != null)
+                      if (uri != null)
                         TextButton.icon(
-                          onPressed: () => _open(item),
-                          icon: const Icon(Icons.open_in_browser),
-                          label: Text(text.openInNextcloud),
+                          onPressed: _opening == null
+                              ? () => _open(item)
+                              : null,
+                          icon: Icon(
+                            cardLink == null
+                                ? Icons.open_in_browser
+                                : Icons.open_in_new,
+                          ),
+                          label: Text(
+                            _opening == item.id
+                                ? text.openingCardLink
+                                : cardLink == null
+                                ? text.openInNextcloud
+                                : text.openCardLink,
+                          ),
                         ),
                     ],
                   ),
