@@ -670,9 +670,22 @@ final class CompatibilityProbe {
     );
     sourceId = intField(fixture, 'boardId');
     await check('can_create_false_is_enforced_by_server', () async {
+      final policySamples = <JsonObject>[];
+      observations['creationPolicySamples'] = policySamples;
+      // App config is cached briefly across PHP requests after occ updates.
+      for (var attempt = 0; attempt < 10; attempt++) {
+        final readerCanCreate = (await reader.capabilities()).canCreateBoards;
+        final ownerCanCreate = (await owner.capabilities()).canCreateBoards;
+        policySamples.add({
+          'readerCanCreate': readerCanCreate,
+          'ownerCanCreate': ownerCanCreate,
+        });
+        if (!readerCanCreate && ownerCanCreate) break;
+        await Future<void>.delayed(const Duration(seconds: 1));
+      }
       require(
-        !(await reader.capabilities()).canCreateBoards &&
-            (await owner.capabilities()).canCreateBoards,
+        policySamples.last['readerCanCreate'] == false &&
+            policySamples.last['ownerCanCreate'] == true,
         'creation_policy_not_applied',
       );
       require(
