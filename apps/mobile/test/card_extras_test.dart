@@ -221,7 +221,11 @@ void main() {
           ),
         ),
       );
+      await tester.tap(find.byTooltip('Column actions'));
+      await tester.pumpAndSettle();
       expect(find.text('Set as done column'), findsNothing);
+      await tester.tapAt(const Offset(4, 100));
+      await tester.pumpAndSettle();
       tester.view.physicalSize = const Size(360, 640);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
@@ -238,6 +242,8 @@ void main() {
           scale: 2,
         ),
       );
+      await tester.tap(find.byTooltip('Column actions'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Set as done column'));
       await tester.pumpAndSettle();
       expect(

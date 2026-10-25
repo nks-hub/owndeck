@@ -126,46 +126,47 @@ class StackActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context)!;
-    return Wrap(
-      spacing: 8,
-      children: [
-        if (stack.supportsDoneColumn &&
-            board.permissions.manage &&
-            !board.archived &&
-            board.deletedAt == 0)
-          TextButton.icon(
-            icon: Icon(
-              stack.isDoneColumn
-                  ? Icons.check_circle
-                  : Icons.check_circle_outline,
-            ),
-            label: Text(
+    if (!board.permissions.manage || board.archived || board.deletedAt != 0) {
+      return const SizedBox.shrink();
+    }
+    return PopupMenuButton<String>(
+      tooltip: text.stackActions,
+      onSelected: (action) {
+        switch (action) {
+          case 'done':
+            unawaited(_changeDoneStack(context, session, board, stack));
+          case 'edit':
+            unawaited(
+              editStructure(
+                context,
+                session,
+                board: board,
+                stack: stack,
+                column: true,
+              ),
+            );
+          case 'delete':
+            unawaited(
+              changeStructure(
+                context,
+                session,
+                'deleteStack',
+                board,
+                stack: stack,
+              ),
+            );
+        }
+      },
+      itemBuilder: (_) => [
+        if (stack.supportsDoneColumn)
+          PopupMenuItem(
+            value: 'done',
+            child: Text(
               stack.isDoneColumn ? text.unsetDoneColumn : text.setDoneColumn,
             ),
-            onPressed: () => _changeDoneStack(context, session, board, stack),
           ),
-        TextButton.icon(
-          icon: const Icon(Icons.edit_outlined),
-          label: Text(text.editStack),
-          onPressed: () => editStructure(
-            context,
-            session,
-            board: board,
-            stack: stack,
-            column: true,
-          ),
-        ),
-        TextButton.icon(
-          icon: const Icon(Icons.delete_outline),
-          label: Text(text.deleteStack),
-          onPressed: () => changeStructure(
-            context,
-            session,
-            'deleteStack',
-            board,
-            stack: stack,
-          ),
-        ),
+        PopupMenuItem(value: 'edit', child: Text(text.editStack)),
+        PopupMenuItem(value: 'delete', child: Text(text.deleteStack)),
       ],
     );
   }

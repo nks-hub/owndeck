@@ -46,6 +46,8 @@ class BoardFixture {
     List<int> counts = const [3, 0],
     bool editable = true,
     bool archivedLeading = false,
+    bool manage = false,
+    bool supportsDoneColumn = false,
   }) async {
     final db = DeckDatabase(NativeDatabase.memory());
     final account = await AccountRepository(db, _Vault()).add(
@@ -61,7 +63,11 @@ class BoardFixture {
       'color': '008080',
       'archived': false,
       'deletedAt': 0,
-      'permissions': {'PERMISSION_READ': true, 'PERMISSION_EDIT': editable},
+      'permissions': {
+        'PERMISSION_READ': true,
+        'PERMISSION_EDIT': editable,
+        'PERMISSION_MANAGE': manage,
+      },
     });
     DeckCard card(int id, int stack, int order, {bool archived = false}) =>
         DeckCard.fromJson({
@@ -82,6 +88,7 @@ class BoardFixture {
           'boardId': 1,
           'title': 'Column ${column + 1}',
           'order': column,
+          if (supportsDoneColumn) 'isDoneColumn': false,
           'cards': [
             if (archivedLeading && column == 0)
               card(99, 10, 0, archived: true).raw,
