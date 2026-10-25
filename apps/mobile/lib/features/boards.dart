@@ -13,7 +13,7 @@ import 'sync_notice.dart';
 import 'structure_editor.dart';
 import 'search.dart';
 import 'notifications.dart';
-import 'telemetry_settings.dart';
+import 'settings.dart';
 import 'package:deck_store/deck_store.dart';
 
 class BoardsScreen extends StatefulWidget {
@@ -39,79 +39,79 @@ class _BoardsScreenState extends State<BoardsScreen> {
     final session = widget.session;
     return Scaffold(
       appBar: AppBar(
-        title: Text(_destination == 0 ? text.boards : text.myTasks),
-        actions: [
-          IconButton(
-            tooltip: text.searchCards,
-            icon: const Icon(Icons.search),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                settings: const RouteSettings(name: '/search'),
-                builder: (_) => CardSearchScreen(
-                  session: session,
-                  mineOnly: _destination == 1,
-                ),
-              ),
-            ),
-          ),
-          IconButton(
-            tooltip: text.pendingChanges,
-            icon: const Icon(Icons.sync_problem_outlined),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                settings: const RouteSettings(name: '/sync'),
-                builder: (_) => PendingScreen(session: session),
-              ),
-            ),
-          ),
-          IconButton(
-            tooltip: text.accounts,
-            icon: const Icon(Icons.account_circle_outlined),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                settings: const RouteSettings(name: '/accounts'),
-                builder: (_) => const AccountsScreen(),
-              ),
-            ),
-          ),
-          PopupMenuButton<String>(
-            onSelected: (action) {
-              if (action == 'refresh') {
-                unawaited(session.refreshBoards());
-                return;
-              }
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  settings: RouteSettings(
-                    name: action == 'notifications'
-                        ? '/notifications'
-                        : '/settings',
+        title: Text(switch (_destination) {
+          0 => text.boards,
+          1 => text.myTasks,
+          _ => text.settings,
+        }),
+        actions: _destination == 2
+            ? []
+            : [
+                IconButton(
+                  tooltip: text.searchCards,
+                  icon: const Icon(Icons.search),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      settings: const RouteSettings(name: '/search'),
+                      builder: (_) => CardSearchScreen(
+                        session: session,
+                        mineOnly: _destination == 1,
+                      ),
+                    ),
                   ),
-                  builder: (_) => action == 'notifications'
-                      ? NotificationsScreen(session: session)
-                      : const TelemetrySettingsScreen(),
                 ),
-              );
-            },
-            itemBuilder: (_) => [
-              PopupMenuItem(value: 'refresh', child: Text(text.refresh)),
-              PopupMenuItem(
-                value: 'notifications',
-                child: Text(text.deckNotifications),
-              ),
-              PopupMenuItem(
-                value: 'settings',
-                child: Text(text.telemetryTitle),
-              ),
-            ],
-          ),
-        ],
+                IconButton(
+                  tooltip: text.pendingChanges,
+                  icon: const Icon(Icons.sync_problem_outlined),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      settings: const RouteSettings(name: '/sync'),
+                      builder: (_) => PendingScreen(session: session),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  tooltip: text.accounts,
+                  icon: const Icon(Icons.account_circle_outlined),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      settings: const RouteSettings(name: '/accounts'),
+                      builder: (_) => const AccountsScreen(),
+                    ),
+                  ),
+                ),
+                PopupMenuButton<String>(
+                  onSelected: (action) {
+                    if (action == 'refresh') {
+                      unawaited(session.refreshBoards());
+                      return;
+                    }
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        settings: const RouteSettings(name: '/notifications'),
+                        builder: (_) => NotificationsScreen(session: session),
+                      ),
+                    );
+                  },
+                  itemBuilder: (_) => [
+                    PopupMenuItem(value: 'refresh', child: Text(text.refresh)),
+                    PopupMenuItem(
+                      value: 'notifications',
+                      child: Text(text.deckNotifications),
+                    ),
+                  ],
+                ),
+              ],
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _destination,
         onDestinationSelected: (value) {
           setState(() => _destination = value);
-          telemetry.screen(value == 0 ? '/boards' : '/my-tasks');
+          telemetry.screen(switch (value) {
+            0 => '/boards',
+            1 => '/my-tasks',
+            _ => '/settings',
+          });
         },
         destinations: [
           NavigationDestination(
@@ -122,9 +122,15 @@ class _BoardsScreenState extends State<BoardsScreen> {
             icon: const Icon(Icons.checklist),
             label: text.myTasks,
           ),
+          NavigationDestination(
+            icon: const Icon(Icons.settings_outlined),
+            label: text.settings,
+          ),
         ],
       ),
-      body: _destination == 1
+      body: _destination == 2
+          ? const SettingsView()
+          : _destination == 1
           ? CardSearchView(
               key: const ValueKey('my-tasks'),
               session: session,
