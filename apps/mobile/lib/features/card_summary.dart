@@ -1,6 +1,7 @@
 import 'package:deck_protocol/deck_protocol.dart';
 import 'package:flutter/material.dart';
 
+import '../core/markdown_tasks.dart';
 import '../l10n/app_localizations.dart';
 
 Iterable<JsonObject> cardObjects(Object? value) => switch (value) {
@@ -130,9 +131,19 @@ class CardSummary extends StatelessWidget {
   }
 }
 
-class CardMetadata extends StatelessWidget {
+class CardMetadata extends StatefulWidget {
   const CardMetadata({super.key, required this.card});
   final DeckCard card;
+
+  @override
+  State<CardMetadata> createState() => _CardMetadataState();
+}
+
+class _CardMetadataState extends State<CardMetadata> {
+  String? _description;
+  ({int completed, int total}) _checklist = (completed: 0, total: 0);
+
+  DeckCard get card => widget.card;
 
   int? _count(String countKey, String listKey) {
     final count = card.raw[countKey];
@@ -143,6 +154,14 @@ class CardMetadata extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (_description != card.description) {
+      _description = card.description;
+      final tasks = markdownTasks(card.description);
+      _checklist = (
+        completed: tasks.where((task) => task.checked).length,
+        total: tasks.length,
+      );
+    }
     final text = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final due = cardDueDate(card);
@@ -211,6 +230,13 @@ class CardMetadata extends StatelessWidget {
                 : '${people.first.name} +${people.length - 1}',
             semanticLabel:
                 '${text.assignees}: ${people.map((person) => person.name).join(', ')}',
+          ),
+        if (_checklist.total > 0)
+          _MetadataBadge(
+            icon: Icons.checklist,
+            label: '${_checklist.completed}/${_checklist.total}',
+            semanticLabel:
+                '${text.completed}: ${_checklist.completed}/${_checklist.total}',
           ),
         if (comments != null && comments > 0)
           _MetadataBadge(
