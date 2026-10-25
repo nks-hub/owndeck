@@ -87,10 +87,14 @@ void main() {
           await tester.pumpAndSettle();
           expect(fields.first.hitTestable(), findsOneWidget);
           await tester.enterText(fields.first, 'Board');
-          await tester.ensureVisible(fields.at(1));
           await tester.pumpAndSettle();
-          expect(fields.at(1).hitTestable(), findsOneWidget);
-          await tester.enterText(fields.at(1), '008080');
+          expect(fields, findsOneWidget);
+          final color = find.widgetWithText(ChoiceChip, 'Modrá');
+          await tester.ensureVisible(color);
+          await tester.pumpAndSettle();
+          expect(color.hitTestable(), findsOneWidget);
+          await tester.tap(color);
+          expect(find.text('008080'), findsNothing);
           await tester.ensureVisible(find.text('Zrušit'));
           await tester.pumpAndSettle();
           expect(find.text('Zrušit').hitTestable(), findsOneWidget);
