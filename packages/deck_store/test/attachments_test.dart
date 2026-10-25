@@ -71,6 +71,15 @@ void main() {
       return json(board(1, 'Board', edit: true).raw);
     }
     if (request.url.path.endsWith('/cards/8')) return json(cardJson());
+    if (request.url.path.endsWith('/stacks/2')) {
+      return json({
+        'id': 2,
+        'boardId': 1,
+        'title': 'Column',
+        'order': 0,
+        'cards': [],
+      });
+    }
     throw StateError('unexpected_request');
   }
 

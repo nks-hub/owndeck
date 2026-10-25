@@ -220,70 +220,33 @@ extension _CardActionSync on DeckSync {
     if (_closed || !await database.acquireLease(account, _owner)) return false;
     final epoch = (await database.account(account.id))?.contentEpoch;
     if (epoch == null) return false;
-    int? requestedBoardId;
     try {
       final receipt = object(jsonDecode(write.remote!));
-      final result =
-          receipt['deleted'] ??
-          (await client.rest('GET', [
-            'boards',
-            '${intField(receipt, 'boardId')}',
-            'stacks',
-            '${intField(receipt, 'stackId')}',
-            'cards',
-            '${intField(receipt, 'cardId')}',
-          ])).data;
-      final card = DeckCard.fromJson(object(result));
-      if (card.id != receipt['cardId'] || card.id <= 0 || card.stackId <= 0) {
-        return false;
-      }
-      if (receipt['deleted'] != null || (card.raw['deletedAt'] ?? 0) != 0) {
+      if (receipt['deleted'] != null) {
+        final card = DeckCard.fromJson(object(receipt['deleted']));
+        if (card.id != receipt['cardId'] || card.id <= 0) return false;
         return await _finishUnavailableCard(write, epoch, 'not_found');
       }
-      // Stack and card IDs are global on the server; the URL's board is not proof of ownership.
-      final stack = DeckStack.fromJson(
-        object(
-          (await client.rest('GET', [
-            'boards',
-            '${intField(receipt, 'boardId')}',
-            'stacks',
-            '${card.stackId}',
-          ])).data,
-        ),
+      final context = await _readAppliedCard(
+        intField(receipt, 'boardId'),
+        intField(receipt, 'stackId'),
+        intField(receipt, 'cardId'),
       );
-      if (stack.id != card.stackId || stack.boardId <= 0) return false;
-      requestedBoardId = stack.boardId;
-      final response = await client.rest('GET', ['boards', '${stack.boardId}']);
-      requestedBoardId = null;
-      final board = DeckBoard.fromJson(object(response.data));
-      if (board.id != stack.boardId) return false;
-      if (!board.permissions.read) {
-        return await _finishUnavailableCard(
-          write,
-          epoch,
-          'permission_denied',
-          boardId: board.id,
-        );
-      }
-      if (board.deletedAt != 0 || (stack.raw['deletedAt'] ?? 0) != 0) {
-        return await _finishUnavailableCard(write, epoch, 'not_found');
-      }
       return await database.confirmReconciledCard(
         account,
         _owner,
         write,
-        DeckCardContext(board: board, stack: stack, card: card),
+        context,
         epoch,
       );
-    } on DeckException catch (error) {
-      if (error.status == 403 || error.status == 404) {
-        return await _finishUnavailableCard(
-          write,
-          epoch,
-          error.status == 403 ? 'permission_denied' : 'not_found',
-          boardId: requestedBoardId,
-        );
-      }
+    } on _AppliedCardUnavailable catch (error) {
+      return _finishUnavailableCard(
+        write,
+        epoch,
+        error.code,
+        boardId: error.boardId,
+      );
+    } on DeckException {
       // The mutation already succeeded. Only its read-back can be retried.
       return false;
     } on FormatException {

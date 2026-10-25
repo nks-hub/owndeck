@@ -195,25 +195,57 @@ extension _AttachmentSync on DeckSync {
     List<DeckAttachment>? items,
   }) async {
     if (_closed || !await database.acquireLease(account, _owner)) return false;
+    var epoch = (await database.account(account.id))?.contentEpoch;
+    if (epoch == null) return false;
     try {
       final receipt = object(jsonDecode(write.remote!));
-      final result =
-          items ??
-          await client.attachments(write.boardId, write.stackId, write.cardId!);
-      final target = result
-          .where(
-            (item) =>
-                item.id == receipt['attachmentId'] &&
-                item.type == receipt['type'],
-          )
-          .firstOrNull;
-      if (write.kind == 'deleteAttachment'
-          ? target != null && target.deletedAt == 0
-          : target == null || target.deletedAt != 0) {
+      if (intField(receipt, 'attachmentId') <= 0 ||
+          !{'file', 'deck_file'}.contains(receipt['type'])) {
         return false;
       }
-      await database.confirmAttachments(account, _owner, write, result);
-      return true;
+      final context = await _readAppliedCard(
+        write.boardId,
+        write.stackId,
+        write.cardId!,
+      );
+      final result =
+          items != null &&
+              context.stack.id == write.stackId &&
+              context.board.id == write.boardId
+          ? items
+          : await client.attachments(
+              context.board.id,
+              context.stack.id,
+              context.card.id,
+            );
+      // A complete read-back may show a later removal by another client.
+      return database.confirmAttachments(
+        account,
+        _owner,
+        write,
+        result,
+        context,
+        epoch,
+      );
+    } on _AppliedCardUnavailable catch (error) {
+      if (error.boardId != null) {
+        if (!await database.revokeBoardAccess(
+          account,
+          error.boardId!,
+          reason: error.code,
+        )) {
+          return false;
+        }
+        epoch = (await database.account(account.id))?.contentEpoch;
+        if (epoch == null) return false;
+      }
+      return database.confirmAttachmentUnavailable(
+        account,
+        _owner,
+        write,
+        epoch,
+        error.code,
+      );
     } on DeckException {
       // Accepted writes retry only their read-back, never the upload or share.
       return false;

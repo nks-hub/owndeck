@@ -14,6 +14,7 @@ part 'comments_sync.dart';
 part 'board_metadata_sync.dart';
 part 'attachments_sync.dart';
 part 'board_clone_sync.dart';
+part 'applied_card_reads.dart';
 
 bool _shouldRetry(DeckException error, bool mutationStarted) =>
     error.status == 401 ||

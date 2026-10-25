@@ -163,32 +163,90 @@ extension AttachmentStore on DeckDatabase {
     return id;
   });
 
-  Future<void> confirmAttachments(
+  Future<bool> confirmAttachments(
     StoredAccount account,
     String owner,
     PendingWrite write,
     List<DeckAttachment> attachments,
+    DeckCardContext context,
+    int epoch,
   ) => transaction(() async {
-    if (!await ownsLease(account, owner)) return;
-    final current =
-        await (select(pendingWrites)..where(
-              (w) => w.id.equals(write.id) & w.accountId.equals(account.id),
-            ))
-            .getSingleOrNull();
-    if (current?.state != 'applied') return;
-    if (!await _canCacheAttachments(account.id, write.boardId)) return;
+    final current = await _ownedAppliedWrite(account, owner, write, epoch);
+    if (current == null ||
+        !attachmentKinds.contains(current.kind) ||
+        context.card.id != write.cardId ||
+        !await saveReadCard(account, context, epoch)) {
+      return false;
+    }
     await _replaceAttachments(
       account.id,
-      write.boardId,
+      context.board.id,
       write.cardId!,
       attachments,
     );
     await (update(pendingWrites)..where((w) => w.id.equals(write.id))).write(
+      PendingWritesCompanion(
+        boardId: Value(context.board.id),
+        stackId: Value(context.stack.id),
+        state: const Value('confirmed'),
+        error: const Value(null),
+      ),
+    );
+    await invalidateMutation(account.id, context.board.id);
+    return true;
+  });
+
+  Future<bool> confirmAttachmentUnavailable(
+    StoredAccount account,
+    String owner,
+    PendingWrite write,
+    int epoch,
+    String error,
+  ) => transaction(() async {
+    final current = await _ownedAppliedWrite(account, owner, write, epoch);
+    if (current == null ||
+        !attachmentKinds.contains(current.kind) ||
+        write.cardId == null ||
+        write.cardId! <= 0) {
+      return false;
+    }
+    await (delete(storedCards)..where(
+          (row) =>
+              row.accountId.equals(account.id) &
+              row.remoteId.equals(write.cardId!),
+        ))
+        .go();
+    await (delete(storedComments)..where(
+          (row) =>
+              row.accountId.equals(account.id) &
+              row.cardId.equals(write.cardId!),
+        ))
+        .go();
+    await (delete(storedAttachments)..where(
+          (row) =>
+              row.accountId.equals(account.id) &
+              row.cardId.equals(write.cardId!),
+        ))
+        .go();
+    await (update(
+      pendingWrites,
+    )..where((row) => row.id.equals(write.id))).write(
       const PendingWritesCompanion(
         state: Value('confirmed'),
         error: Value(null),
       ),
     );
+    for (final later in await _laterCardWrites(account, write, write.cardId!)) {
+      await (update(
+        pendingWrites,
+      )..where((row) => row.id.equals(later.id))).write(
+        PendingWritesCompanion(
+          state: const Value('blocked'),
+          error: Value(error),
+        ),
+      );
+    }
     await invalidateMutation(account.id, write.boardId);
+    return true;
   });
 }
