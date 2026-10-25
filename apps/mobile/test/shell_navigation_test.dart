@@ -264,4 +264,38 @@ void main() {
       }
     },
   );
+
+  testWidgets('landscape add action leaves the board menu reachable', (
+    tester,
+  ) async {
+    final fixture = (await tester.runAsync(_ShellFixture.create))!;
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(740, 360);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    try {
+      await tester.pumpWidget(
+        app(fixture, AppPreferences(store: MemoryBoardPreferences())),
+      );
+      await until(
+        tester,
+        () => find.byTooltip('Board actions').evaluate().isNotEmpty,
+      );
+      await tester.pumpAndSettle();
+      final menu = find.byTooltip('Board actions');
+      expect(menu.hitTestable(), findsOneWidget);
+      await tester.tap(menu);
+      await tester.pumpAndSettle();
+    expect(find.text('Copy board'), findsOneWidget);
+      await tester.tapAt(const Offset(4, 100));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Add card').hitTestable());
+      await until(tester, () => find.text('Card title').evaluate().isNotEmpty);
+      expect(find.text('Card title'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    } finally {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await boardModel(tester, fixture.model.close());
+    }
+  });
 }

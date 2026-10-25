@@ -81,6 +81,9 @@ class _BoardsScreenState extends State<BoardsScreen> {
     final text = AppLocalizations.of(context)!;
     final session = widget.session;
     final server = Uri.tryParse(session.account.server)?.host ?? '';
+    final screen = MediaQuery.sizeOf(context);
+    final compactHeight =
+        screen.height - MediaQuery.viewInsetsOf(context).bottom < 500;
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: MediaQuery.textScalerOf(context).scale(32) + 32,
@@ -111,6 +114,22 @@ class _BoardsScreenState extends State<BoardsScreen> {
           ),
         ),
         actions: [
+          if (_destination != 2 && compactHeight)
+            if (screen.width >= 600)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                child: FilledButton.icon(
+                  onPressed: () => showQuickAddCard(context, session),
+                  icon: const Icon(Icons.add),
+                  label: Text(text.addCard),
+                ),
+              )
+            else
+              IconButton.filled(
+                onPressed: () => showQuickAddCard(context, session),
+                tooltip: text.addCard,
+                icon: const Icon(Icons.add),
+              ),
           if (_destination != 2)
             IconButton(
               tooltip: text.searchCards,
@@ -182,7 +201,7 @@ class _BoardsScreenState extends State<BoardsScreen> {
           ),
         ],
       ),
-      floatingActionButton: _destination == 2
+      floatingActionButton: _destination == 2 || compactHeight
           ? null
           : FloatingActionButton.extended(
               onPressed: () => showQuickAddCard(context, session),
