@@ -5,6 +5,7 @@ import 'package:deck_store/deck_store.dart';
 import 'package:flutter/material.dart';
 
 import '../data/session.dart';
+import '../core/errors.dart';
 import '../l10n/app_localizations.dart';
 import 'board_drag.dart';
 
@@ -84,10 +85,12 @@ Future<void> moveBoardCard(
 ) async {
   try {
     await queueBoardCardMove(session, board, drag, position);
-  } catch (_) {
+  } catch (error) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.pendingDecision)),
+        SnackBar(
+          content: Text(errorMessage(error, AppLocalizations.of(context)!)),
+        ),
       );
     }
   }
@@ -155,64 +158,98 @@ class _BoardMoveDialogState extends State<_BoardMoveDialog> {
   late int _destination = widget.stacks.any((s) => s.id == widget.card.stackId)
       ? widget.card.stackId
       : widget.stacks.first.id;
-  final _position = TextEditingController(text: '0');
-  String? _error;
-  @override
-  void dispose() {
-    _position.dispose();
-    super.dispose();
-  }
+  String _placement = 'end';
+  int? _anchor;
 
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context)!;
-    final maximum = widget.stacks
+    final cards = widget.stacks
         .firstWhere((s) => s.id == _destination)
         .cards
         .where((c) => activeBoardCard(c) && c.id != widget.card.id)
-        .length;
+        .toList();
+    final relative = _placement == 'before' || _placement == 'after';
     return AlertDialog(
+      scrollable: true,
       title: Text(text.moveCard),
       content: SizedBox(
         width: 360,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              widget.card.title,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<int>(
+              initialValue: _destination,
+              isExpanded: true,
+              decoration: InputDecoration(labelText: text.destinationColumn),
+              items: [
+                for (final stack in widget.stacks)
+                  DropdownMenuItem(
+                    value: stack.id,
+                    child: Text(stack.title, overflow: TextOverflow.ellipsis),
+                  ),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _destination = value;
+                    _anchor = null;
+                    _placement = 'end';
+                  });
+                }
+              },
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              key: ValueKey(('placement', _destination, _placement)),
+              initialValue: _placement,
+              isExpanded: true,
+              decoration: InputDecoration(labelText: text.position),
+              items: [
+                DropdownMenuItem(value: 'start', child: Text(text.moveToTop)),
+                DropdownMenuItem(value: 'end', child: Text(text.moveToBottom)),
+                if (cards.isNotEmpty) ...[
+                  DropdownMenuItem(
+                    value: 'before',
+                    child: Text(text.moveBefore),
+                  ),
+                  DropdownMenuItem(value: 'after', child: Text(text.moveAfter)),
+                ],
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _placement = value;
+                    _anchor ??= cards.firstOrNull?.id;
+                  });
+                }
+              },
+            ),
+            if (relative) ...[
+              const SizedBox(height: 16),
               DropdownButtonFormField<int>(
-                initialValue: _destination,
+                key: ValueKey(('anchor', _destination, _anchor)),
+                initialValue: _anchor,
                 isExpanded: true,
-                decoration: InputDecoration(labelText: text.destinationColumn),
+                decoration: InputDecoration(labelText: text.moveRelativeCard),
                 items: [
-                  for (final stack in widget.stacks)
+                  for (final card in cards)
                     DropdownMenuItem(
-                      value: stack.id,
-                      child: Text(stack.title, overflow: TextOverflow.ellipsis),
+                      value: card.id,
+                      child: Text(card.title, overflow: TextOverflow.ellipsis),
                     ),
                 ],
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      _destination = value;
-                      _error = null;
-                    });
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _position,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: text.position,
-                  helperText: text.boardMovePositionHint(maximum),
-                  helperMaxLines: 3,
-                  errorText: _error,
-                  errorMaxLines: 3,
-                ),
+                onChanged: (value) => setState(() => _anchor = value),
               ),
             ],
-          ),
+          ],
         ),
       ),
       actions: [
@@ -221,17 +258,17 @@ class _BoardMoveDialogState extends State<_BoardMoveDialog> {
           child: Text(text.cancel),
         ),
         FilledButton(
-          onPressed: () {
-            final value = int.tryParse(_position.text);
-            if (value == null || value < 0 || value > maximum) {
-              setState(() => _error = text.invalidBoardMovePosition(maximum));
-              return;
-            }
-            Navigator.pop(
-              context,
-              BoardDropPosition(_destination, index: value),
-            );
-          },
+          onPressed: relative && _anchor == null
+              ? null
+              : () => Navigator.pop(
+                  context,
+                  BoardDropPosition(
+                    _destination,
+                    index: _placement == 'start' ? 0 : null,
+                    anchorId: relative ? _anchor : null,
+                    after: _placement == 'after',
+                  ),
+                ),
           child: Text(text.moveCard),
         ),
       ],

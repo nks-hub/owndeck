@@ -94,8 +94,9 @@ class _CardDescriptionState extends State<CardDescription> {
           selectable: true,
           styleSheet: MarkdownStyleSheet(listIndent: _tasks.isEmpty ? 24 : 48),
           checkboxBuilder: (checked) {
-            if (_tasks.isEmpty)
+            if (_tasks.isEmpty) {
               return Checkbox(value: checked, onChanged: null);
+            }
             final task = _tasks[checkbox++ % _tasks.length];
             return Semantics(
               label: task.label,

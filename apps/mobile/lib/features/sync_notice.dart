@@ -23,15 +23,37 @@ class SyncNotice extends StatelessWidget {
     final error = session.error(scope);
     if (error != null) {
       return Material(
-        color: Theme.of(context).colorScheme.errorContainer,
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
         child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(errorMessage(error, text)),
-              if (hasData) Text(text.cachedData),
-              TextButton(onPressed: retry, child: Text(text.retry)),
+              const Padding(
+                padding: EdgeInsets.only(top: 12, right: 12),
+                child: Icon(Icons.cloud_off_outlined),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(errorMessage(error, text)),
+                      if (hasData)
+                        Text(
+                          text.cachedData,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              IconButton(
+                onPressed: retry,
+                tooltip: text.retry,
+                icon: const Icon(Icons.refresh),
+              ),
             ],
           ),
         ),

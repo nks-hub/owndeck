@@ -7,6 +7,7 @@ import 'features/account_gate.dart';
 import 'l10n/app_localizations.dart';
 import 'core/telemetry_bootstrap.dart';
 import 'core/app_preferences.dart';
+import 'core/deck_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,26 +37,9 @@ class _OwnDeckAppState extends ConsumerState<OwnDeckApp> {
       supportedLocales: AppLocalizations.supportedLocales,
       locale: preferences.locale,
       themeMode: preferences.themeMode,
-      theme: _theme(Brightness.light),
-      darkTheme: _theme(Brightness.dark),
+      theme: DeckTheme.light(),
+      darkTheme: DeckTheme.dark(),
       home: widget.home,
     );
   }
 }
-
-ThemeData _theme(Brightness brightness) => ThemeData(
-  useMaterial3: true,
-  colorScheme: ColorScheme.fromSeed(
-    seedColor: const Color(0xff167a72),
-    brightness: brightness,
-  ),
-  inputDecorationTheme: const InputDecorationTheme(
-    border: OutlineInputBorder(),
-  ),
-  filledButtonTheme: FilledButtonThemeData(
-    style: FilledButton.styleFrom(minimumSize: const Size(48, 52)),
-  ),
-  iconButtonTheme: IconButtonThemeData(
-    style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
-  ),
-);

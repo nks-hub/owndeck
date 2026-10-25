@@ -54,8 +54,9 @@ List<MarkdownTask> markdownTasks(String source) {
           content.write(child.text);
           return;
         }
-        if (child is! md.Element || {'ul', 'ol', 'li'}.contains(child.tag))
+        if (child is! md.Element || {'ul', 'ol', 'li'}.contains(child.tag)) {
           return;
+        }
         if (child.tag == 'input' && child.attributes['type'] == 'checkbox') {
           checked = child.attributes.containsKey('checked');
         }

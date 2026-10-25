@@ -233,6 +233,13 @@ class _CommentEditorState extends State<CommentEditor> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(_original == null ? text.addComment : text.editComment),
+          actions: [
+            IconButton.filled(
+              onPressed: _loading || _loadFailed || _saving ? null : _send,
+              icon: const Icon(Icons.send_outlined),
+              tooltip: text.sendComment,
+            ),
+          ],
         ),
         body: _loading
             ? const Center(child: CircularProgressIndicator())
@@ -279,10 +286,6 @@ class _CommentEditorState extends State<CommentEditor> {
                     ),
                   if (_error != null) Text(_error!),
                   const SizedBox(height: 24),
-                  FilledButton(
-                    onPressed: _saving ? null : _send,
-                    child: Text(text.sendComment),
-                  ),
                   if (_saving) const LinearProgressIndicator(),
                 ],
               ),

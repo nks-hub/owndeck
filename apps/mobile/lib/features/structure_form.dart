@@ -23,6 +23,10 @@ class _StructureFormState extends State<_StructureForm> {
   late final TextEditingController _name;
   late final TextEditingController _value;
   bool _saving = false;
+  String _placement = 'keep';
+  int? _anchor;
+  List<DeckStack> _columns = [];
+  bool _loadingColumns = false;
   String? _error;
 
   @override
@@ -45,6 +49,35 @@ class _StructureFormState extends State<_StructureForm> {
         : widget.board?.color ?? '008080';
     _name = TextEditingController(text: name);
     _value = TextEditingController(text: value);
+    _placement = widget.stack == null ? 'end' : 'keep';
+    if (widget.column) unawaited(_loadColumns());
+  }
+
+  Future<void> _loadColumns() async {
+    setState(() => _loadingColumns = true);
+    try {
+      final columns = await widget.session.database.stackView(
+        widget.session.account.id,
+        widget.board!.id,
+      );
+      if (mounted) {
+        setState(
+          () => _columns = columns
+              .where(
+                (column) =>
+                    column.id != widget.stack?.id &&
+                    (column.raw['deletedAt'] ?? 0) == 0,
+              )
+              .toList(),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _error = AppLocalizations.of(context)!.storageError);
+      }
+    } finally {
+      if (mounted) setState(() => _loadingColumns = false);
+    }
   }
 
   @override
@@ -63,12 +96,8 @@ class _StructureFormState extends State<_StructureForm> {
       setState(() => _error = text.invalidName);
       return;
     }
-    if (widget.column
-        ? int.tryParse(value) == null || int.parse(value) < 0
-        : !RegExp(r'^[0-9a-fA-F]{6}$').hasMatch(value)) {
-      setState(
-        () => _error = widget.column ? text.invalidPosition : text.invalidColor,
-      );
+    if (!widget.column && !RegExp(r'^[0-9a-fA-F]{6}$').hasMatch(value)) {
+      setState(() => _error = text.invalidColor);
       return;
     }
     setState(() {
@@ -98,26 +127,34 @@ class _StructureFormState extends State<_StructureForm> {
           );
         }
       } else {
-        await session.database.queueStructure(
-          session.account,
-          column
-              ? stack == null
-                    ? 'createStack'
-                    : 'updateStack'
-              : board == null
-              ? 'createBoard'
-              : 'updateBoard',
-          {
-            'title': title,
-            if (column)
-              'order': int.parse(value)
-            else
-              'color': value.toLowerCase(),
-          },
-          boardId: board?.id ?? 0,
-          stackId: stack?.id ?? 0,
-          base: column ? stack?.raw : board?.raw,
-        );
+        await session.database.transaction(() async {
+          final id = await session.database.queueStructure(
+            session.account,
+            column
+                ? stack == null
+                      ? 'createStack'
+                      : 'updateStack'
+                : board == null
+                ? 'createBoard'
+                : 'updateBoard',
+            {
+              'title': title,
+              if (!column) 'color': value.toLowerCase(),
+            },
+            boardId: board?.id ?? 0,
+            stackId: stack?.id ?? 0,
+            base: column ? stack?.raw : board?.raw,
+          );
+          if (column && _placement != 'keep') {
+            await session.database.queueStackReorder(
+              session.account,
+              board!.id,
+              stack?.id ?? id,
+              anchorStackId: _placement == 'after' ? _anchor : null,
+              before: _placement == 'start',
+            );
+          }
+        });
       }
       if (mounted) Navigator.pop(context);
       unawaited(
@@ -167,40 +204,87 @@ class _StructureFormState extends State<_StructureForm> {
             decoration: InputDecoration(labelText: text.name),
           ),
           const SizedBox(height: 16),
-          TextField(
-            controller: _value,
-            enabled: !_saving,
-            keyboardType: widget.column
-                ? TextInputType.number
-                : TextInputType.text,
-            decoration: InputDecoration(
-              labelText: widget.column ? text.position : text.color,
+          if (widget.column) ...[
+            if (_loadingColumns) const LinearProgressIndicator(),
+            DropdownButtonFormField<String>(
+              initialValue: _placement,
+              isExpanded: true,
+              decoration: InputDecoration(labelText: text.position),
+              items: [
+                if (widget.stack != null)
+                  DropdownMenuItem(
+                    value: 'keep',
+                    child: Text(text.keepPosition),
+                  ),
+                DropdownMenuItem(value: 'start', child: Text(text.moveToTop)),
+                DropdownMenuItem(value: 'end', child: Text(text.moveToBottom)),
+                if (_columns.isNotEmpty)
+                  DropdownMenuItem(
+                    value: 'after',
+                    child: Text(text.afterColumn),
+                  ),
+              ],
+              onChanged: _saving
+                  ? null
+                  : (value) {
+                      if (value != null) {
+                        setState(() {
+                          _placement = value;
+                          _anchor ??= _columns.firstOrNull?.id;
+                        });
+                      }
+                    },
             ),
-          ),
+            if (_placement == 'after')
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: DropdownButtonFormField<int>(
+                  initialValue: _anchor,
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    labelText: text.destinationColumn,
+                  ),
+                  items: [
+                    for (final column in _columns)
+                      DropdownMenuItem(
+                        value: column.id,
+                        child: Text(
+                          column.title,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
+                  onChanged: _saving
+                      ? null
+                      : (value) => setState(() => _anchor = value),
+                ),
+              ),
+          ] else ...[
+            Text(text.color, style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: 8),
+            ColorChoices(
+              value: _value.text,
+              allowNone: false,
+              onChanged: _saving
+                  ? null
+                  : (value) => setState(() => _value.text = value!),
+            ),
+          ],
           if (_error != null)
             Padding(
               padding: const EdgeInsets.only(top: 16),
               child: Text(_error!),
             ),
           if (_saving) const LinearProgressIndicator(),
-          const SizedBox(height: 24),
-          OverflowBar(
-            alignment: MainAxisAlignment.end,
-            spacing: 8,
-            overflowSpacing: 8,
-            children: [
-              TextButton(
-                onPressed: _saving ? null : () => Navigator.pop(context),
-                child: Text(text.cancel),
-              ),
-              FilledButton(
-                onPressed: _saving ? null : _save,
-                child: Text(text.save),
-              ),
-            ],
-          ),
         ],
       ),
+      actions: [
+        TextButton(
+          onPressed: _saving ? null : () => Navigator.pop(context),
+          child: Text(text.cancel),
+        ),
+        FilledButton(onPressed: _saving ? null : _save, child: Text(text.save)),
+      ],
     );
   }
 }

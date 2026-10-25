@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 import '../data/session.dart';
 import '../l10n/app_localizations.dart';
+import 'color_choices.dart';
 
 Future<void> editCard(
   BuildContext context,
@@ -363,6 +364,13 @@ class _CardEditorState extends State<CardEditor> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(_original == null ? text.addCard : text.editCard),
+          actions: [
+            TextButton.icon(
+              onPressed: _loading || _readFailed || _saving ? null : _save,
+              icon: const Icon(Icons.check),
+              label: Text(text.save),
+            ),
+          ],
         ),
         body: _loading
             ? const Center(child: CircularProgressIndicator())
@@ -416,15 +424,24 @@ class _CardEditorState extends State<CardEditor> {
                     if (_supports('color'))
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        child: TextField(
-                          controller: _color,
-                          enabled: !_saving,
-                          onChanged: (_) => _changed(),
-                          decoration: InputDecoration(
-                            labelText: text.cardColor,
-                            hintText: '008080',
-                            helperText: text.optionalColor,
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              text.cardColor,
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                            const SizedBox(height: 8),
+                            ColorChoices(
+                              value: _color.text,
+                              onChanged: _saving
+                                  ? null
+                                  : (value) {
+                                      _color.text = value ?? '';
+                                      _changed();
+                                    },
+                            ),
+                          ],
                         ),
                       ),
                     if (_original?.raw.containsKey('done') == true)
@@ -455,10 +472,6 @@ class _CardEditorState extends State<CardEditor> {
                         child: Text(_error!),
                       ),
                     const SizedBox(height: 24),
-                    FilledButton(
-                      onPressed: _saving ? null : _save,
-                      child: Text(text.save),
-                    ),
                     if (_saving) const LinearProgressIndicator(),
                   ],
                 ),

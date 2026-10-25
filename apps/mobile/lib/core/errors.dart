@@ -15,6 +15,7 @@ String errorMessage(Object error, AppLocalizations text) {
     'permission_denied' => text.permissionError,
     'pending_decision' => text.pendingDecision,
     'account_unavailable' => text.authError,
+    'invalid_title' => text.invalidTitle,
     'invalid_destination' || 'invalid_position' => text.invalidDestination,
     'not_found' || 'card_unavailable' => text.cardUnavailable,
     'concurrent_edit' => text.conflict,

@@ -5,12 +5,18 @@ import 'package:flutter/services.dart';
 import 'package:deck_protocol/deck_protocol.dart';
 import 'package:deck_store/deck_store.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../data/session.dart';
+import '../data/card_edits.dart';
 import '../l10n/app_localizations.dart';
 import 'card_editor.dart';
+import 'board_moves.dart';
+import 'card_description.dart';
+import 'card_summary.dart';
+import 'card_selection_sheet.dart';
+import 'color_choices.dart';
+import '../core/errors.dart';
 import 'pending.dart';
 import 'comments.dart';
 import 'attachments.dart';
@@ -34,6 +40,8 @@ class CardScreen extends StatefulWidget {
 
 class _CardScreenState extends State<CardScreen> {
   bool _copying = false;
+  bool _savingDone = false;
+  late final _stacks = widget.session.watchStacks(widget.board.id);
   bool _loadingCopyColumns = false;
   void _setCopyState({bool? active, bool? loading}) {
     if (!mounted) return;
@@ -64,12 +72,30 @@ class _CardScreenState extends State<CardScreen> {
         values,
       );
       unawaited(widget.session.refreshStacks(widget.board.id));
-    } catch (_) {
+    } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(text.pendingDecision)));
+        ).showSnackBar(SnackBar(content: Text(errorMessage(error, text))));
       }
+    }
+  }
+
+  Future<void> _setDone(DeckCard card, bool value) async {
+    if (_savingDone) return;
+    setState(() => _savingDone = true);
+    try {
+      await setCardCompleted(widget.session, widget.board.id, card, value);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage(error, AppLocalizations.of(context)!)),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _savingDone = false);
     }
   }
 
@@ -140,19 +166,9 @@ class _CardScreenState extends State<CardScreen> {
           }
           final canEdit =
               board.permissions.edit && !board.archived && board.deletedAt == 0;
-          final labels = _items(card.raw['labels']);
-          final assigned = _items(card.raw['assignedUsers']);
-          final dates = {
-            text.startDate: DateTime.tryParse(
-              card.raw['startdate']?.toString() ?? '',
-            )?.toLocal(),
-            text.dueDate: DateTime.tryParse(
-              card.raw['duedate']?.toString() ?? '',
-            )?.toLocal(),
-          };
           return Scaffold(
             appBar: AppBar(
-              title: Text(card.title),
+              title: Text(board.title),
               actions: [
                 if (board.permissions.read)
                   PopupMenuButton<String>(
@@ -165,7 +181,7 @@ class _CardScreenState extends State<CardScreen> {
                         case 'copy':
                           unawaited(_copy(card));
                         case 'move':
-                          unawaited(_move(card));
+                          unawaited(_move(board, card));
                         case 'labels':
                           unawaited(_labels(board, card));
                         case 'users':
@@ -222,21 +238,8 @@ class _CardScreenState extends State<CardScreen> {
             bottomNavigationBar: _loadingCopyColumns
                 ? LinearProgressIndicator(semanticsLabel: text.syncing)
                 : null,
-            floatingActionButton: canEdit && !card.archived && !_copying
-                ? FloatingActionButton.extended(
-                    onPressed: () => editCard(
-                      context,
-                      widget.session,
-                      board.id,
-                      card.stackId,
-                      card: card,
-                    ),
-                    icon: const Icon(Icons.edit_outlined),
-                    label: Text(text.editCard),
-                  )
-                : null,
             body: ListView(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 100),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
               children: [
                 if (card.raw['syncState'] != null)
                   ListTile(
@@ -249,63 +252,103 @@ class _CardScreenState extends State<CardScreen> {
                       ),
                     ),
                   ),
+                StreamBuilder<List<DeckStack>>(
+                  stream: _stacks,
+                  builder: (context, snapshot) {
+                    final stack = snapshot.data
+                        ?.where((s) => s.id == card.stackId)
+                        .firstOrNull;
+                    return Text(
+                      stack == null
+                          ? board.title
+                          : '${board.title} › ${stack.title}',
+                      style: Theme.of(context).textTheme.labelLarge,
+                    );
+                  },
+                ),
+                const SizedBox(height: 8),
+                SelectableText(
+                  card.title,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 12),
                 if (card.archived) Chip(label: Text(text.archivedCards)),
-                if (card.raw['done'] != null)
-                  Chip(
-                    label: Text(text.completed),
-                    avatar: const Icon(Icons.check, size: 18),
-                  ),
-                for (final date in dates.entries)
-                  if (date.value != null)
-                    ListTile(
-                      leading: const Icon(Icons.event_outlined),
-                      title: Text(date.key),
-                      subtitle: Text(
-                        '${MaterialLocalizations.of(context).formatMediumDate(date.value!)} ${MaterialLocalizations.of(context).formatTimeOfDay(TimeOfDay.fromDateTime(date.value!))}',
-                      ),
-                    ),
+                CardLabels(card: card),
+                const SizedBox(height: 8),
+                CardMetadata(card: card, showStartDate: true),
                 if (card.rgbColor != null)
-                  ListTile(
-                    title: Text(text.cardColor),
-                    subtitle: Text('#${card.raw['color']}'),
-                    leading: Icon(
-                      Icons.palette_outlined,
-                      color: Color(0xff000000 | card.rgbColor!),
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Chip(
+                      avatar: Icon(
+                        Icons.circle,
+                        size: 18,
+                        color: Color(0xff000000 | card.rgbColor!),
+                      ),
+                      label: Text(colorName(card.raw['color'], text)),
                     ),
                   ),
-                if (labels.isNotEmpty)
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      for (final label in labels)
-                        InputChip(
-                          label: Text(label['title']?.toString() ?? ''),
-                          onDeleted: canEdit && !card.archived
-                              ? () => _action(card, 'removeLabel', {
-                                  'labelId': label['id'],
-                                })
-                              : null,
+                if (canEdit && !card.archived)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: _copying
+                              ? null
+                              : () => editCard(
+                                  context,
+                                  widget.session,
+                                  board.id,
+                                  card.stackId,
+                                  card: card,
+                                ),
+                          icon: const Icon(Icons.edit_outlined),
+                          label: Text(text.editCard),
                         ),
-                    ],
-                  ),
-                if (assigned.isNotEmpty)
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      for (final assignment in assigned)
-                        InputChip(
-                          label: Text(_name(assignment['participant'])),
-                          avatar: const Icon(Icons.person_outline, size: 18),
-                          onDeleted: canEdit && !card.archived
-                              ? () => _action(card, 'unassignUser', {
-                                  'userId': _uid(assignment['participant']),
-                                  'type': assignment['type'] ?? 0,
-                                })
-                              : null,
+                        OutlinedButton.icon(
+                          onPressed: _copying ? null : () => _move(board, card),
+                          icon: const Icon(Icons.drive_file_move_outline),
+                          label: Text(text.moveCard),
                         ),
-                    ],
+                        TextButton.icon(
+                          onPressed: () => _labels(board, card),
+                          icon: const Icon(Icons.label_outline),
+                          label: Text(text.labels),
+                        ),
+                        TextButton.icon(
+                          onPressed: () => _users(board, card),
+                          icon: const Icon(Icons.person_add_alt),
+                          label: Text(text.assignees),
+                        ),
+                      ],
+                    ),
                   ),
-                const SizedBox(height: 16),
+                if (card.raw.containsKey('done'))
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(text.completed),
+                    value: card.raw['done'] != null,
+                    onChanged: canEdit && !card.archived && !_savingDone
+                        ? (value) => _setDone(card, value)
+                        : null,
+                  ),
+                const Divider(height: 24),
+                Text(
+                  text.description,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 12),
+                CardDescription(
+                  session: widget.session,
+                  boardId: board.id,
+                  card: card,
+                  canEdit: canEdit && !card.archived,
+                  openLink: (href) => unawaited(_link(href)),
+                ),
+                const Divider(height: 32),
                 ListTile(
                   title: Text(text.comments),
                   leading: const Icon(Icons.comment_outlined),
@@ -348,20 +391,6 @@ class _CardScreenState extends State<CardScreen> {
                         boardId: board.id,
                         cardId: card.id,
                       ),
-                    ),
-                  ),
-                ),
-                MarkdownBody(
-                  data: card.description.isEmpty
-                      ? text.noDescription
-                      : card.description,
-                  selectable: true,
-                  onTapLink: (_, href, _) => _link(href),
-                  imageBuilder: (uri, title, alt) => TextButton.icon(
-                    onPressed: () => _link(uri.toString()),
-                    icon: const Icon(Icons.image_outlined),
-                    label: Text(
-                      alt?.isNotEmpty == true ? alt! : text.externalImage,
                     ),
                   ),
                 ),
