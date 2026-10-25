@@ -28,10 +28,26 @@ class SettingsView extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Text(
+            text.settingsPersonalization,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ),
         DropdownButtonFormField<ThemeMode>(
           key: ValueKey(('appearance', preferences.themeMode)),
           initialValue: preferences.themeMode,
           isExpanded: true,
+          itemHeight: null,
+          selectedItemBuilder: (_) => [
+            for (final label in [
+              text.systemDefault,
+              text.lightTheme,
+              text.darkTheme,
+            ])
+              Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+          ],
           decoration: InputDecoration(labelText: text.appearance),
           items: [
             DropdownMenuItem(
@@ -56,6 +72,15 @@ class SettingsView extends ConsumerWidget {
           key: ValueKey(('language', preferences.language)),
           initialValue: preferences.language,
           isExpanded: true,
+          itemHeight: null,
+          selectedItemBuilder: (_) => [
+            for (final label in [
+              text.systemDefault,
+              text.languageCzech,
+              text.languageEnglish,
+            ])
+              Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+          ],
           decoration: InputDecoration(labelText: text.language),
           items: [
             DropdownMenuItem(
@@ -93,6 +118,14 @@ class SettingsView extends ConsumerWidget {
             ),
           ),
         const SizedBox(height: 16),
+        const Divider(),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Text(
+            text.settingsData,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ),
         if (activeSession != null)
           ListenableBuilder(
             listenable: activeSession,

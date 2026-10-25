@@ -6,6 +6,7 @@ import 'package:deck_store/deck_store.dart';
 import 'package:flutter/material.dart';
 
 import '../data/session.dart';
+import '../core/errors.dart';
 import '../l10n/app_localizations.dart';
 import 'drafts.dart';
 import 'color_choices.dart';
@@ -18,7 +19,7 @@ class PendingScreen extends StatefulWidget {
 }
 
 class _PendingScreenState extends State<PendingScreen> {
-  String _cardSummary(JsonObject value, Set<String> fields) {
+  Map<String, String> _cardFields(JsonObject value, Set<String> fields) {
     final text = AppLocalizations.of(context)!;
     String textField(String key) => switch (value[key]) {
       String value => value,
@@ -62,74 +63,440 @@ class _PendingScreenState extends State<PendingScreen> {
         : done == null
         ? text.pendingNotCompleted
         : dateValue(done);
-    return [
-      '${text.cardTitle}: ${textField('title')}',
-      '${text.description}: ${textField('description')}',
-      '${text.dueDate}: ${dateField('duedate')}',
-      if (fields.contains('startdate'))
-        '${text.startDate}: ${dateField('startdate')}',
-      if (fields.contains('color')) '${text.cardColor}: $colorValue',
-      if (fields.contains('done')) '${text.pendingCompletion}: $completion',
-    ].join('\n');
+    return {
+      text.cardTitle: textField('title'),
+      text.description: textField('description'),
+      text.dueDate: dateField('duedate'),
+      if (fields.contains('startdate')) text.startDate: dateField('startdate'),
+      if (fields.contains('color')) text.cardColor: colorValue,
+      if (fields.contains('done')) text.pendingCompletion: completion,
+    };
   }
 
   String _attachmentSummary(JsonObject value) {
-    final name = (value['name'] ?? value['data'] ?? '').toString();
-    final modified = value['lastModified'];
-    if (modified is! int || modified <= 0 || modified > 253402300799) {
-      return name;
-    }
-    final date = DateTime.fromMillisecondsSinceEpoch(modified * 1000).toLocal();
-    final local = MaterialLocalizations.of(context);
-    return '$name\n${local.formatMediumDate(date)} ${local.formatTimeOfDay(TimeOfDay.fromDateTime(date))}';
+    final raw = value['name'] ?? value['data'];
+    final name = raw is String ? raw.split(RegExp(r'[/\\]')).last : '';
+    return name.isEmpty ? AppLocalizations.of(context)!.attachments : name;
   }
 
+  String _filter = 'all';
+  final _deciding = <String>{};
   late final _writes = widget.session.database.watchWrites(
     widget.session.account.id,
   );
+  late final _drafts = widget.session.database.watchEditorDrafts(
+    widget.session.account.id,
+  );
+  late final _boards = widget.session.watchBoards();
+
+  String _decisionLabel(PendingWrite write, bool discard) {
+    final text = AppLocalizations.of(context)!;
+    if (write.state == 'conflict') {
+      return discard ? text.keepServerVersion : text.useLocalChanges;
+    }
+    return discard ? text.discardWrite : text.retryWrite;
+  }
 
   Future<void> _decide(PendingWrite write, bool discard) async {
+    if (!_deciding.add(write.id)) return;
+    setState(() {});
     final text = AppLocalizations.of(context)!;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(discard ? text.discardWrite : text.retryWrite),
-        content: Text(
-          discard
-              ? text.confirmDiscard
-              : write.state == 'uncertain'
-              ? text.confirmRetry
-              : text.conflict,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(text.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(discard ? text.remove : text.retryWrite),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
     try {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(_decisionLabel(write, discard)),
+          content: SingleChildScrollView(
+            child: Text(
+              write.state == 'conflict'
+                  ? discard
+                        ? text.confirmKeepServerVersion
+                        : text.confirmUseLocalChanges
+                  : discard
+                  ? text.confirmDiscard
+                  : write.state == 'uncertain'
+                  ? text.confirmRetry
+                  : text.blocked,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(text.cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(_decisionLabel(write, discard)),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) return;
       await widget.session.database.decideWrite(
         widget.session.account.id,
         write.id,
         discard: discard,
         acceptRemoteBase: !discard && write.state == 'conflict',
       );
-      if (!discard) unawaited(widget.session.refreshStacks(write.boardId));
-    } catch (_) {
+      if (write.boardId == 0 ||
+          write.kind.endsWith('Board') ||
+          write.kind == 'boardClone') {
+        unawaited(widget.session.refreshBoards());
+      } else {
+        unawaited(widget.session.refreshStacks(write.boardId));
+      }
+    } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(text.pendingDecision)));
+        ).showSnackBar(SnackBar(content: Text(errorMessage(error, text))));
       }
+    } finally {
+      _deciding.remove(write.id);
+      if (mounted) setState(() {});
     }
   }
+
+  bool _matches(PendingWrite write) => switch (_filter) {
+    'waiting' => {'queued', 'sending', 'applied'}.contains(write.state),
+    'conflict' => write.state == 'conflict',
+    'uncertain' => write.state == 'uncertain',
+    'blocked' => write.state == 'blocked',
+    _ => true,
+  };
+
+  String _operation(PendingWrite write) {
+    final text = AppLocalizations.of(context)!;
+    return switch (write.kind) {
+      'createCard' => text.addCard,
+      'updateCard' => text.editCard,
+      'moveCard' => text.moveCard,
+      'cloneCard' => text.copyCard,
+      'archiveCard' => text.archive,
+      'unarchiveCard' => text.unarchive,
+      'deleteCard' => text.deleteCard,
+      'createBoard' => text.addBoard,
+      'updateBoard' => text.editBoard,
+      'deleteBoard' => text.deleteBoard,
+      'restoreBoard' => text.restoreBoard,
+      'boardClone' => text.copyBoard,
+      'createStack' => text.addStack,
+      'updateStack' || 'stackReorder' => text.editStack,
+      'deleteStack' => text.deleteStack,
+      'setDoneStack' => text.doneColumn,
+      'createComment' => text.addComment,
+      'updateComment' => text.editComment,
+      'deleteComment' => text.deleteComment,
+      'assignLabel' ||
+      'removeLabel' ||
+      'createLabel' ||
+      'updateLabel' ||
+      'deleteLabel' => text.labels,
+      'assignUser' || 'unassignUser' => text.assignees,
+      'addCardLink' || 'removeCardLink' => text.linkedCards,
+      _ =>
+        attachmentKinds.contains(write.kind)
+            ? text.attachments
+            : text.pendingChanges,
+    };
+  }
+
+  String _stateMessage(PendingWrite write) {
+    final text = AppLocalizations.of(context)!;
+    if (write.error == 'already_shared') return text.alreadyShared;
+    if (write.error == 'dependency_unavailable') {
+      return text.dependencyUnavailable;
+    }
+    if (write.error == 'permission_denied') return text.permissionError;
+    if (write.error == 'card_moved') return text.invalidDestination;
+    return switch (write.state) {
+      'queued' => text.savedLocally,
+      'sending' => text.sending,
+      'applied' => text.awaitingReadback,
+      'conflict' => text.pendingConflictHelp,
+      'uncertain' => text.uncertain,
+      _ => text.blocked,
+    };
+  }
+
+  IconData _stateIcon(PendingWrite write) => switch (write.state) {
+    'queued' => Icons.cloud_upload_outlined,
+    'sending' || 'applied' => Icons.sync,
+    'conflict' => Icons.compare_arrows,
+    'uncertain' => Icons.help_outline,
+    _ => Icons.error_outline,
+  };
+
+  Widget _version(
+    String title,
+    Map<String, String> fields,
+    Set<String> changed, {
+    Object? color,
+  }) {
+    final text = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        border: Border.all(color: colors.outlineVariant),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(title, style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: 8),
+          for (final field in fields.entries)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: changed.contains(field.key)
+                      ? colors.secondaryContainer
+                      : null,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              field.key,
+                              style: Theme.of(context).textTheme.labelLarge,
+                            ),
+                          ),
+                          if (changed.contains(field.key))
+                            Tooltip(
+                              message: text.changedField,
+                              child: const Icon(Icons.compare_arrows, size: 18),
+                            ),
+                        ],
+                      ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (field.key == text.cardColor &&
+                              color is String &&
+                              RegExp(r'^[0-9a-fA-F]{6}$').hasMatch(color))
+                            Container(
+                              width: 20,
+                              height: 20,
+                              margin: const EdgeInsetsDirectional.only(end: 8),
+                              decoration: BoxDecoration(
+                                color: Color(
+                                  0xff000000 | int.parse(color, radix: 16),
+                                ),
+                                shape: BoxShape.circle,
+                                border: Border.all(color: colors.outline),
+                              ),
+                            ),
+                          Expanded(
+                            child: SelectableText(
+                              field.value.isEmpty
+                                  ? text.pendingValueNotSet
+                                  : field.value,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _cardComparison(JsonObject local, JsonObject? remote) {
+    final text = AppLocalizations.of(context)!;
+    final keys = {...local.keys, if (remote != null) ...remote.keys};
+    final localFields = _cardFields(local, keys);
+    final serverFields = remote == null ? null : _cardFields(remote, keys);
+    final changed = <String>{
+      if (serverFields != null)
+        for (final key in localFields.keys)
+          if (localFields[key] != serverFields[key] ||
+              key == text.cardColor && local['color'] != remote!['color'])
+            key,
+    };
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final localWidget = _version(
+          text.localVersion,
+          localFields,
+          changed,
+          color: local['color'],
+        );
+        if (serverFields == null) return localWidget;
+        final serverWidget = _version(
+          text.serverVersion,
+          serverFields,
+          changed,
+          color: remote?['color'],
+        );
+        if (constraints.maxWidth / MediaQuery.textScalerOf(context).scale(1) >=
+            620) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: localWidget),
+              const SizedBox(width: 12),
+              Expanded(child: serverWidget),
+            ],
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [localWidget, const SizedBox(height: 12), serverWidget],
+        );
+      },
+    );
+  }
+
+  String _textValue(Object? value) => value is String ? value : '';
+
+  Widget _writeCard(PendingWrite write, Map<int, String> boardNames) {
+    final text = AppLocalizations.of(context)!;
+    final changes = object(jsonDecode(write.proposal));
+    final base = write.base == null
+        ? <String, Object?>{}
+        : object(jsonDecode(write.base!));
+    final remote = write.remote == null
+        ? null
+        : object(jsonDecode(write.remote!));
+    final attachment = attachmentKinds.contains(write.kind);
+    final card = write.kind == 'createCard' || write.kind == 'updateCard';
+    final remoteCard = card && remote?['acceptedCard'] is Map
+        ? object(remote!['acceptedCard'])
+        : remote;
+    final title = [
+      changes['displayName'],
+      changes['name'],
+      changes['title'],
+      base['title'],
+    ].whereType<String>().where((value) => value.trim().isNotEmpty).firstOrNull;
+    final busy = _deciding.contains(write.id) || write.state == 'sending';
+    return Card(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              _operation(write),
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+            if (title != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+            if (boardNames[write.boardId] case final String board)
+              Text(board, style: Theme.of(context).textTheme.bodySmall),
+            const SizedBox(height: 12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(_stateIcon(write)),
+                const SizedBox(width: 8),
+                Expanded(child: Text(_stateMessage(write))),
+              ],
+            ),
+            const SizedBox(height: 16),
+            if (card && write.state == 'conflict')
+              _cardComparison({...base, ...changes}, remoteCard)
+            else if (card)
+              ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                title: Text(text.localVersion),
+                subtitle: Text(
+                  _textValue(changes['description'] ?? base['description']),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                children: [
+                  _cardComparison({...base, ...changes}, remoteCard),
+                ],
+              )
+            else ...[
+              Text(
+                text.localVersion,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              SelectableText(
+                attachment
+                    ? _attachmentSummary({...base, ...changes})
+                    : _textValue(
+                        changes['message'] ??
+                            changes['description'] ??
+                            base['message'] ??
+                            base['description'],
+                      ),
+              ),
+              if (remote != null &&
+                  (!attachment ||
+                      remote['data'] is String ||
+                      remote['name'] is String)) ...[
+                const Divider(height: 24),
+                Text(
+                  text.serverVersion,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                SelectableText(
+                  attachment
+                      ? _attachmentSummary(remote)
+                      : [
+                          _textValue(remote['title']),
+                          _textValue(
+                            remote['message'] ?? remote['description'],
+                          ),
+                        ].where((value) => value.isNotEmpty).join('\n'),
+                ),
+              ],
+            ],
+            if (write.state != 'sending')
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    if (write.state != 'queued' && write.state != 'applied')
+                      FilledButton.tonal(
+                        onPressed: busy ? null : () => _decide(write, false),
+                        child: Text(_decisionLabel(write, false)),
+                      ),
+                    TextButton(
+                      onPressed: busy ? null : () => _decide(write, true),
+                      child: Text(_decisionLabel(write, true)),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openDrafts() => unawaited(
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        settings: const RouteSettings(name: '/drafts'),
+        builder: (_) => DraftsScreen(session: widget.session),
+      ),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -139,138 +506,107 @@ class _PendingScreenState extends State<PendingScreen> {
         title: Text(text.pendingChanges),
         actions: [
           IconButton(
-            tooltip: text.drafts,
-            icon: const Icon(Icons.drafts_outlined),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                settings: const RouteSettings(name: '/drafts'),
-                builder: (_) => DraftsScreen(session: widget.session),
-              ),
-            ),
-          ),
-
-          IconButton(
             tooltip: text.refresh,
             icon: const Icon(Icons.refresh),
             onPressed: widget.session.refreshBoards,
           ),
         ],
       ),
-      body: StreamBuilder<List<PendingWrite>>(
-        stream: _writes,
-        builder: (context, snapshot) {
-          if (snapshot.hasError) return Center(child: Text(text.storageError));
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final writes = snapshot.requireData;
-          if (writes.isEmpty) return Center(child: Text(text.noPending));
-          return ListView.builder(
-            itemCount: writes.length,
-            itemBuilder: (context, index) {
-              final write = writes[index];
-              final changes = object(jsonDecode(write.proposal));
-              final attachment = attachmentKinds.contains(write.kind);
-              final card =
-                  write.kind == 'createCard' || write.kind == 'updateCard';
-              final base = write.base == null
-                  ? <String, Object?>{}
-                  : object(jsonDecode(write.base!));
-              final remote = write.remote == null
-                  ? null
-                  : object(jsonDecode(write.remote!));
-              final localCard = {...base, ...changes};
-              final remoteCard = card && remote?['acceptedCard'] is Map
-                  ? object(remote!['acceptedCard'])
-                  : remote;
-              final cardFields = {
-                ...localCard.keys,
-                if (remoteCard != null) ...remoteCard.keys,
-              };
-              final state = switch (write.state) {
-                'queued' => text.queued,
-                'sending' => text.sending,
-                'applied' => text.awaitingReadback,
-                'conflict' => text.conflict,
-                'uncertain' => text.uncertain,
-                _ => text.blocked,
-              };
-              return Card(
-                margin: const EdgeInsets.all(16),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        (changes['displayName'] ??
-                                changes['name'] ??
-                                changes['title'] ??
-                                base['title'] ??
-                                (write.kind.endsWith('Comment')
-                                    ? text.comments
-                                    : text.cardTitle))
-                            .toString(),
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      Text(
-                        write.error == 'already_shared'
-                            ? text.alreadyShared
-                            : write.error == 'dependency_unavailable'
-                            ? text.dependencyUnavailable
-                            : state,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(text.localVersion),
-                      SelectableText(
-                        attachment
-                            ? _attachmentSummary({...base, ...changes})
-                            : card
-                            ? _cardSummary(localCard, cardFields)
-                            : (changes['message'] ??
-                                      changes['description'] ??
-                                      base['message'] ??
-                                      base['description'] ??
-                                      '')
-                                  .toString(),
-                      ),
-                      if (remote != null &&
-                          (!attachment ||
-                              remote['data'] is String ||
-                              remote['name'] is String)) ...[
-                        const Divider(),
-                        Text(text.serverVersion),
-                        SelectableText(
-                          attachment
-                              ? _attachmentSummary(remote)
-                              : card
-                              ? _cardSummary(remoteCard!, cardFields)
-                              : '${remote['title'] ?? ''}\n${remote['message'] ?? remote['description'] ?? ''}',
-                        ),
-                      ],
-                      if (write.state != 'sending')
-                        Wrap(
-                          spacing: 8,
+      body: StreamBuilder<List<DeckBoard>>(
+        stream: _boards,
+        builder: (context, boards) => StreamBuilder<List<PendingWrite>>(
+          stream: _writes,
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Center(child: Text(text.storageError));
+            }
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final all = snapshot.requireData;
+            final writes = all.where(_matches).toList();
+            final names = {
+              for (final board in boards.data ?? <DeckBoard>[])
+                board.id: board.title,
+            };
+            final filters = <String, String>{
+              'all': text.allChanges,
+              'waiting': text.pendingWaiting,
+              'conflict': text.pendingConflicts,
+              'uncertain': text.pendingUncertain,
+              'blocked': text.needsDecision,
+            };
+            return ListView.builder(
+              padding: const EdgeInsets.only(bottom: 24),
+              itemCount: writes.length + 1,
+              itemBuilder: (context, index) {
+                if (index > 0) return _writeCard(writes[index - 1], names);
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    StreamBuilder<List<EditorDraft>>(
+                      stream: _drafts,
+                      builder: (context, drafts) => ListTile(
+                        leading: const Icon(Icons.drafts_outlined),
+                        title: Text(text.drafts),
+                        subtitle: drafts.hasError
+                            ? Text(text.storageError)
+                            : null,
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            if (write.state != 'queued' &&
-                                write.state != 'applied')
-                              TextButton(
-                                onPressed: () => _decide(write, false),
-                                child: Text(text.retryWrite),
-                              ),
-                            TextButton(
-                              onPressed: () => _decide(write, true),
-                              child: Text(text.discardWrite),
-                            ),
+                            if (drafts.hasData)
+                              Text('${drafts.requireData.length}'),
+                            const Icon(Icons.chevron_right),
                           ],
                         ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
+                        onTap: _openDrafts,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
+                        children: [
+                          for (final entry in filters.entries)
+                            ChoiceChip(
+                              label: Text(entry.value),
+                              selected: _filter == entry.key,
+                              onSelected: (_) =>
+                                  setState(() => _filter = entry.key),
+                            ),
+                        ],
+                      ),
+                    ),
+                    if (writes.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          children: [
+                            Text(
+                              all.isEmpty
+                                  ? text.noPending
+                                  : text.pendingEmptyGroup,
+                            ),
+                            if (all.isNotEmpty)
+                              TextButton(
+                                onPressed: () =>
+                                    setState(() => _filter = 'all'),
+                                child: Text(text.allChanges),
+                              ),
+                          ],
+                        ),
+                      ),
+                  ],
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }

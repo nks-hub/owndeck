@@ -87,8 +87,21 @@ class _TelemetrySettingsScreenState extends State<TelemetrySettingsScreen> {
                 !preferences.loaded &&
                 (config.crashReportingAvailable || config.analyticsAvailable);
             return ListView(
+              padding: const EdgeInsets.only(bottom: 24),
               children: [
                 if (loading || _saving) const LinearProgressIndicator(),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                  child: Text(text.telemetryChoiceHelp),
+                ),
+                if (config.crashReportingAvailable || config.analyticsAvailable)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                    child: Text(
+                      text.telemetryEnabledByDefault,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
                 if (loadFailed || _saveFailed)
                   Padding(
                     padding: const EdgeInsets.all(16),
@@ -146,6 +159,7 @@ class _TelemetrySettingsScreenState extends State<TelemetrySettingsScreen> {
                       ? null
                       : (value) => _save(() => _runtime.setAnalytics(value)),
                 ),
+                const Divider(indent: 20, endIndent: 20),
                 Semantics(
                   key: const Key('privacy-policy-link'),
                   link: true,
