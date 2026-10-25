@@ -116,6 +116,7 @@ class _Fixture {
             expect(writes.single.kind, 'updateCard');
             queuedBeforePut.add(object(jsonDecode(writes.single.proposal)));
             final body = object(jsonDecode(request.body));
+            expect(body['id'], 8);
             expect(body['archived'], isNull);
             expect(body['deletedAt'], isNull);
             remoteCard = {

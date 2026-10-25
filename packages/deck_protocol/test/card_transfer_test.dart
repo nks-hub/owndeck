@@ -55,6 +55,7 @@ void main() {
         expect(sent.url.path, '/subdir/ocs/v2.php/apps/deck/api/v1.0/cards/8');
         expect(sent.followRedirects, isFalse);
         expect(jsonDecode(sent.body), {
+        'id': 8,
           'boardId': 3,
           'stackId': 4,
           'title': 'Current title',

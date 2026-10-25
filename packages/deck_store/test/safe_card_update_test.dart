@@ -209,6 +209,7 @@ final class _Server {
       puts++;
       final body = (jsonDecode(request.body) as Map).cast<String, Object?>();
       final ocs = request.url.path.contains('/ocs/');
+      if (ocs && body['id'] != 8) return http.Response('', 400);
       if (!ocs) restPuts++;
       final deletedAt = ocs ? body['deletedAt'] : 0;
       if (card['deletedAt'] != 0 && deletedAt != 0) {

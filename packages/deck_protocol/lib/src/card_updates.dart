@@ -37,6 +37,8 @@ final class CardUpdateRequest {
     body = Map.unmodifiable(
       card.updateBody({
         ...changes,
+        // The OCS controller binds id from the body, not the route's cardId.
+        'id': card.id,
         'boardId': boardId,
         'stackId': stackId,
         // OCS treats an omitted done value as null, not as an unchanged field.
