@@ -59,7 +59,9 @@ void main() {
       apiVersion: '1.1',
       canCreateBoards: true,
     );
-    expect(capabilities('1.18.0').supportsExtendedCardFields, isFalse);
+    expect(capabilities('1.17.0').supportsExtendedCardFields, isFalse);
+    expect(capabilities('1.18.0').supportsExtendedCardFields, isTrue);
+    expect(capabilities('1.18.5').supportsExtendedCardFields, isTrue);
     expect(capabilities('1.19.1').supportsExtendedCardFields, isTrue);
     expect(capabilities('unknown').supportsExtendedCardFields, isFalse);
   });

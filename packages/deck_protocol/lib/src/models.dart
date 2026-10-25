@@ -50,7 +50,7 @@ final class DeckCapabilities {
     final match = RegExp(r'^(\d+)\.(\d+)').firstMatch(version);
     if (match == null) return false;
     final major = int.parse(match[1]!);
-    return major > 1 || major == 1 && int.parse(match[2]!) >= 19;
+    return major > 1 || major == 1 && int.parse(match[2]!) >= 18;
   }
 }
 

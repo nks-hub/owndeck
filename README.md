@@ -25,7 +25,7 @@ The client uses `com.nkshub.nextclouddeck`. See [TODO.md](TODO.md) and [verifica
 - Android 7 or later (API 24), with Android SDK for builds.
 - macOS and Xcode 26.3 for iOS builds.
 - iOS 14 or later, required by the system file picker.
-- A Nextcloud server with Deck API 1.1. Live compatibility is verified with Deck 1.18.5; card start dates and colors require Deck 1.19 or later.
+- A Nextcloud server with Deck API 1.1. Live compatibility is verified with Deck 1.18.5; its API already supports card start dates and colors from the 1.18 release family.
 - OpenSSL for local TLS tests.
 - Python 3.10+ to regenerate the API inventory.
 

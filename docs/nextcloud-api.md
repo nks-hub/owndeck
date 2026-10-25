@@ -102,6 +102,8 @@ Oficiální zdroje: [katalog klientských API](https://docs.nextcloud.com/server
 
 ## Chyby, limity a kompatibilita
 
+Oprava původní hranice rozšířených polí: `startdate` a `color` přijímají vytvoření i úpravy karet už v [Decku 1.18.0](https://github.com/nextcloud/deck/blob/v1.18.0/lib/Controller/CardApiController.php) a [1.18.5](https://github.com/nextcloud/deck/blob/v1.18.5/lib/Controller/CardApiController.php); [1.17.0](https://github.com/nextcloud/deck/blob/v1.17.0/lib/Controller/CardApiController.php) je ještě nemá. Klient proto nesmí nové karty na 1.18 schovávat za podmínku 1.19. Samostatný živý zápis a následné načtení těchto polí zůstává v T02.
+
 400: opravit vstup; 401: obnovit přihlášení; 403: načíst práva a zastavit zápisy; 404: ověřit objekt nebo podporu endpointu; 409/412: zpracovat konflikt pouze pokud jej dané rozhraní skutečně vrací; 413: nabídnout menší přílohu; 423: uzamčený soubor; 429: respektovat Retry-After; 5xx: dočasná chyba bez slepého opakování mutace; 507: kvóta nebo úložiště. HTML proxy odpověď nikdy nezobrazovat jako bezpečný text chyby.
 
 Žádné univerzální stránkování Deck seznamů není v této smlouvě garantované. Stránkovat jen tam, kde jsou parametry skutečně definované, například comments/search. Velké seznamy zpracovat mimo náročné překreslování UI a nezahajovat načítání příloh každé karty. Server s tisíci kartami má vlastní náklady; výkon nelze vyřešit jen mobilní animací.
