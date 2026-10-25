@@ -83,30 +83,34 @@ void main() {
         'Task',
       );
       final posted = <String>[];
+      final createdStack = {
+        'id': 20,
+        'boardId': 10,
+        'title': 'Todo',
+        'order': 0,
+      };
+      final createdCard = {
+        'id': 30,
+        'stackId': 20,
+        'title': 'Task',
+        'description': 'Saved locally',
+        'order': 999,
+        'archived': false,
+        'type': 'plain',
+        'owner': 'user',
+      };
       await sync((request) async {
         final path = request.url.path;
         if (request.method == 'POST') {
           posted.add(path);
           if (path.endsWith('/boards')) return reply(boardJson());
           if (path.endsWith('/stacks')) {
-            return reply({
-              'id': 20,
-              'boardId': 10,
-              'title': 'Todo',
-              'order': 0,
-            });
+            return reply(createdStack);
           }
-          return reply({
-            'id': 30,
-            'stackId': 20,
-            'title': 'Task',
-            'description': 'Saved locally',
-            'order': 999,
-            'archived': false,
-            'type': 'plain',
-            'owner': 'user',
-          });
+          return reply(createdCard);
         }
+        if (path.endsWith('/stacks/20')) return reply(createdStack);
+        if (path.endsWith('/cards/30')) return reply(createdCard);
         if (path.endsWith('/capabilities')) {
           return reply({
             'ocs': {

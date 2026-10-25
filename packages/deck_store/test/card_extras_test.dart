@@ -263,6 +263,9 @@ void main() {
         if (request.url.path.endsWith('/stacks/2')) {
           return reply(column(2, 1, []).raw);
         }
+        if (request.url.path.endsWith('/stacks/4')) {
+          return reply(column(4, 3, []).raw);
+        }
         if (request.method == 'POST') {
           expect(request.url.path, endsWith('/cards/8/dependentCards/30'));
           links++;

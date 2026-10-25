@@ -150,6 +150,18 @@ void main() {
       await sync(
         MockClient((request) async {
           if (request.method == 'GET') {
+            if (request.url.path.endsWith('/cards/9')) {
+              return json(cardJson(id: 9));
+            }
+            if (request.url.path.endsWith('/stacks/2')) {
+              return json({
+                'id': 2,
+                'boardId': 1,
+                'title': 'Todo',
+                'order': 0,
+                'cards': [],
+              });
+            }
             return json(board(1, 'Board', edit: true).raw);
           }
           posts++;

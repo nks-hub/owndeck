@@ -132,14 +132,24 @@ void main() {
       await db.saveCardDraft(account, 1, 2, {
         'description': 'Local',
       }, original: DeckCard.fromJson(cardJson()));
+      var serverCard = cardJson();
       final sync = engine((request) async {
         if (request.url.path.endsWith('/boards/1')) {
           return response(board(1, 'Board', edit: true).raw);
         }
         if (request.method == 'PUT') {
-          return response(cardJson(description: 'Local'));
+          serverCard = cardJson(description: 'Local');
         }
-        return response(cardJson());
+        if (request.url.path.endsWith('/stacks/2')) {
+          return response({
+            'id': 2,
+            'boardId': 1,
+            'title': 'Todo',
+            'order': 0,
+            'cards': [serverCard],
+          });
+        }
+        return response(serverCard);
       });
       await sync.run();
       expect(await db.writesFor(account.id), isEmpty);

@@ -32,6 +32,7 @@ final class CardServer {
   var boardId = 1;
   var archived = false;
   var readable = true;
+  var boardStatus = 200;
   int? wrongCardId;
   int? wrongStackId;
   int? wrongBoardId;
@@ -71,7 +72,10 @@ final class CardServer {
     }
     if (path[path.length - 2] == 'boards') {
       final id = int.parse(path.last);
-      if (accepted && readbackStatus == 200) await onContextRead?.call();
+      if (accepted && readbackStatus == 200) {
+        await onContextRead?.call();
+        if (boardStatus != 200) return http.Response('', boardStatus);
+      }
       return reply({
         ...board(wrongBoardId ?? id, 'Board', edit: true).raw,
         if (!readable)
@@ -258,6 +262,16 @@ void main() {
         expect(
           jsonDecode(pending.single.proposal)['description'],
           'My pending text',
+        );
+        expect(
+          (await database.boardView(account.id)).any((board) => board.id == 1),
+          isTrue,
+        );
+        expect(
+          (await database.select(database.storedCards).get()).any(
+            (row) => row.remoteId == 9,
+          ),
+          isTrue,
         );
         expect(
           (await database.select(database.storedCards).get()).where(
@@ -569,4 +583,50 @@ void main() {
       );
     },
   );
+
+  for (final denial in ['403', '404', 'read=false']) {
+    test(
+      'known current board denial $denial revokes that entire board only',
+      () async {
+        await database.saveBoard(
+          account,
+          board(4, 'Other board', edit: true),
+          (await database.account(account.id))!.contentEpoch,
+        );
+        await database.saveStacks(account.id, account.generation, 4, [
+          column(6, 4, [
+            DeckCard.fromJson({...cardJson(id: 21), 'stackId': 6}),
+          ]),
+        ], null);
+        await database.saveEditorDraft(account, 'other-board-draft', 4, 6, {
+          'description': 'Keep my text',
+        }, null);
+        await acceptedMove();
+        server.readbackStatus = 200;
+        server.stackId = 5;
+        server.boardId = 4;
+        server.boardStatus = int.tryParse(denial) ?? 200;
+        server.readable = denial != 'read=false';
+        await sync.run();
+        expect(await database.writesFor(account.id), isEmpty);
+        final boards = await database.boardView(account.id);
+        expect(boards.any((board) => board.id == 4), isFalse);
+        expect(boards.any((board) => board.id == 1), isTrue);
+        final cards = await database.select(database.storedCards).get();
+        expect(
+          cards.any((row) => row.remoteId == 8 || row.remoteId == 21),
+          isFalse,
+        );
+        expect(cards.any((row) => row.remoteId == 9), isTrue);
+        expect(
+          (await database.editorDraft(
+            account.id,
+            'other-board-draft',
+          ))!.payload,
+          contains('Keep my text'),
+        );
+        expect(server.mutations, hasLength(1));
+      },
+    );
+  }
 }
