@@ -129,7 +129,7 @@ class _BoardsScreenState extends State<BoardsScreen> {
         ],
       ),
       body: _destination == 2
-          ? const SettingsView()
+          ? SettingsView(session: session)
           : _destination == 1
           ? CardSearchView(
               key: const ValueKey('my-tasks'),
