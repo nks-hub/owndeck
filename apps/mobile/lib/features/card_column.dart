@@ -8,7 +8,7 @@ import '../l10n/app_localizations.dart';
 import 'board_card_tile.dart';
 import 'board_drag.dart';
 import 'board_moves.dart';
-import 'card_editor.dart';
+import 'quick_add_card.dart';
 import 'structure_editor.dart';
 
 class CardColumn extends StatefulWidget {
@@ -21,6 +21,7 @@ class CardColumn extends StatefulWidget {
     this.cards,
     this.activity,
     this.parentDropSurface = false,
+    this.filtered = false,
   });
   final DeckSession session;
   final DeckBoard board;
@@ -29,6 +30,7 @@ class CardColumn extends StatefulWidget {
   final List<DeckCard>? cards;
   final BoardDragActivity? activity;
   final bool parentDropSurface;
+  final bool filtered;
   @override
   State<CardColumn> createState() => _CardColumnState();
 }
@@ -77,7 +79,7 @@ class _CardColumnState extends State<CardColumn> {
     void drop(BoardCardDrag drag, BoardDropPosition position) => unawaited(
       moveBoardCard(context, widget.session, widget.board, drag, position),
     );
-    return BoardDragScrollRegion(
+    final list = BoardDragScrollRegion(
       activity: activity,
       builder: (context, scroll, pointer, stop) {
         final content = RefreshIndicator(
@@ -111,6 +113,7 @@ class _CardColumnState extends State<CardColumn> {
                         stack: widget.stack,
                         empty: cards.isEmpty,
                         editable: editable,
+                        filtered: widget.filtered,
                       )
                     : BoardCardTile(
                         key: ValueKey((
@@ -143,6 +146,45 @@ class _CardColumnState extends State<CardColumn> {
         );
       },
     );
+    final text = AppLocalizations.of(context)!;
+    return Column(
+      children: [
+        if (editable || widget.board.permissions.manage)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Row(
+              children: [
+                if (editable)
+                  Expanded(
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: TextButton.icon(
+                        key: ValueKey(('column-add-card', widget.stack.id)),
+                        icon: const Icon(Icons.add),
+                        label: Text(text.addCard),
+                        onPressed: () => showQuickAddCard(
+                          context,
+                          widget.session,
+                          board: widget.board,
+                          stackId: widget.stack.id,
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  const Spacer(),
+                if (widget.board.permissions.manage && !widget.board.archived)
+                  StackActions(
+                    session: widget.session,
+                    board: widget.board,
+                    stack: widget.stack,
+                  ),
+              ],
+            ),
+          ),
+        Expanded(child: list),
+      ],
+    );
   }
 }
 
@@ -154,12 +196,14 @@ class BoardColumnFooter extends StatelessWidget {
     required this.stack,
     required this.empty,
     required this.editable,
+    this.filtered = false,
   });
   final DeckSession session;
   final DeckBoard board;
   final DeckStack stack;
   final bool empty;
   final bool editable;
+  final bool filtered;
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context)!;
@@ -171,21 +215,15 @@ class BoardColumnFooter extends StatelessWidget {
           if (empty)
             Padding(
               padding: const EdgeInsets.all(16),
-              child: Text(text.emptyStack),
+              child: Text(
+                filtered ? text.boardNoMatchingCards : text.emptyStack,
+              ),
             ),
-          if (editable) ...[
+          if (editable)
             Padding(
               padding: const EdgeInsets.all(8),
               child: Text(text.dropCardHere),
             ),
-            FilledButton.icon(
-              icon: const Icon(Icons.add),
-              label: Text(text.addCard),
-              onPressed: () => editCard(context, session, board.id, stack.id),
-            ),
-          ],
-          if (board.permissions.manage && !board.archived)
-            StackActions(session: session, board: board, stack: stack),
         ],
       ),
     );

@@ -129,10 +129,7 @@ void main() {
     (tester) async {
       await tester.pumpWidget(app());
       await tester.pumpAndSettle();
-      expect(
-        find.textContaining('Only data saved on this device'),
-        findsOneWidget,
-      );
+      expect(find.text('Saved cards'), findsOneWidget);
       await tester.enterText(
         find.byKey(const Key('card-search-query')),
         'alpha',
@@ -188,7 +185,16 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(app(textScale: 2));
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('Include archived'));
+      await tester.tap(find.byKey(const ValueKey('search-filter-menu')));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Include archived'),
+        120,
+        scrollable: find.descendant(
+          of: find.byType(DraggableScrollableSheet),
+          matching: find.byType(Scrollable),
+        ).first,
+      );
       await tester.tap(find.text('Include archived'));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);

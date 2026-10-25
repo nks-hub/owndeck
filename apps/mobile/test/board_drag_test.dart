@@ -150,7 +150,9 @@ void main() {
             .first;
         tester.state<ScrollableState>(scrollable).position.jumpTo(150);
         await tester.pump();
-        final point = tester.getCenter(find.text('Column 1 (40)'));
+        final point = tester.getCenter(
+          find.byKey(const ValueKey(('column-add-card', 10))),
+        );
         expect(
           _at(tester, point),
           isNotNull,

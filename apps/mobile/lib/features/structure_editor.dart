@@ -9,14 +9,23 @@ import '../l10n/app_localizations.dart';
 import 'sharing.dart';
 import 'sync_notice.dart';
 import 'board_clone_dialog.dart';
+import 'color_choices.dart';
 
 part 'board_labels.dart';
 part 'structure_form.dart';
 
 class BoardActions extends StatelessWidget {
-  const BoardActions({super.key, required this.session, required this.board});
+  const BoardActions({
+    super.key,
+    required this.session,
+    required this.board,
+    this.extraItems = const [],
+    this.onExtraAction,
+  });
   final DeckSession session;
   final DeckBoard board;
+  final List<PopupMenuEntry<String>> extraItems;
+  final ValueChanged<String>? onExtraAction;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +36,8 @@ class BoardActions extends StatelessWidget {
         session.capabilities?.canCreateBoards == true;
     if (!board.permissions.manage &&
         (!board.permissions.share || board.deletedAt != 0) &&
-        !canCopy) {
+        !canCopy &&
+        extraItems.isEmpty) {
       return const SizedBox.shrink();
     }
     final text = AppLocalizations.of(context)!;
@@ -73,9 +83,12 @@ class BoardActions extends StatelessWidget {
             unawaited(changeStructure(context, session, 'deleteBoard', board));
           case 'restore':
             unawaited(changeStructure(context, session, 'restoreBoard', board));
+          default:
+            onExtraAction?.call(action);
         }
       },
       itemBuilder: (_) => [
+        ...extraItems,
         if (board.deletedAt != 0 && board.permissions.manage)
           PopupMenuItem(value: 'restore', child: Text(text.restoreBoard)),
         if (board.deletedAt == 0) ...[

@@ -9,6 +9,8 @@ import '../core/app_preferences.dart';
 import '../data/session.dart';
 import '../l10n/app_localizations.dart';
 import 'board_layout.dart';
+import 'board_filters.dart';
+import 'quick_add_card.dart';
 import 'structure_editor.dart';
 import 'sync_notice.dart';
 
@@ -30,12 +32,24 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
   List<BoardColumnView> _columns = [];
   bool? _filteredArchive;
   int _binding = 0;
+  final _query = TextEditingController();
+  BoardCardFilter _filter = const BoardCardFilter();
+  BoardCardFilter? _appliedFilter;
+  Timer? _filterClock;
 
   Future<void> _refresh() => widget.session.refreshStacks(widget.board.id);
   @override
   void initState() {
     super.initState();
     _bind();
+    _filterClock = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted &&
+          _filter.due != BoardDueFilter.any &&
+          WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed &&
+          ModalRoute.of(context)?.isCurrent != false) {
+        setState(() => _appliedFilter = null);
+      }
+    });
   }
 
   void _bind() {
@@ -92,6 +106,8 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
       unawaited(_boardChanges?.cancel());
       oldWidget.session.closeBoard(oldWidget.board.id);
       _showArchived = false;
+      _filter = const BoardCardFilter();
+      _query.clear();
       _bind();
     }
   }
@@ -99,21 +115,43 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
   @override
   void dispose() {
     _binding++;
+    _filterClock?.cancel();
+    _query.dispose();
     unawaited(_boardChanges?.cancel());
     widget.session.closeBoard(widget.board.id);
     super.dispose();
   }
 
   List<BoardColumnView> _visible(List<DeckStack>? stacks) {
-    if (!identical(_input, stacks) || _filteredArchive != _showArchived) {
+    if (!identical(_input, stacks) ||
+        _filteredArchive != _showArchived ||
+        !identical(_appliedFilter, _filter)) {
       _input = stacks;
       _filteredArchive = _showArchived;
+      _appliedFilter = _filter;
       _columns = [
         for (final stack in stacks ?? <DeckStack>[])
-          BoardColumnView(stack, _showArchived),
+          BoardColumnView(stack, _showArchived, filter: _filter),
       ];
     }
     return _columns;
+  }
+
+  void _setFilter(BoardCardFilter value) {
+    setState(() {
+      _filter = value;
+      if (_query.text != value.query) _query.text = value.query;
+    });
+  }
+
+  Future<void> _chooseFilters() async {
+    final value = await showBoardFilters(
+      context,
+      filter: _filter,
+      board: _board,
+      stacks: _input ?? const [],
+    );
+    if (value != null && mounted) _setFilter(value);
   }
 
   @override
@@ -128,131 +166,252 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
         body: Center(child: Text(text.permissionError)),
       );
     }
+    final canCreate =
+        _board.permissions.edit && !_board.archived && !_showArchived;
     return Scaffold(
       appBar: AppBar(
-        title: Text(_board.title),
+        title: Text(_board.title, maxLines: 2, overflow: TextOverflow.ellipsis),
         actions: [
-          IconButton(
-            tooltip: _showArchived ? text.activeCards : text.archivedCards,
-            icon: Icon(
-              _showArchived ? Icons.unarchive_outlined : Icons.archive_outlined,
-            ),
-            onPressed: () => setState(() => _showArchived = !_showArchived),
-          ),
-          if (_board.permissions.manage && !_board.archived)
-            IconButton(
-              tooltip: text.addStack,
-              icon: const Icon(Icons.add),
-              onPressed: () =>
-                  editStructure(context, session, board: _board, column: true),
-            ),
-          BoardActions(session: session, board: _board),
-          IconButton(
-            onPressed: _refresh,
-            tooltip: text.refresh,
-            icon: const Icon(Icons.refresh),
+          BoardActions(
+            session: session,
+            board: _board,
+            extraItems: [
+              PopupMenuItem(
+                value: 'toggle-archived-cards',
+                child: Text(
+                  _showArchived ? text.activeCards : text.archivedCards,
+                ),
+              ),
+              if (_board.permissions.manage && !_board.archived)
+                PopupMenuItem(value: 'add-column', child: Text(text.addStack)),
+              PopupMenuItem(value: 'refresh-board', child: Text(text.refresh)),
+              const PopupMenuDivider(),
+            ],
+            onExtraAction: (action) {
+              switch (action) {
+                case 'toggle-archived-cards':
+                  setState(() => _showArchived = !_showArchived);
+                case 'add-column':
+                  unawaited(
+                    editStructure(
+                      context,
+                      session,
+                      board: _board,
+                      column: true,
+                    ),
+                  );
+                case 'refresh-board':
+                  unawaited(_refresh());
+              }
+            },
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Semantics(
-              label: text.boardView,
-              child: Wrap(
-                spacing: 8,
+      bottomNavigationBar: canCreate
+          ? SafeArea(
+              top: false,
+              minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: FilledButton.icon(
+                key: const ValueKey('board-add-card'),
+                icon: const Icon(Icons.add),
+                label: Text(text.addCard),
+                onPressed: () =>
+                    showQuickAddCard(context, session, board: _board),
+              ),
+            )
+          : null,
+      body: ListenableBuilder(
+        listenable: session,
+        builder: (context, _) => StreamBuilder<List<DeckStack>>(
+          key: ValueKey((
+            session.account.id,
+            session.account.generation,
+            widget.board.id,
+          )),
+          stream: _stacks,
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Center(child: Text(text.storageError));
+            }
+            final columns = _visible(snapshot.data);
+            return LayoutBuilder(
+              builder: (context, constraints) => Column(
                 children: [
-                  for (final value in BoardViewMode.values)
-                    ChoiceChip(
-                      key: ValueKey(('board-view', value)),
-                      showCheckmark: false,
-                      avatar: Icon(
-                        value == BoardViewMode.columns
-                            ? Icons.view_kanban_outlined
-                            : Icons.view_list_outlined,
-                      ),
-                      label: Text(
-                        value == BoardViewMode.columns
-                            ? text.boardColumns
-                            : text.boardList,
-                      ),
-                      selected: mode == value,
-                      onSelected: (_) => unawaited(
-                        preferences.setBoardViewMode(
-                          session.account.id,
-                          _board.id,
-                          value,
-                        ),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: constraints.maxHeight * .5,
+                    ),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          SyncNotice(
+                            session: session,
+                            scope: 'board:${widget.board.id}',
+                            retry: _refresh,
+                            hasData: columns.isNotEmpty,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 4, 8, 4),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    key: const ValueKey('board-card-search'),
+                                    controller: _query,
+                                    textInputAction: TextInputAction.search,
+                                    onChanged: (value) =>
+                                        _setFilter(_filter.withQuery(value)),
+                                    decoration: InputDecoration(
+                                      hintText: text.searchCards,
+                                      prefixIcon: const Icon(Icons.search),
+                                      suffixIcon: _query.text.isEmpty
+                                          ? null
+                                          : IconButton(
+                                              tooltip: text.clearSearch,
+                                              icon: const Icon(Icons.close),
+                                              onPressed: () => _setFilter(
+                                                _filter.withQuery(''),
+                                              ),
+                                            ),
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  tooltip: text.filterCards,
+                                  onPressed: _chooseFilters,
+                                  icon: Badge(
+                                    isLabelVisible: _filter.active,
+                                    label: Text('${_filter.count}'),
+                                    child: const Icon(Icons.tune),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 2,
+                            ),
+                            child: Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: Wrap(
+                                spacing: 8,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  for (final value in BoardViewMode.values)
+                                    ChoiceChip(
+                                      key: ValueKey(('board-view', value)),
+                                      showCheckmark: false,
+                                      avatar: Icon(
+                                        value == BoardViewMode.columns
+                                            ? Icons.view_kanban_outlined
+                                            : Icons.view_list_outlined,
+                                      ),
+                                      label: Text(
+                                        value == BoardViewMode.columns
+                                            ? text.boardColumns
+                                            : text.boardList,
+                                      ),
+                                      selected: mode == value,
+                                      onSelected: (_) => unawaited(
+                                        preferences.setBoardViewMode(
+                                          session.account.id,
+                                          _board.id,
+                                          value,
+                                        ),
+                                      ),
+                                    ),
+                                  if (_showArchived) Text(text.archivedCards),
+                                  if (_filter.active)
+                                    TextButton.icon(
+                                      onPressed: () =>
+                                          _setFilter(const BoardCardFilter()),
+                                      icon: const Icon(Icons.close, size: 18),
+                                      label: Text(text.clearFilters),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          if (preferences.persistenceError)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              child: Wrap(
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                spacing: 8,
+                                children: [
+                                  Text(text.preferenceStorageError),
+                                  TextButton(
+                                    onPressed: () => unawaited(
+                                      preferences.retryPersistence(),
+                                    ),
+                                    child: Text(text.retry),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          if (_filter.active &&
+                              columns.isNotEmpty &&
+                              columns.every((column) => column.cards.isEmpty))
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              child: Text(text.boardNoMatchingCards),
+                            ),
+                        ],
                       ),
                     ),
-                ],
-              ),
-            ),
-          ),
-          if (preferences.persistenceError)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 8,
-                children: [
-                  Text(text.preferenceStorageError),
-                  TextButton(
-                    onPressed: () => unawaited(preferences.retryPersistence()),
-                    child: Text(text.retry),
+                  ),
+                  Expanded(
+                    child: !snapshot.hasData
+                        ? const Center(child: CircularProgressIndicator())
+                        : columns.isEmpty
+                        ? Center(
+                            child: SingleChildScrollView(
+                              padding: const EdgeInsets.all(24),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(text.noStacks),
+                                  if (_board.permissions.manage &&
+                                      !_board.archived)
+                                    TextButton.icon(
+                                      onPressed: () => editStructure(
+                                        context,
+                                        session,
+                                        board: _board,
+                                        column: true,
+                                      ),
+                                      icon: const Icon(Icons.add),
+                                      label: Text(text.addStack),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : BoardLayout(
+                            key: ValueKey((
+                              session.account.id,
+                              session.account.generation,
+                              _board.id,
+                            )),
+                            session: session,
+                            board: _board,
+                            columns: columns,
+                            archivedView: _showArchived,
+                            mode: mode,
+                          ),
                   ),
                 ],
               ),
-            ),
-          Expanded(
-            child: ListenableBuilder(
-              listenable: session,
-              builder: (context, _) => StreamBuilder<List<DeckStack>>(
-                key: ValueKey((
-                  session.account.id,
-                  session.account.generation,
-                  widget.board.id,
-                )),
-                stream: _stacks,
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return Center(child: Text(text.storageError));
-                  }
-                  final columns = _visible(snapshot.data);
-                  return Column(
-                    children: [
-                      SyncNotice(
-                        session: session,
-                        scope: 'board:${widget.board.id}',
-                        retry: _refresh,
-                        hasData: columns.isNotEmpty,
-                      ),
-                      Expanded(
-                        child: !snapshot.hasData
-                            ? const Center(child: CircularProgressIndicator())
-                            : columns.isEmpty
-                            ? Center(child: Text(text.noStacks))
-                            : BoardLayout(
-                                key: ValueKey((
-                                  session.account.id,
-                                  session.account.generation,
-                                  _board.id,
-                                )),
-                                session: session,
-                                board: _board,
-                                columns: columns,
-                                archivedView: _showArchived,
-                                mode: mode,
-                              ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-          ),
-        ],
+            );
+          },
+        ),
       ),
     );
   }

@@ -125,6 +125,15 @@ void main() {
     expect(ready(), isTrue);
   }
 
+  Future<void> serverSearch(WidgetTester tester) async {
+    await tester.tap(find.byKey(const ValueKey('search-filter-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Search on server'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Apply filters'));
+    await tester.pumpAndSettle();
+  }
+
   testClean('late server results cannot replace a newer query', (tester) async {
     final first = Completer<http.Response>();
     var requested = '';
@@ -140,7 +149,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('card-search-query')), 'first');
     await tester.pump(const Duration(milliseconds: 250));
-    await tester.tap(find.text('Search on server'));
+    await serverSearch(tester);
     await waitFor(tester, () => requested == 'first');
     await tester.enterText(
       find.byKey(const Key('card-search-query')),
@@ -171,7 +180,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Search on server'));
+    await serverSearch(tester);
     await waitFor(tester, () => find.text('Assigned').evaluate().isNotEmpty);
     expect(find.text('Unassigned'), findsNothing);
     expect(
@@ -181,4 +190,52 @@ void main() {
       findsOneWidget,
     );
   });
+  testClean(
+    'inactive task tab preserves filters without background server reads',
+    (tester) async {
+      var calls = 0;
+      respond = (request) async {
+        if (!request.url.path.endsWith('/search')) return ocs([]);
+        calls++;
+        return ocs([entry(3, 'Remote result')]);
+      };
+      Widget view(bool active) => localizedTestApp(
+        home: Scaffold(
+          body: CardSearchView(session: session, active: active),
+        ),
+      );
+      await tester.pumpWidget(view(true));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('card-search-query')),
+        'kept',
+      );
+      await tester.pump(const Duration(milliseconds: 250));
+      await serverSearch(tester);
+      await waitFor(tester, () => calls == 1);
+      await tester.pumpWidget(view(false));
+      await tester.pump(const Duration(minutes: 2));
+      for (final state in [
+        AppLifecycleState.inactive,
+        AppLifecycleState.hidden,
+        AppLifecycleState.paused,
+        AppLifecycleState.hidden,
+        AppLifecycleState.inactive,
+        AppLifecycleState.resumed,
+      ]) {
+        tester.binding.handleAppLifecycleStateChanged(state);
+      }
+      await tester.pump(const Duration(seconds: 1));
+      expect(calls, 1);
+      expect(
+        tester
+            .widget<TextField>(find.byKey(const Key('card-search-query')))
+            .controller!
+            .text,
+        'kept',
+      );
+      await tester.pumpWidget(view(true));
+      await waitFor(tester, () => calls == 2);
+    },
+  );
 }

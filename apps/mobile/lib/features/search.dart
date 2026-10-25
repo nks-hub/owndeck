@@ -10,6 +10,7 @@ import '../core/errors.dart';
 import '../l10n/app_localizations.dart';
 import 'card_detail.dart';
 import 'card_link_dialog.dart';
+import 'card_summary.dart';
 
 class CardSearchScreen extends StatelessWidget {
   const CardSearchScreen({
@@ -42,10 +43,12 @@ class CardSearchView extends StatefulWidget {
     required this.session,
     this.initiallyMineOnly = false,
     this.fixedMineOnly = false,
+    this.active = true,
   });
   final DeckSession session;
   final bool initiallyMineOnly;
   final bool fixedMineOnly;
+  final bool active;
   @override
   State<CardSearchView> createState() => _CardSearchViewState();
 }
@@ -63,6 +66,7 @@ class _CardSearchViewState extends State<CardSearchView> {
   int? _opening;
   bool _archived = false;
   bool _completed = false;
+  bool _upcoming = false;
   CardDueFilter _due = CardDueFilter.any;
   Timer? _typing;
   Timer? _clock;
@@ -88,6 +92,7 @@ class _CardSearchViewState extends State<CardSearchView> {
     _lifecycle = AppLifecycleListener(onResume: _refresh);
     _clock = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted &&
+          widget.active &&
           ModalRoute.of(context)?.isCurrent != false &&
           WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
         _refresh();
@@ -95,8 +100,35 @@ class _CardSearchViewState extends State<CardSearchView> {
     });
   }
 
+  @override
+  void didUpdateWidget(covariant CardSearchView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.session != widget.session) {
+      _typing?.cancel();
+      _request++;
+      _query.clear();
+      _mineOnly = widget.initiallyMineOnly || widget.fixedMineOnly;
+      _remote = [];
+      _remoteQuery = null;
+      _uid = null;
+      _online = _archived = _completed = _upcoming = false;
+      _due = CardDueFilter.any;
+      _remoteError = null;
+      _remoteBusy = false;
+      _queryPending = false;
+      _results = _search();
+    }
+    if (!widget.active && oldWidget.active) {
+      _typing?.cancel();
+      _request++;
+      _remoteBusy = false;
+    } else if (widget.active && !oldWidget.active) {
+      _refresh();
+    }
+  }
+
   void _refresh() {
-    if (!mounted) return;
+    if (!mounted || !widget.active) return;
     _typing?.cancel();
     setState(() {
       _queryPending = false;
@@ -123,6 +155,7 @@ class _CardSearchViewState extends State<CardSearchView> {
   Future<void> _loadOnline(int request) async {
     final term = _query.text.trim();
     final mine = _mineOnly;
+    if (!widget.active) return;
     final key = '$mine:$term';
     setState(() {
       if (_remoteQuery != key) {
@@ -139,13 +172,13 @@ class _CardSearchViewState extends State<CardSearchView> {
         widget.session.account,
         uid,
       );
-      if (!mounted || request != _request || !_online) return;
+      if (!mounted || request != _request || !_online || !widget.active) return;
       final page = await widget.session.readServer(
         (api) => mine && term.isEmpty
             ? api.upcomingCards()
             : api.searchCardsOnline(term),
       );
-      if (!mounted || request != _request || !_online) return;
+      if (!mounted || request != _request || !_online || !widget.active) return;
       setState(() {
         _uid = uid;
         _remote = page.items;
@@ -178,6 +211,7 @@ class _CardSearchViewState extends State<CardSearchView> {
     final now = DateTime.now();
     final start = DateTime(now.year, now.month, now.day);
     final end = DateTime(now.year, now.month, now.day + 1);
+    if (_upcoming && (due == null || due.isBefore(end))) return false;
     return switch (_due) {
       CardDueFilter.any => true,
       CardDueFilter.today =>
@@ -246,19 +280,22 @@ class _CardSearchViewState extends State<CardSearchView> {
           !_remoteBusy &&
           !_queryPending &&
           _remoteError == null)
-        _empty(text.noMatchingCards),
+        _empty(text.noMatchingCards, clearFilters: _filtered),
       SliverList.builder(
         itemCount: entries.length,
         itemBuilder: (context, index) {
           final entry = entries[index];
-          return ListTile(
+          return Card(
+            semanticContainer: false,
             key: ValueKey('remote:${entry.card.id}'),
-            leading: const Icon(Icons.cloud_outlined),
-            title: Text(entry.card.title),
-            subtitle: Text(
-              '${entry.boardTitle}${entry.stackTitle == null ? '' : ' · ${entry.stackTitle}'}',
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            clipBehavior: Clip.antiAlias,
+            child: CardSummary(
+              card: entry.card,
+              contextLabel:
+                  '${entry.boardTitle}${entry.stackTitle == null ? '' : ' · ${entry.stackTitle}'}',
+              onOpen: _opening == null ? () => _openRemote(entry) : null,
             ),
-            onTap: _opening == null ? () => _openRemote(entry) : null,
           );
         },
       ),
@@ -274,105 +311,263 @@ class _CardSearchViewState extends State<CardSearchView> {
     super.dispose();
   }
 
+  bool get _filtered =>
+      _query.text.trim().isNotEmpty ||
+      _archived ||
+      _completed ||
+      _upcoming ||
+      _due != CardDueFilter.any ||
+      (_mineOnly && !widget.fixedMineOnly);
+
+  void _clearFilters() {
+    _query.clear();
+    _filter(() {
+      _mineOnly = widget.fixedMineOnly;
+      _archived = _completed = _upcoming = false;
+      _due = CardDueFilter.any;
+    });
+  }
+
+  Future<void> _showFilters() async {
+    final text = AppLocalizations.of(context)!;
+    var online = _online;
+    var mine = _mineOnly;
+    var archived = _archived;
+    var completed = _completed;
+    var due = _due;
+    final applied = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, update) => DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: .75,
+          minChildSize: .4,
+          maxChildSize: .95,
+          builder: (context, scroll) => Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 8, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        text.filterCards,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: text.close,
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ListView(
+                  controller: scroll,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: [
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        ChoiceChip(
+                          label: Text(text.localSearchMode),
+                          selected: !online,
+                          onSelected: (_) => update(() => online = false),
+                        ),
+                        ChoiceChip(
+                          label: Text(text.serverSearchMode),
+                          selected: online,
+                          onSelected: (_) => update(() => online = true),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      online ? text.serverSearchNotice : text.localSearchNotice,
+                    ),
+                    if (online && mine && _query.text.trim().isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(text.serverMyTasksNotice),
+                      ),
+                    const SizedBox(height: 8),
+                    if (!widget.fixedMineOnly)
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(text.myTasks),
+                        value: mine,
+                        onChanged: (value) => update(() => mine = value),
+                      ),
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(text.includeArchived),
+                      value: archived,
+                      onChanged: online && mine && _query.text.trim().isEmpty
+                          ? null
+                          : (value) => update(() => archived = value),
+                    ),
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(text.includeCompleted),
+                      value: completed,
+                      onChanged: online && mine && _query.text.trim().isEmpty
+                          ? null
+                          : (value) => update(() => completed = value),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<CardDueFilter>(
+                      initialValue: due,
+                      isExpanded: true,
+                      decoration: InputDecoration(labelText: text.dueDate),
+                      items: [
+                        DropdownMenuItem(
+                          value: CardDueFilter.any,
+                          child: Text(text.anyDueDate),
+                        ),
+                        DropdownMenuItem(
+                          value: CardDueFilter.today,
+                          child: Text(text.dueToday),
+                        ),
+                        DropdownMenuItem(
+                          value: CardDueFilter.overdue,
+                          child: Text(text.overdueTasks),
+                        ),
+                        DropdownMenuItem(
+                          value: CardDueFilter.noDate,
+                          child: Text(text.withoutDueDate),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) update(() => due = value);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+              SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: FilledButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: Text(text.applyFilters),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (applied == true && mounted) {
+      _filter(() {
+        _online = online;
+        _mineOnly = mine;
+        _archived = archived;
+        _completed = completed;
+        if (_due != due) _upcoming = false;
+        _due = due;
+      });
+    }
+  }
+
   Widget _filters(AppLocalizations text) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      TextField(
-        key: const Key('card-search-query'),
-        controller: _query,
-        onChanged: _changed,
-        textInputAction: TextInputAction.search,
-        onSubmitted: (_) => _refresh(),
-        decoration: InputDecoration(
-          labelText: text.searchCards,
-          hintText: text.searchCardsHint,
-          prefixIcon: const Icon(Icons.search),
-          suffixIcon: _query.text.isEmpty
-              ? null
-              : IconButton(
-                  tooltip: text.clearSearch,
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    _query.clear();
-                    _refresh();
-                  },
+      Row(
+        children: [
+          Expanded(
+            child: TextField(
+              key: const Key('card-search-query'),
+              controller: _query,
+              onChanged: _changed,
+              textInputAction: TextInputAction.search,
+              onSubmitted: (_) => _refresh(),
+              decoration: InputDecoration(
+                hintText: text.searchCardsHint,
+                labelText: text.searchCards,
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _query.text.isEmpty
+                    ? null
+                    : IconButton(
+                        tooltip: text.clearSearch,
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _query.clear();
+                          _refresh();
+                        },
+                      ),
+              ),
+            ),
+          ),
+          IconButton(
+            key: const ValueKey('search-filter-menu'),
+            tooltip: text.filterCards,
+            icon: Badge(
+              isLabelVisible: _filtered,
+              child: const Icon(Icons.tune),
+            ),
+            onPressed: _showFilters,
+          ),
+        ],
+      ),
+      const SizedBox(height: 8),
+      SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            for (final choice in [
+              (CardDueFilter.any, false, text.allCards),
+              (CardDueFilter.today, false, text.dueToday),
+              (CardDueFilter.overdue, false, text.overdueTasks),
+              (CardDueFilter.any, true, text.upcomingTasks),
+            ])
+              Padding(
+                padding: const EdgeInsetsDirectional.only(end: 8),
+                child: ChoiceChip(
+                  label: Text(choice.$3),
+                  selected: _due == choice.$1 && _upcoming == choice.$2,
+                  onSelected: (_) => _filter(() {
+                    _due = choice.$1;
+                    _upcoming = choice.$2;
+                  }),
                 ),
+              ),
+          ],
         ),
       ),
-      const SizedBox(height: 12),
       Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
         spacing: 8,
         children: [
-          ChoiceChip(
-            label: Text(text.localSearchMode),
-            selected: !_online,
-            onSelected: (_) => _filter(() => _online = false),
-          ),
-          ChoiceChip(
-            label: Text(text.serverSearchMode),
-            selected: _online,
-            onSelected: (_) => _filter(() => _online = true),
-          ),
-        ],
-      ),
-      Text(_online ? text.serverSearchNotice : text.localSearchNotice),
-      if (_online && _mineOnly && _query.text.trim().isEmpty)
-        Text(text.serverMyTasksNotice),
-      const SizedBox(height: 8),
-      Wrap(
-        spacing: 8,
-        runSpacing: 4,
-        children: [
-          if (!widget.fixedMineOnly)
-            FilterChip(
-              label: Text(text.myTasks),
-              selected: _mineOnly,
-              onSelected: (value) => _filter(() => _mineOnly = value),
+          TextButton.icon(
+            onPressed: _showFilters,
+            icon: Icon(
+              _online ? Icons.cloud_outlined : Icons.offline_pin_outlined,
+              size: 18,
             ),
-          FilterChip(
-            label: Text(text.includeArchived),
-            selected: _archived,
-            onSelected: _online && _mineOnly && _query.text.trim().isEmpty
-                ? null
-                : (value) => _filter(() => _archived = value),
+            label: Text(_online ? text.serverSearchMode : text.localSearchMode),
           ),
-          FilterChip(
-            label: Text(text.includeCompleted),
-            selected: _completed,
-            onSelected: _online && _mineOnly && _query.text.trim().isEmpty
-                ? null
-                : (value) => _filter(() => _completed = value),
-          ),
+          if (_filtered)
+            TextButton.icon(
+              onPressed: _clearFilters,
+              icon: const Icon(Icons.close, size: 18),
+              label: Text(text.clearFilters),
+            ),
         ],
       ),
-      const SizedBox(height: 8),
-      DropdownButtonFormField<CardDueFilter>(
-        isExpanded: true,
-        key: ValueKey(_due),
-        initialValue: _due,
-        decoration: InputDecoration(labelText: text.dueDate),
-        items: [
-          DropdownMenuItem(
-            value: CardDueFilter.any,
-            child: Text(text.anyDueDate),
-          ),
-          DropdownMenuItem(
-            value: CardDueFilter.today,
-            child: Text(text.dueToday),
-          ),
-          DropdownMenuItem(
-            value: CardDueFilter.overdue,
-            child: Text(text.overdueTasks),
-          ),
-          DropdownMenuItem(
-            value: CardDueFilter.noDate,
-            child: Text(text.withoutDueDate),
-          ),
-        ],
-        onChanged: (value) {
-          if (value != null) _filter(() => _due = value);
-        },
-      ),
+      if (_online && _mineOnly && _query.text.trim().isEmpty)
+        Text(
+          text.serverMyTasksNotice,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
     ],
   );
 
@@ -422,43 +617,42 @@ class _CardSearchViewState extends State<CardSearchView> {
               if (_mineOnly && !result.identityKnown) {
                 return _empty(text.myTasksIdentityRequired);
               }
-              if (result.hits.isEmpty) return _empty(text.noMatchingCards);
+              final now = DateTime.now();
+              final tomorrow = DateTime(now.year, now.month, now.day + 1);
+              final hits = _upcoming
+                  ? result.hits
+                        .where(
+                          (hit) =>
+                              hit.due != null && !hit.due!.isBefore(tomorrow),
+                        )
+                        .toList()
+                  : result.hits;
+              if (hits.isEmpty) {
+                return _empty(text.noMatchingCards, clearFilters: _filtered);
+              }
               return SliverList.builder(
-                itemCount: result.hits.length,
+                itemCount: hits.length,
                 itemBuilder: (context, index) {
-                  final hit = result.hits[index];
-                  final due = hit.due;
-                  final material = MaterialLocalizations.of(context);
-                  final dateText = due == null
-                      ? null
-                      : '${material.formatMediumDate(due)} ${material.formatTimeOfDay(TimeOfDay.fromDateTime(due))}';
-                  return ListTile(
+                  final hit = hits[index];
+                  return Card(
+                    semanticContainer: false,
                     key: ValueKey('search:${hit.board.id}:${hit.card.id}'),
-                    leading: Icon(
-                      hit.completed
-                          ? Icons.task_alt
-                          : hit.archived
-                          ? Icons.archive_outlined
-                          : Icons.check_box_outline_blank,
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
                     ),
-                    title: Text(hit.card.title),
-                    subtitle: Text(
-                      '${hit.board.title} · ${hit.stack.title}${dateText == null ? '' : '\n$dateText'}',
-                    ),
-                    isThreeLine: dateText != null,
-                    trailing: hit.card.raw['syncState'] == null
-                        ? null
-                        : Tooltip(
-                            message: text.pendingChanges,
-                            child: const Icon(Icons.sync),
+                    clipBehavior: Clip.antiAlias,
+                    child: CardSummary(
+                      card: hit.card,
+                      contextLabel: '${hit.board.title} · ${hit.stack.title}',
+                      onOpen: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          settings: const RouteSettings(name: '/card'),
+                          builder: (_) => CardScreen(
+                            session: widget.session,
+                            board: hit.board,
+                            card: hit.card,
                           ),
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        settings: const RouteSettings(name: '/card'),
-                        builder: (_) => CardScreen(
-                          session: widget.session,
-                          board: hit.board,
-                          card: hit.card,
                         ),
                       ),
                     ),
@@ -467,11 +661,25 @@ class _CardSearchViewState extends State<CardSearchView> {
               );
             },
           ),
+        const SliverToBoxAdapter(child: SizedBox(height: 88)),
       ],
     );
   }
 
-  Widget _empty(String message) => SliverToBoxAdapter(
-    child: Padding(padding: const EdgeInsets.all(24), child: Text(message)),
-  );
+  Widget _empty(String message, {bool clearFilters = false}) =>
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              Text(message),
+              if (clearFilters)
+                TextButton(
+                  onPressed: _clearFilters,
+                  child: Text(AppLocalizations.of(context)!.clearFilters),
+                ),
+            ],
+          ),
+        ),
+      );
 }

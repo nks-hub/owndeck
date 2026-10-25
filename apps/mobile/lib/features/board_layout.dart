@@ -7,20 +7,37 @@ import '../core/app_preferences.dart';
 import '../data/session.dart';
 import '../l10n/app_localizations.dart';
 import 'board_card_tile.dart';
+import 'board_filters.dart';
 import 'board_drag.dart';
 import 'board_moves.dart';
 import 'card_column.dart';
+import 'quick_add_card.dart';
+import 'structure_editor.dart';
 
 final class BoardColumnView {
-  BoardColumnView(this.stack, bool archived)
+  BoardColumnView(this.stack, bool archived, {BoardCardFilter? filter})
     : cards = stack.cards
+          .where(
+            (card) =>
+                card.archived == archived &&
+                (card.raw['deletedAt'] ?? 0) == 0 &&
+                (filter?.matches(card) ?? true),
+          )
+          .toList(growable: false),
+      total = stack.cards
           .where(
             (card) =>
                 card.archived == archived && (card.raw['deletedAt'] ?? 0) == 0,
           )
-          .toList(growable: false);
+          .length,
+      filtered = filter?.active ?? false;
   final DeckStack stack;
   final List<DeckCard> cards;
+  final int total;
+  final bool filtered;
+
+  String get heading =>
+      '${stack.title} (${cards.length}${filtered ? '/$total' : ''})';
 }
 
 class BoardLayout extends StatefulWidget {
@@ -76,6 +93,7 @@ class _BoardLayoutState extends State<BoardLayout> {
         archivedView: widget.archivedView,
         activity: _activity,
         parentDropSurface: parentDropSurface,
+        filtered: column.filtered,
       );
 
   Widget _surface(
@@ -110,12 +128,31 @@ class _BoardLayoutState extends State<BoardLayout> {
           ),
         Expanded(
           child: Text(
-            '${column.stack.title} (${column.cards.length})',
+            column.heading,
             style: Theme.of(context).textTheme.titleMedium,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
         ),
+        if (widget.mode == BoardViewMode.list && _editable(column))
+          IconButton(
+            tooltip: AppLocalizations.of(context)!.addCard,
+            icon: const Icon(Icons.add),
+            onPressed: () => showQuickAddCard(
+              context,
+              widget.session,
+              board: widget.board,
+              stackId: column.stack.id,
+            ),
+          ),
+        if (widget.mode == BoardViewMode.list &&
+            widget.board.permissions.manage &&
+            !widget.board.archived)
+          StackActions(
+            session: widget.session,
+            board: widget.board,
+            stack: column.stack,
+          ),
       ],
     ),
   );
@@ -125,7 +162,8 @@ class _BoardLayoutState extends State<BoardLayout> {
     if (widget.mode == BoardViewMode.list) return _list();
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (constraints.maxWidth < 600) return _mobileColumns();
+        final textScale = MediaQuery.textScalerOf(context).scale(16) / 16;
+        if (constraints.maxWidth < 600 * textScale) return _mobileColumns();
         final width = ((constraints.maxWidth - 32) / 2)
             .clamp(280.0, 360.0)
             .toDouble();
@@ -261,6 +299,7 @@ class _BoardLayoutState extends State<BoardLayout> {
                         stack: row.column.stack,
                         empty: row.column.cards.isEmpty,
                         editable: _editable(row.column),
+                        filtered: row.column.filtered,
                       )
                     : BoardCardTile(
                         key: ValueKey((
@@ -374,7 +413,7 @@ class _ColumnTabState extends State<_ColumnTab> {
                 semanticLabel: AppLocalizations.of(context)!.doneColumn,
               )
             : null,
-        text: '${widget.column.stack.title} (${widget.column.cards.length})',
+        text: widget.column.heading,
       ),
     ),
   );

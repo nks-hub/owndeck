@@ -251,50 +251,65 @@ void main() {
     },
   );
 
-  testWidgets(
-    'move menu stays usable at 200 percent text and validates the position',
-    (tester) async {
-      final fixture = (await tester.runAsync(() => BoardFixture.create()))!;
-      tester.view.devicePixelRatio = 1;
-      tester.view.physicalSize = const Size(390, 700);
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-      try {
-        await tester.pumpWidget(
-          boardTestApp(
-            BoardScreen(session: fixture.session, board: fixture.board),
-            preferences: AppPreferences(store: MemoryBoardPreferences()),
-            scale: 2,
-          ),
-        );
-        await settleBoard(tester);
-        final menu = find.descendant(
-          of: boardTile(100),
-          matching: find.byType(PopupMenuButton<String>),
-        );
-        await tester.ensureVisible(menu);
-        await tester.pumpAndSettle();
-        expect(menu.hitTestable(), findsOneWidget);
-        await tester.tap(menu);
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('Move card'));
-        await settleBoard(tester);
-        await tester.pumpAndSettle();
-        expect(find.byType(AlertDialog), findsOneWidget);
-        await tester.enterText(find.byType(TextField), '99');
-        await tester.ensureVisible(
-          find.widgetWithText(FilledButton, 'Move card'),
-        );
-        await tester.tap(find.widgetWithText(FilledButton, 'Move card'));
-        await tester.pump();
-        expect(find.text('Choose a position from 0 to 2.'), findsOneWidget);
-        expect(tester.takeException(), isNull);
-      } finally {
-        await tester.pumpWidget(const SizedBox());
-        await boardModel(tester, fixture.close());
-      }
-    },
-  );
+  testWidgets('move menu uses a named anchor at 200 percent text', (
+    tester,
+  ) async {
+    final fixture = (await tester.runAsync(() => BoardFixture.create()))!;
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 700);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    try {
+      await tester.pumpWidget(
+        boardTestApp(
+          BoardScreen(session: fixture.session, board: fixture.board),
+          preferences: AppPreferences(store: MemoryBoardPreferences()),
+          scale: 2,
+        ),
+      );
+      await settleBoard(tester);
+      final menu = find.descendant(
+        of: boardTile(100),
+        matching: find.byType(PopupMenuButton<String>),
+      );
+      await tester.ensureVisible(menu);
+      await tester.pumpAndSettle();
+      expect(menu.hitTestable(), findsOneWidget);
+      await tester.tap(menu);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Move card'));
+      await settleBoard(tester);
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.byType(TextField),
+        ),
+        findsNothing,
+      );
+      final placement = find.byKey(const ValueKey(('placement', 10, 'end')));
+      await tester.ensureVisible(placement);
+      await tester.tap(placement);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('After a card').last);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.widgetWithText(FilledButton, 'Move card'),
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Move card'));
+      await settleBoard(tester);
+      final writes = await boardModel(
+        tester,
+        fixture.db.writesFor(fixture.account.id),
+      );
+      expect(jsonDecode(writes.single.proposal), {'stackId': 10, 'order': 1});
+      expect(tester.takeException(), isNull);
+    } finally {
+      await tester.pumpWidget(const SizedBox());
+      await boardModel(tester, fixture.close());
+    }
+  });
 
   testWidgets('read-only and archive modes have no drag handles or move menu', (
     tester,
@@ -311,7 +326,9 @@ void main() {
       );
       await settleBoard(tester);
       expect(find.byType(LongPressDraggable<BoardCardDrag>), findsNothing);
-      await tester.tap(find.byTooltip('Archived cards'));
+      await tester.tap(find.byTooltip('Board actions'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Archived cards'));
       await settleBoard(tester);
       expect(find.text('Archived card'), findsOneWidget);
       expect(find.byType(LongPressDraggable<BoardCardDrag>), findsNothing);
