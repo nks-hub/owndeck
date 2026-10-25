@@ -81,49 +81,53 @@ extension StackReordering on DeckDatabase {
     );
   });
 
-  Future<void> normalizeStackOrders(StoredAccount account, String owner) =>
-      transaction(() async {
-        if (!await ownsLease(account, owner)) return;
-        for (final write in await writesFor(account.id)) {
-          if (write.state != 'queued' ||
-              !{'createStack', 'updateStack'}.contains(write.kind)) {
-            continue;
-          }
-          final data = object(jsonDecode(write.proposal));
-          if (!data.containsKey('order')) continue;
-          final order = data['order'];
-          if (order is! int || order < 0) {
-            await (update(
-              pendingWrites,
-            )..where((row) => row.id.equals(write.id))).write(
-              const PendingWritesCompanion(
-                state: Value('blocked'),
-                error: Value('invalid_position'),
-              ),
-            );
-            continue;
-          }
-          data.remove('order');
-          await (update(pendingWrites)..where((row) => row.id.equals(write.id)))
-              .write(PendingWritesCompanion(proposal: Value(jsonEncode(data))));
-          await into(pendingWrites).insert(
-            PendingWritesCompanion.insert(
-              id: const Uuid().v4(),
-              accountId: account.id,
-              kind: 'stackReorder',
-              boardId: write.boardId,
-              stackId: write.kind == 'createStack'
-                  ? -write.sequence
-                  : write.stackId,
-              proposal: jsonEncode({
-                'legacyOrder': order,
-                'title': data['title'] ?? '',
-              }),
-              base: Value(write.base),
-            ),
-          );
-        }
-      });
+  Future<void> normalizeStackOrders(
+    StoredAccount account,
+    String owner,
+  ) => transaction(() async {
+    if (!await ownsLease(account, owner)) return;
+    for (final write in await writesFor(account.id)) {
+      if (write.state != 'queued' ||
+          !{'createStack', 'updateStack'}.contains(write.kind)) {
+        continue;
+      }
+      final data = object(jsonDecode(write.proposal));
+      if (!data.containsKey('order')) continue;
+      final order = data['order'];
+      if (order is! int || order < 0) {
+        await (update(
+          pendingWrites,
+        )..where((row) => row.id.equals(write.id))).write(
+          const PendingWritesCompanion(
+            state: Value('blocked'),
+            error: Value('invalid_position'),
+          ),
+        );
+        continue;
+      }
+      data.remove('order');
+      await (update(pendingWrites)..where((row) => row.id.equals(write.id)))
+          .write(PendingWritesCompanion(proposal: Value(jsonEncode(data))));
+      await into(pendingWrites).insert(
+        PendingWritesCompanion.insert(
+          id: const Uuid().v4(),
+          accountId: account.id,
+          kind: 'stackReorder',
+          boardId: write.boardId,
+          stackId: write.kind == 'createStack'
+              ? -write.sequence
+              : write.stackId,
+          proposal: jsonEncode({
+            'legacyOrder': order,
+            // Splitting metadata and order must preserve the original intent's place.
+            'orderAfter': write.sequence,
+            'title': data['title'] ?? '',
+          }),
+          base: Value(write.base),
+        ),
+      );
+    }
+  });
 
   Future<bool> hasEarlierStackWrite(PendingWrite write) async {
     if (write.kind != 'stackReorder') return false;
@@ -131,7 +135,7 @@ extension StackReordering on DeckDatabase {
         await resolveId(write.accountId, write.boardId, 'createBoard') ??
         write.boardId;
     for (final earlier in await writesFor(write.accountId)) {
-      if (earlier.sequence >= write.sequence ||
+      if (_compareWriteIntents(earlier, write) >= 0 ||
           earlier.kind != 'stackReorder' && !earlier.kind.endsWith('Stack')) {
         continue;
       }

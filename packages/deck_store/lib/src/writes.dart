@@ -1,5 +1,18 @@
 part of 'database.dart';
 
+int _intentSequence(PendingWrite write) {
+  if (write.kind == 'stackReorder') {
+    final source = object(jsonDecode(write.proposal))['orderAfter'];
+    if (source is int && source > 0 && source < write.sequence) return source;
+  }
+  return write.sequence;
+}
+
+int _compareWriteIntents(PendingWrite first, PendingWrite second) {
+  final order = _intentSequence(first).compareTo(_intentSequence(second));
+  return order == 0 ? first.sequence.compareTo(second.sequence) : order;
+}
+
 extension DeckWrites on DeckDatabase {
   Future<void> deferSync(StoredAccount account, DateTime? until) =>
       transaction(() async {
@@ -18,18 +31,21 @@ extension DeckWrites on DeckDatabase {
         await (update(storedAccounts)..where((a) => a.id.equals(account.id)))
             .write(StoredAccountsCompanion(syncNotBefore: Value(rounded)));
       });
-  Future<List<PendingWrite>> writesFor(String accountId, {int? boardId}) =>
-      (select(pendingWrites)
-            ..where(
-              (w) =>
-                  w.accountId.equals(accountId) &
-                  w.state.isNotIn(['confirmed', 'discarded']) &
-                  (boardId == null
-                      ? const Constant(true)
-                      : w.boardId.equals(boardId)),
-            )
-            ..orderBy([(w) => OrderingTerm.asc(w.sequence)]))
-          .get();
+  Future<List<PendingWrite>> writesFor(String accountId, {int? boardId}) async {
+    final writes =
+        await (select(pendingWrites)
+              ..where(
+                (w) =>
+                    w.accountId.equals(accountId) &
+                    w.state.isNotIn(['confirmed', 'discarded']) &
+                    (boardId == null
+                        ? const Constant(true)
+                        : w.boardId.equals(boardId)),
+              )
+              ..orderBy([(w) => OrderingTerm.asc(w.sequence)]))
+            .get();
+    return writes..sort(_compareWriteIntents);
+  }
 
   Stream<List<PendingWrite>> watchWrites(String accountId) =>
       (select(pendingWrites)
@@ -39,7 +55,11 @@ extension DeckWrites on DeckDatabase {
                   w.state.isNotIn(['confirmed', 'discarded']),
             )
             ..orderBy([(w) => OrderingTerm.asc(w.sequence)]))
-          .watch();
+          .watch()
+          .map(
+            (writes) =>
+                List<PendingWrite>.of(writes)..sort(_compareWriteIntents),
+          );
 
   Future<String> saveCardDraft(
     StoredAccount account,

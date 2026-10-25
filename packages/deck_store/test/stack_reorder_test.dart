@@ -48,6 +48,83 @@ void main() {
   });
 
   test(
+    'a newer explicit placement follows the original legacy order and keeps rename',
+    () async {
+      await database.queueStructure(
+        account,
+        'updateStack',
+        {'title': 'Renamed', 'order': 0},
+        boardId: 1,
+        stackId: 12,
+        base: {...server.stacks.last},
+      );
+      await database.queueStackReorder(account, 1, 12);
+      await sync.run();
+      expect(server.stacks.map((s) => s['id']), [10, 11, 12]);
+      expect(server.stacks.last['title'], 'Renamed');
+      expect(await database.writesFor(account.id), isEmpty);
+    },
+  );
+
+  test('a local creation retains the newer explicit placement', () async {
+    final localId = await database.queueStructure(account, 'createStack', {
+      'title': 'New',
+      'order': 0,
+    }, boardId: 1);
+    await database.queueStackReorder(account, 1, localId);
+    await sync.run();
+    expect(server.stacks.map((s) => s['id']), [10, 11, 12, 13]);
+    expect(server.stacks.last['title'], 'New');
+    expect(await database.writesFor(account.id), isEmpty);
+  });
+
+  test(
+    'resolved local aliases keep legacy and explicit intents in their original order',
+    () async {
+      final localId = await database.queueStructure(account, 'createStack', {
+        'title': 'New',
+      }, boardId: 1);
+      await sync.run();
+      final remoteId = await database.resolveId(
+        account.id,
+        localId,
+        'createStack',
+      );
+      await database.queueStructure(
+        account,
+        'updateStack',
+        {'title': 'Renamed', 'order': 0},
+        boardId: 1,
+        stackId: localId,
+        base: {...server.stacks.last},
+      );
+      await database.queueStackReorder(account, 1, remoteId!);
+      await sync.run();
+      expect(server.stacks.map((s) => s['id']), [10, 11, 12, 13]);
+      expect(server.stacks.last['title'], 'Renamed');
+      expect(await database.writesFor(account.id), isEmpty);
+    },
+  );
+
+  test(
+    'legacy and explicit placement of different stacks preserve user ordering',
+    () async {
+      await database.queueStructure(
+        account,
+        'updateStack',
+        {'order': 0},
+        boardId: 1,
+        stackId: 12,
+        base: {...server.stacks.last},
+      );
+      await database.queueStackReorder(account, 1, 10);
+      await sync.run();
+      expect(server.stacks.map((s) => s['id']), [12, 11, 10]);
+      expect(await database.writesFor(account.id), isEmpty);
+    },
+  );
+
+  test(
     'legacy updateStack order uses normalization, not a lone REST order',
     () async {
       await database.queueStructure(
