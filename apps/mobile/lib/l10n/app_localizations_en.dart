@@ -1149,4 +1149,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noMatchingBoards => 'No boards match this filter.';
+
+  @override
+  String get permissionAllowed => 'Allowed';
+
+  @override
+  String get permissionNotAllowed => 'Not allowed';
 }

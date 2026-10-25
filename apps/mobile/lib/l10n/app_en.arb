@@ -392,5 +392,7 @@
   "telemetryChoiceHelp": "You can change these options at any time. They do not affect your boards or tasks.",
   "selectionDone": "Done",
   "telemetryEnabledByDefault": "Available options are on by default. You can turn each one off.",
-  "noMatchingBoards": "No boards match this filter."
+  "noMatchingBoards": "No boards match this filter.",
+  "permissionAllowed": "Allowed",
+  "permissionNotAllowed": "Not allowed"
 }

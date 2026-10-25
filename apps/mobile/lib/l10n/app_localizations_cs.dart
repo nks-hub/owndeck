@@ -1152,4 +1152,10 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get noMatchingBoards => 'Tomuto filtru neodpovídá žádná nástěnka.';
+
+  @override
+  String get permissionAllowed => 'Povoleno';
+
+  @override
+  String get permissionNotAllowed => 'Nepovoleno';
 }

@@ -392,5 +392,7 @@
   "telemetryChoiceHelp": "Tyto volby můžete kdykoli změnit. Nemají vliv na vaše nástěnky ani úkoly.",
   "selectionDone": "Hotovo",
   "telemetryEnabledByDefault": "Dostupné volby jsou ve výchozím stavu zapnuté. Každou můžete vypnout.",
-  "noMatchingBoards": "Tomuto filtru neodpovídá žádná nástěnka."
+  "noMatchingBoards": "Tomuto filtru neodpovídá žádná nástěnka.",
+  "permissionAllowed": "Povoleno",
+  "permissionNotAllowed": "Nepovoleno"
 }

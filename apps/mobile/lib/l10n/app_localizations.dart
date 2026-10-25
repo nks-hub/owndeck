@@ -2209,6 +2209,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No boards match this filter.'**
   String get noMatchingBoards;
+
+  /// No description provided for @permissionAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowed'**
+  String get permissionAllowed;
+
+  /// No description provided for @permissionNotAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Not allowed'**
+  String get permissionNotAllowed;
 }
 
 class _AppLocalizationsDelegate
