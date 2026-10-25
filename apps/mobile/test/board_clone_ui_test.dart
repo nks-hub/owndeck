@@ -333,7 +333,7 @@ void main() {
       await _until(
         tester,
         () => find
-            .textContaining('Open Pending changes first.')
+            .text('Resolve the pending changes on this board first.')
             .evaluate()
             .isNotEmpty,
       );
