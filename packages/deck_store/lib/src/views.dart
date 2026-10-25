@@ -344,6 +344,19 @@ extension DeckViews on DeckDatabase {
             {'permission_denied', 'not_found'}.contains(write.error)) {
           continue;
         }
+        if (index < 0 && cardId != null) {
+          final observed =
+              await (select(storedCards)..where(
+                    (row) =>
+                        row.accountId.equals(accountId) &
+                        row.remoteId.equals(cardId),
+                  ))
+                  .getSingleOrNull();
+          if (observed != null &&
+              (observed.boardId != boardId || observed.stackId != stackId)) {
+            continue;
+          }
+        }
         final original = index < 0
             ? object(jsonDecode(write.base!))
             : entries[index];

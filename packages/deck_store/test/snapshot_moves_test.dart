@@ -155,4 +155,27 @@ void main() {
     expect(result.id, 6);
     expect(result.cards.single.stackId, 6);
   });
+
+  test(
+    'an applied edit does not project a moved card back into its old stack',
+    () async {
+      final original = snapshot(1, 2, cardId: 8).cards.single;
+      final id = await database.saveCardDraft(account, 1, 2, {
+        'description': 'Accepted edit',
+      }, original: original);
+      await database.acquireLease(account, 'sender');
+      await database.startWrite(account, 'sender', id);
+      final write = (await database.writesFor(account.id)).single;
+      await database.markApplied(account, 'sender', write, {
+        'boardId': 1,
+        'stackId': 2,
+        'cardId': 8,
+        'acceptedCard': {...original.raw, 'description': 'Accepted edit'},
+      });
+      await database.releaseLease(account.id, 'sender');
+      await save(3, snapshot(3, 4, cardId: 8, modified: 11), 0);
+      expect((await database.stackView(account.id, 1)).single.cards, isEmpty);
+      expect((await database.writesFor(account.id)).single.state, 'applied');
+    },
+  );
 }
