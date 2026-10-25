@@ -9,7 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:nextclouddeck/core/app_preferences.dart';
 import 'package:nextclouddeck/data/session.dart';
-import 'package:nextclouddeck/features/board_view.dart';
+import 'package:nextclouddeck/features/boards.dart';
 import 'package:nextclouddeck/features/card_detail.dart';
 
 import 'board_test_support.dart';
@@ -20,6 +20,7 @@ class _PollingFixture {
   late final DeckSession session;
   final requests = <String>[];
   String title = 'Server card';
+  int boardCount = 1;
 
   void connect() {
     session = DeckSession(
@@ -32,6 +33,25 @@ class _PollingFixture {
         transport: MockClient((request) async {
           final path = request.url.path;
           requests.add(path);
+          if (path.endsWith('/cloud/user')) {
+            return _json({'id': 'user'}, ocs: true);
+          }
+          if (path.endsWith('/cloud/capabilities')) {
+            return _json({
+              'capabilities': {
+                'deck': {
+                  'version': '1.19.1',
+                  'apiVersions': ['1.1'],
+                  'canCreateBoards': true,
+                },
+              },
+            }, ocs: true);
+          }
+          if (path.endsWith('/boards')) {
+            return _json([
+              for (var id = 1; id <= boardCount; id++) boardData(id).raw,
+            ]);
+          }
           final boardId = path.contains('/boards/2') ? 2 : 1;
           Object value;
           if (path.endsWith('/boards/$boardId')) {
@@ -52,11 +72,7 @@ class _PollingFixture {
           } else {
             return http.Response('', 404);
           }
-          return http.Response(
-            jsonEncode(value),
-            200,
-            headers: {'content-type': 'application/json'},
-          );
+          return _json(value);
         }),
       ),
       pollInterval: const Duration(seconds: 10),
@@ -65,6 +81,21 @@ class _PollingFixture {
 
   DeckBoard boardData(int id) =>
       DeckBoard.fromJson({...data.board.raw, 'id': id, 'title': 'Board $id'});
+
+  http.Response _json(Object value, {bool ocs = false}) => http.Response(
+    jsonEncode(
+      ocs
+          ? {
+              'ocs': {
+                'meta': {'status': 'ok', 'statuscode': 200},
+                'data': value,
+              },
+            }
+          : value,
+    ),
+    200,
+    headers: {'content-type': 'application/json'},
+  );
 
   DeckCard cardData(int boardId) => DeckCard.fromJson({
     ...data.stacks.first.cards.first.raw,
@@ -98,6 +129,16 @@ Future<void> _using(
 
 Future<void> _tick(WidgetTester tester) async {
   await tester.pump(const Duration(seconds: 11));
+  await settleBoard(tester);
+}
+
+Future<void> _connectivity(WidgetTester tester) async {
+  await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .handlePlatformMessage(
+        'dev.fluttercommunity.plus/connectivity_status',
+        const StandardMethodCodec().encodeSuccessEnvelope(['wifi']),
+        (_) {},
+      );
   await settleBoard(tester);
 }
 
@@ -255,6 +296,17 @@ void main() {
         await settleBoard(tester);
         expect(fixture.requests, isEmpty);
         expect(callbacks, 0);
+        fixture.session.didChangeAppLifecycleState(AppLifecycleState.paused);
+        fixture.session.setBoardOverviewVisible(first, true);
+        await settleBoard(tester);
+        expect(fixture.requests, isEmpty);
+        fixture.session.setBoardOverviewVisible(first, false);
+        fixture.session.didChangeAppLifecycleState(AppLifecycleState.resumed);
+        fixture.session.setBoardOverviewVisible(first, true);
+        fixture.session.setBoardOverviewVisible(first, false);
+        await settleBoard(tester);
+        expect(fixture.requests, isEmpty);
+        expect(callbacks, 0);
       });
     },
   );
@@ -314,6 +366,88 @@ void main() {
         fixture.requests.where((p) => p.endsWith('/boards/2/stacks')),
         hasLength(1),
       );
+    });
+  });
+
+  for (final event in ['resume', 'connectivity']) {
+    testWidgets('visible overview reads new server board on $event', (
+      tester,
+    ) async {
+      await _using(tester, (fixture) async {
+        await tester.pumpWidget(
+          boardTestApp(
+            BoardsScreen(session: fixture.session),
+            preferences: AppPreferences(store: MemoryBoardPreferences()),
+          ),
+        );
+        await settleBoard(tester);
+        expect(find.text('Board 1'), findsOneWidget);
+        fixture.boardCount = 2;
+        fixture.requests.clear();
+        if (event == 'resume') {
+          fixture.session.didChangeAppLifecycleState(AppLifecycleState.paused);
+          fixture.session.didChangeAppLifecycleState(AppLifecycleState.resumed);
+          await settleBoard(tester);
+        } else {
+          await _connectivity(tester);
+        }
+        expect(find.text('Board 2'), findsOneWidget);
+        expect(
+          fixture.requests.where((p) => p.endsWith('/boards')),
+          hasLength(1),
+        );
+        final cached = await boardModel(
+          tester,
+          fixture.session.watchBoards().first,
+        );
+        expect(cached.map((board) => board.id), contains(2));
+      });
+    });
+  }
+
+  testWidgets('overview is inactive in Settings and under another route', (
+    tester,
+  ) async {
+    await _using(tester, (fixture) async {
+      await tester.pumpWidget(
+        boardTestApp(
+          BoardsScreen(session: fixture.session),
+          preferences: AppPreferences(store: MemoryBoardPreferences()),
+        ),
+      );
+      await settleBoard(tester);
+      await tester.tap(find.byIcon(Icons.settings_outlined));
+      await settleBoard(tester);
+      fixture.requests.clear();
+      fixture.session.didChangeAppLifecycleState(AppLifecycleState.paused);
+      fixture.session.didChangeAppLifecycleState(AppLifecycleState.resumed);
+      await _connectivity(tester);
+      await _tick(tester);
+      expect(fixture.requests, isEmpty);
+      await tester.tap(find.byIcon(Icons.view_kanban_outlined));
+      await settleBoard(tester);
+      final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+      navigator.push(
+        MaterialPageRoute<void>(
+          builder: (_) => const Scaffold(body: Text('Covered overview')),
+        ),
+      );
+      await settleBoard(tester);
+      fixture.requests.clear();
+      fixture.session.didChangeAppLifecycleState(AppLifecycleState.paused);
+      fixture.session.didChangeAppLifecycleState(AppLifecycleState.resumed);
+      await _connectivity(tester);
+      await _tick(tester);
+      expect(fixture.requests, isEmpty);
+      fixture.boardCount = 2;
+      navigator.pop();
+      await settleBoard(tester);
+      expect(find.text('Board 2'), findsOneWidget);
+      fixture.requests.clear();
+      fixture.session.didChangeAppLifecycleState(AppLifecycleState.paused);
+      await _connectivity(tester);
+      await _tick(tester);
+      expect(fixture.requests, isEmpty);
     });
   });
 }

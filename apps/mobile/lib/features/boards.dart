@@ -9,6 +9,7 @@ import '../core/telemetry_bootstrap.dart';
 import '../l10n/app_localizations.dart';
 import 'accounts.dart';
 import 'board_view.dart';
+import 'board_presence.dart';
 import 'drafts.dart';
 import 'pending.dart';
 import 'sync_notice.dart';
@@ -239,7 +240,11 @@ class _BoardsScreenState extends State<BoardsScreen> {
       body: IndexedStack(
         index: _destination,
         children: [
-          _boardList(context),
+          BoardPresence(
+            session: session,
+            active: _destination == 0,
+            child: _boardList(context),
+          ),
           if (_visited.contains(1))
             CardSearchView(
               key: ValueKey((

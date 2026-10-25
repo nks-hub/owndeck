@@ -6,12 +6,14 @@ class BoardPresence extends StatefulWidget {
   const BoardPresence({
     super.key,
     required this.session,
-    required this.boardId,
+    this.boardId,
+    this.active = true,
     required this.child,
   });
 
   final DeckSession session;
-  final int boardId;
+  final int? boardId;
+  final bool active;
   final Widget child;
 
   @override
@@ -21,10 +23,19 @@ class BoardPresence extends StatefulWidget {
 class _BoardPresenceState extends State<BoardPresence> {
   final _owner = Object();
 
-  void _update() => widget.session.setVisibleBoard(
-    _owner,
-    ModalRoute.isCurrentOf(context) == false ? null : widget.boardId,
-  );
+  void _update() {
+    final visible = widget.active && ModalRoute.isCurrentOf(context) != false;
+    widget.session.setVisibleBoard(_owner, visible ? widget.boardId : null);
+    widget.session.setBoardOverviewVisible(
+      _owner,
+      visible && widget.boardId == null,
+    );
+  }
+
+  void _release(DeckSession session) {
+    session.setVisibleBoard(_owner, null);
+    session.setBoardOverviewVisible(_owner, false);
+  }
 
   @override
   void didChangeDependencies() {
@@ -36,14 +47,14 @@ class _BoardPresenceState extends State<BoardPresence> {
   void didUpdateWidget(covariant BoardPresence oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.session != widget.session) {
-      oldWidget.session.setVisibleBoard(_owner, null);
+      _release(oldWidget.session);
     }
     _update();
   }
 
   @override
   void dispose() {
-    widget.session.setVisibleBoard(_owner, null);
+    _release(widget.session);
     super.dispose();
   }
 
