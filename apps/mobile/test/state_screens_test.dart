@@ -5,6 +5,7 @@ import 'package:deck_store/deck_store.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,6 +14,7 @@ import 'package:http/testing.dart';
 import 'package:nextclouddeck/core/app_preferences.dart';
 import 'package:nextclouddeck/data/session.dart';
 import 'package:nextclouddeck/features/drafts.dart';
+import 'package:nextclouddeck/features/boards.dart';
 import 'package:nextclouddeck/features/pending.dart';
 import 'package:nextclouddeck/features/settings.dart';
 import 'package:nextclouddeck/l10n/app_localizations.dart';
@@ -197,6 +199,53 @@ Future<void> _using(
 }
 
 void main() {
+  testWidgets('pending toolbar badge names its action and remains accessible', (
+    tester,
+  ) async {
+    await _using(tester, (fixture) async {
+      await tester.runAsync(() => fixture.write('queued'));
+      final semantics = tester.ensureSemantics();
+      try {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              appPreferencesProvider.overrideWith(
+                (ref) => AppPreferences(store: _Preferences()),
+              ),
+            ],
+            child: _app(BoardsScreen(session: fixture.session)),
+          ),
+        );
+        await _until(
+          tester,
+          () => find.byIcon(Icons.cloud_sync_outlined).evaluate().isNotEmpty,
+        );
+        final button = find.ancestor(
+          of: find.byIcon(Icons.cloud_sync_outlined),
+          matching: find.byType(IconButton),
+        );
+        final node = tester.getSemantics(button);
+        final data = node.getSemanticsData();
+        expect(data.label, contains('Pending changes'));
+        expect(data.label, contains('1'));
+        expect(data.hasAction(SemanticsAction.tap), isTrue);
+        tester.binding.performSemanticsAction(
+          SemanticsActionEvent(
+            type: SemanticsAction.tap,
+            nodeId: node.id,
+            viewId: tester.view.viewId,
+          ),
+        );
+        await _until(
+          tester,
+          () => find.byType(PendingScreen).evaluate().isNotEmpty,
+        );
+      } finally {
+        semantics.dispose();
+      }
+    });
+  });
+
   for (final entry in {
     'invalid_destination':
         'This destination has changed or is no longer available. Refresh and choose again.',

@@ -144,27 +144,37 @@ class _BoardsScreenState extends State<BoardsScreen> {
             stream: _writes,
             builder: (context, snapshot) {
               final count = snapshot.data?.length ?? 0;
-              return IconButton(
-                tooltip: snapshot.hasError
-                    ? text.localReadError
-                    : !snapshot.hasData
-                    ? text.syncing
-                    : count == 0
-                    ? text.noPending
-                    : text.pendingChanges,
-                onPressed: () =>
-                    _open('/sync', PendingScreen(session: session)),
-                icon: Badge.count(
-                  count: count,
-                  isLabelVisible: count > 0,
-                  child: Icon(
-                    snapshot.hasError
-                        ? Icons.sync_problem_outlined
-                        : !snapshot.hasData
-                        ? Icons.cloud_outlined
-                        : count == 0
-                        ? Icons.cloud_done_outlined
-                        : Icons.cloud_sync_outlined,
+              final message = snapshot.hasError
+                  ? text.localReadError
+                  : !snapshot.hasData
+                  ? text.syncing
+                  : count == 0
+                  ? text.noPending
+                  : text.pendingChanges;
+              return Tooltip(
+                message: message,
+                excludeFromSemantics: true,
+                child: IconButton(
+                  onPressed: () =>
+                      _open('/sync', PendingScreen(session: session)),
+                  icon: Semantics(
+                    label: count > 0
+                        ? '$message\n${MaterialLocalizations.of(context).formatDecimal(count)}'
+                        : message,
+                    excludeSemantics: true,
+                    child: Badge.count(
+                      count: count,
+                      isLabelVisible: count > 0,
+                      child: Icon(
+                        snapshot.hasError
+                            ? Icons.sync_problem_outlined
+                            : !snapshot.hasData
+                            ? Icons.cloud_outlined
+                            : count == 0
+                            ? Icons.cloud_done_outlined
+                            : Icons.cloud_sync_outlined,
+                      ),
+                    ),
                   ),
                 ),
               );
