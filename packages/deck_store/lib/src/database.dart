@@ -186,7 +186,7 @@ class DeckDatabase extends _$DeckDatabase {
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) => m.createAll(),
-    onUpgrade: (m, from, to) async {
+    onUpgrade: (m, from, to) => transaction(() async {
       if (from < 9) {
         await m.addColumn(storedAccounts, storedAccounts.syncNotBefore);
       }
@@ -215,7 +215,7 @@ class DeckDatabase extends _$DeckDatabase {
           storedAccounts.certificateFingerprint,
         );
       }
-    },
+    }),
     beforeOpen: (_) => customStatement('PRAGMA foreign_keys = ON'),
   );
 

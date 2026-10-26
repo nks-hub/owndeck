@@ -1,8 +1,9 @@
 import 'dart:convert';
 
+import 'dart:io';
+
 import 'package:deck_store/deck_store.dart';
-import 'package:drift/native.dart';
-import 'package:test/test.dart';
+import 'package:drift/native.dart';import 'package:test/test.dart';
 
 void main() {
   for (var version = 1; version < 9; version++) {
@@ -87,6 +88,55 @@ void main() {
       },
     );
   }
+
+  test('failed upgrade rolls back and a later open succeeds (B51)', () async {
+    final dir = Directory.systemTemp.createTempSync('deck_migration');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/deck.sqlite');
+    // The setup argument is a sqlite3 Database, which this package does not
+    // depend on directly.
+    List<String> columns(dynamic database) => [
+      for (final row in database.select('PRAGMA table_info(stored_accounts)'))
+        row['name'] as String,
+    ];
+    var afterFailure = <String>[];
+
+    final broken = DeckDatabase(
+      NativeDatabase(
+        file,
+        setup: (database) {
+          for (final statement in _schema(5)) {
+            database.execute(statement);
+          }
+          // A later step (adding user_id) collides with this column.
+          database.execute('ALTER TABLE stored_accounts ADD COLUMN user_id TEXT');
+          database.execute('PRAGMA user_version = 5');
+        },
+      ),
+    );
+    await expectLater(broken.accounts(), throwsA(anything));
+    await broken.close();
+
+    final fixed = DeckDatabase(
+      NativeDatabase(
+        file,
+        setup: (database) {
+          if (afterFailure.isNotEmpty) return;
+          afterFailure = columns(database);
+          database.execute('ALTER TABLE stored_accounts DROP COLUMN user_id');
+        },
+      ),
+    );
+    addTearDown(fixed.close);
+    expect(afterFailure, isNot(contains('sync_not_before')));
+    expect(await fixed.accounts(), isEmpty);
+    expect(
+      (await fixed.customSelect('PRAGMA user_version').getSingle()).read<int>(
+        'user_version',
+      ),
+      9,
+    );
+  });
 }
 
 // Frozen schema boundaries: 916be36 (v1), d18676c (v3), 88e46b7 (v4),
