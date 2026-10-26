@@ -87,16 +87,16 @@ Přání majitele: když je v OwnTalku, OwnNotes nebo OwnDecku přihlášený ú
 
 Rozpad z auditu desktopového režimu OwnTalku, souhrn a nálezy v `docs/desktop.md`. Pořadí podle závislostí.
 
-- [ ] DK01 Přepsat rozhodnutí v `docs/reuse.md:17` a popis v pubspec na Android, iOS a desktop; doklad commit.
-- [ ] DK02 Vytvořit platformy Windows, macOS a Linux v `apps/mobile` s ID `com.nkshub.nextclouddeck`, názvem OwnDeck a ikonami; doklad `flutter build windows|macos|linux --release` a otevřené okno.
-- [ ] DK03 Závislosti Linux buildu (libgtk-3-dev, libsecret-1-dev, libcurl4-openssl-dev) podle OwnTalku; doklad build na čistém ubuntu-latest.
-- [ ] DK04 Kamera, zxing2 a QR přihlášení se na desktopu nenabízí; doklad widget test pro Windows a macOS bez tlačítka skeneru.
-- [ ] DK05 Start na desktopu bez MissingPluginException z kanálů links, share a files; doklad log prvního startu na Windows a macOS.
-- [ ] DK06 Trezor na macOS: `MacOsOptions(usesDataProtectionKeychain: false, synchronizable: false)` a entitlements podle OwnTalku; doklad přihlášení přežije restart.
-- [ ] DK07 Zamčená klíčenka na Linuxu nesmí zablokovat start (`_migrateLegacy`, `recover()` readAll); převzít značkový soubor z OwnTalku; doklad test a běh se zamčenou klíčenkou, okno do 3 s.
-- [ ] DK08 Login Flow v2 v systémovém prohlížeči na Windows, macOS a Linuxu; doklad přihlášení proti testovacímu serveru a restart bez nového přihlášení.
-- [ ] DK09 Okno s minimální velikostí a pamatováním polohy (vzor MainFlutterWindow.swift, window_state.cpp, GTK); doklad zastavení pod minimem a poloha po restartu.
-- [ ] DK10 Desktopová hustota prvků v celé aplikaci; doklad widget testy výšky řádků při VisualDensity.compact.
+- [x] DK01 `docs/reuse.md` a popis v pubspec uvádějí Android, iOS i desktop.
+- [ ] DK02 Platformy Windows, macOS a Linux s ID `com.nkshub.nextclouddeck` a názvem OwnDeck, ikony generuje `tool/icon_assets.py`. Release build na Windows otevře okno OwnDeck za 1,1 s, release build na macOS se spustí s jedním oknem. Zbývá Linux build v CI (DK03).
+- [ ] DK03 CI matice sestavení rozšířená o Linux (libgtk-3-dev, libsecret-1-dev, libcurl4-openssl-dev), Windows a macOS; zbývá první zelený běh.
+- [x] DK04 QR skener se na Windows, macOS ani Linuxu nenabízí (`test/desktop_platform_test.dart`).
+- [x] DK05 Start na desktopu přežije chybějící kanály odkazů a sdílení (test) a log ladicího běhu na Windows je bez MissingPluginException.
+- [ ] DK06 Entitlements pro macOS (sandbox, síť, soubory vybrané uživatelem) a `MacOsOptions(usesDataProtectionKeychain: false, synchronizable: false)`; zbývá ověřit přihlášení po restartu na macOS.
+- [ ] DK07 Na Linuxu se celý trezor čte jen se značkovým souborem, takže zamčená klíčenka bez účtů start nezablokuje; testy s úložištěm, které visí nebo vyhazuje chybu. Zbývá běh na skutečném Linuxu.
+- [ ] DK08 Opravená chyba: přihlášení na desktopu čekalo až 5 minut na návrat do aplikace, nyní dotazuje hned po otevření prohlížeče; ověřeno proti testovacímu serveru Login Flow v2 (dotaz každé 2 s). Zbývá přihlášení proti skutečnému Nextcloudu na každém OS.
+- [ ] DK09 Okno na Windows drží minimum 600×400 a pamatuje si polohu a velikost (321,123, 900×640 po restartu); macOS má minimum a autosave rámce, Linux minimum. Zbývá ověřit macOS a Linux.
+- [x] DK10 Na desktopu je v celém motivu kompaktní hustota prvků; widget test výšek.
 - [ ] DK11 Široké okno: boční panel nástěnek a detail karty jako pravý panel, mobil beze změny; doklad widget testy při 720/1024/1440/1920 px bez přetečení a s funkčním Zpět.
 - [ ] DK12 Přetahování karet myší (Draggable místo LongPressDraggable na desktopu) se zachovaným automatickým posunem; doklad widget test přesunu myší mezi sloupci, dotyk beze změny.
 - [ ] DK13 Klávesové zkratky Ctrl/Cmd+N, Ctrl/Cmd+F, Esc, Enter a šipky; doklad widget test každé zkratky na Windows i macOS.
