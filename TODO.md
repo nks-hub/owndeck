@@ -56,7 +56,7 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] U16 Náhled Markdownu je čitelný a omezený délkou, checkboxy v kódu nezvyšují průběh (`e91c96f`); cílené parser/widget testy prošly.
 - [x] U17 Konflikty nástěnek, štítků a sdílení ukazují známá metadata a práva bez JSON/ID/bitů (`8ef69fc`); testy porovnání prošly.
 - [x] F01 Checklist mění položku přes stejnou trvalou frontu a zachová ostatní popis (`e485272`, `6465b8e`); devět parser/widget testů a zapnutí/vypnutí ve skutečném UI kandidátu `96b8662` prošly. Finální společná revize v R06.
-- [ ] F06 Přesun mezi nástěnkami implementován (`e68650c`, `cdb05f0`); skutečné API 1.18.5 ověřilo identitu, obsah, metadata, komentáře, štítky podle práv a kotvu. API 1.18.5 ověřilo i zachování obsahu přílohy; Pro API 1.19.1 je připraven samostatný test v existujícím izolovaném CI prostředí; jeho výsledek a úplné nativní UI ověření zůstávají otevřené v R06.
+- [ ] F06 Přesun mezi nástěnkami implementován (`e68650c`, `cdb05f0`); skutečné API 1.18.5 ověřilo identitu, obsah, metadata, komentáře, štítky podle práv a kotvu. API 1.18.5 ověřilo i zachování obsahu přílohy; API 1.19.1 prošlo v CI `40318645367` na `996ef07` pro vlastníka i EDIT bez MANAGE včetně stažení přílohy přes účet přesouvajícího a úplného úklidu; úplné nativní UI ověření zůstává v R06.
 
 ## Navazující funkce z konkurenční analýzy
 

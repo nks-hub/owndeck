@@ -21,6 +21,8 @@ První průběžný běh na izolované revizi `95b19ed4f1a500ff512d4c57fe77b4276
 
 ## Integrace s reálným Nextcloudem
 
+Na `996ef07` prošel [izolovaný běh Nextcloud 35.0.2 / Deck 1.19.1](https://github.com/nks-hub/owndeck/actions/runs/40318645367). Produkční `DeckClient` a `DeckSync` ověřily přesun vlastníka i uživatele s EDIT bez MANAGE: stejné ID karty, metadata, přiřazení, komentáře, obsah přílohy, převod štítků podle práv a umístění před zvolenou kartou. Každý případ odeslal jednu OCS aktualizaci a jedno řazení; fronta se vyprázdnila a úklid souborů, nástěnek, kontejneru i soukromých konfigurací prošel. Tento výsledek je integrační test API, nikoli nativní UI E2E.
+
 Použít ověřený testovací účet a vlastní dočasnou nástěnku. Osobní ani pracovní nástěnky neměnit. Založit dvě testovací identity pro ověření čtenáře/editora a konfliktu s webem. Zaznamenat přesnou verzi serveru, Decku a capabilities bez tokenů.
 
 | Scénář | Očekávaný výsledek |
