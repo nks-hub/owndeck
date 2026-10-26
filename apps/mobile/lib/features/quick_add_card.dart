@@ -81,6 +81,7 @@ class _QuickAddCardState extends ConsumerState<_QuickAddCard> {
       _title.text = shared.title;
       _description.text = shared.description;
       _details = shared.description.isNotEmpty;
+      _draftStarted = widget.draftKey != null;
     }
     unawaited(_load());
   }

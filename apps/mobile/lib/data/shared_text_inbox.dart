@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -38,45 +39,63 @@ final class SharedTextRequest {
   final SharedText? content;
 }
 
-/// Holds the newest shared text. With a [store] the pending text also survives an app restart,
-/// so a share received before sign-in is offered again after the next start.
+/// Holds shared texts in arrival order; [pending] is the oldest one still to be offered.
+/// With a [store] the queue also survives an app restart, so shares received before
+/// sign-in are offered again after the next start.
 final class SharedTextInbox extends ChangeNotifier {
   SharedTextInbox({this.store});
 
   static const storeKey = 'share.pending';
   final AppPreferenceStore? store;
-  SharedTextRequest? pending;
+  final List<SharedTextRequest> _queue = [];
   int _sequence = 0;
+  bool _restored = false;
   Future<void> _writes = Future.value();
 
+  SharedTextRequest? get pending => _queue.firstOrNull;
+
   void offer(String? text, {String? subject}) {
-    pending = SharedTextRequest(
-      ++_sequence,
-      SharedText.parse(text, subject: subject),
+    _queue.add(
+      SharedTextRequest(++_sequence, SharedText.parse(text, subject: subject)),
     );
-    _persist(pending!.content);
+    _persist();
     notifyListeners();
   }
 
-  /// Loads a text saved by an earlier run unless something newer already arrived.
+  /// Loads shares saved by an earlier run in front of any that arrived meanwhile.
+  /// Accepts the former single-share value as well as the current list.
   Future<void> restore() async {
     final store = this.store;
-    if (store == null) return;
+    if (store == null || _restored) return;
+    _restored = true;
+    final gate = Completer<void>();
+    _writes = _writes.then((_) => gate.future);
     try {
       final raw = await store.read(storeKey);
-      if (raw == null || raw.isEmpty || pending != null) return;
+      if (raw == null || raw.isEmpty) return;
       final value = jsonDecode(raw);
-      if (value is! Map) return;
-      final title = value['title'];
-      final description = value['description'];
-      if (title is! String || title.isEmpty || description is! String) return;
-      pending = SharedTextRequest(
-        ++_sequence,
-        SharedText(title: title, description: description),
-      );
+      final restored = <SharedTextRequest>[];
+      for (final item in value is List ? value : [value]) {
+        if (item is! Map) continue;
+        final title = item['title'];
+        final description = item['description'];
+        if (title is! String || title.isEmpty || description is! String) {
+          continue;
+        }
+        restored.add(
+          SharedTextRequest(
+            ++_sequence,
+            SharedText(title: title, description: description),
+          ),
+        );
+      }
+      if (restored.isEmpty) return;
+      _queue.insertAll(0, restored);
       notifyListeners();
     } on Object {
       // A damaged or unreadable saved share must not block startup.
+    } finally {
+      gate.complete();
     }
   }
 
@@ -84,22 +103,23 @@ final class SharedTextInbox extends ChangeNotifier {
 
   void complete(SharedTextRequest request) {
     if (!contains(request)) return;
-    pending = null;
-    _persist(null);
+    _queue.removeAt(0);
+    _persist();
     notifyListeners();
   }
 
-  void _persist(SharedText? content) {
+  void _persist() {
     final store = this.store;
     if (store == null) return;
-    final value = content == null
-        ? ''
-        : jsonEncode({
-            'title': content.title,
-            'description': content.description,
-          });
     _writes = _writes
-        .then((_) => store.write(storeKey, value))
+        .then((_) {
+          final items = [
+            for (final request in _queue)
+              if (request.content case final content?)
+                {'title': content.title, 'description': content.description},
+          ];
+          return store.write(storeKey, items.isEmpty ? '' : jsonEncode(items));
+        })
         .catchError((Object _) {});
   }
 }

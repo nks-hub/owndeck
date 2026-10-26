@@ -113,12 +113,13 @@ void main() {
   });
 
   group('inbox and native bridge', () {
-    test('a newer share replaces a pending one and complete is idempotent', () {
+    test('shares queue in arrival order and complete is idempotent', () {
       final inbox = SharedTextInbox();
       inbox.offer('one');
       final first = inbox.pending!;
       inbox.offer('two');
-      expect(inbox.contains(first), isFalse);
+      expect(inbox.pending, same(first));
+      inbox.complete(first);
       inbox.complete(first);
       expect(inbox.pending?.content?.title, 'two');
       inbox.complete(inbox.pending!);
@@ -147,6 +148,8 @@ void main() {
           ),
           (_) {},
         );
+        expect(inbox.pending?.content?.title, 'Cold');
+        inbox.complete(inbox.pending!);
         expect(inbox.pending?.content?.title, 'Warm text');
         native.close();
         await messenger.handlePlatformMessage(
@@ -156,7 +159,8 @@ void main() {
           ),
           (_) {},
         );
-        expect(inbox.pending?.content?.title, 'Warm text');
+        inbox.complete(inbox.pending!);
+        expect(inbox.pending, isNull);
         messenger.setMockMethodCallHandler(channel, null);
         inbox.dispose();
       },
@@ -192,17 +196,50 @@ void main() {
       },
     );
 
-    test('a newer share is not replaced by the saved one', () async {
-      final inbox = SharedTextInbox(
-        store: MemoryStore({SharedTextInbox.storeKey: saved('Old')}),
-      )..offer('New');
+    test('saved shares come before newer ones and nothing is lost', () async {
+      final store = MemoryStore({SharedTextInbox.storeKey: saved('Old')});
+      final inbox = SharedTextInbox(store: store)..offer('New');
       await inbox.restore();
+      expect(inbox.pending?.content?.title, 'Old');
+      inbox.complete(inbox.pending!);
       expect(inbox.pending?.content?.title, 'New');
+      await Future<void>.delayed(Duration.zero);
+      expect(jsonDecode(store.values[SharedTextInbox.storeKey]!), [
+        {'title': 'New', 'description': ''},
+      ]);
       inbox.dispose();
     });
 
+    test('the whole queue is persisted and restored in order', () async {
+      final store = MemoryStore();
+      final before = SharedTextInbox(store: store)
+        ..offer('one')
+        ..offer('two')
+        ..offer('three');
+      before.complete(before.pending!);
+      await Future<void>.delayed(Duration.zero);
+      before.dispose();
+      final after = SharedTextInbox(store: store);
+      await after.restore();
+      await after.restore();
+      final titles = <String?>[];
+      while (after.pending != null) {
+        titles.add(after.pending!.content?.title);
+        after.complete(after.pending!);
+      }
+      expect(titles, ['two', 'three']);
+      after.dispose();
+    });
+
     test('blank and damaged saved values are ignored', () async {
-      for (final raw in ['', 'not json', '[]', saved(''), '{"title":1}']) {
+      for (final raw in [
+        '',
+        'not json',
+        '[]',
+        saved(''),
+        '{"title":1}',
+        '[1,{"title":1}]',
+      ]) {
         final inbox = SharedTextInbox(
           store: MemoryStore({SharedTextInbox.storeKey: raw}),
         );
@@ -418,9 +455,57 @@ void main() {
         expect(find.text('https://example.com/read'), findsOneWidget);
         expect(inbox.pending, isNull);
         final drafts = await draftsOf(tester, accounts.selected!.id);
-        expect(drafts.single.draftKey, startsWith('quick:'));
+        expect(drafts.single.draftKey, startsWith(sharedDraftPrefix));
       },
     );
+
+    testGate('two shares in a row are offered one after another', 1, (
+      tester,
+    ) async {
+      await waitForBoards(tester);
+      inbox.offer('First share');
+      inbox.offer('Second share');
+      await until(
+        tester,
+        () => find.byKey(const Key('quick-add-account')).evaluate().isNotEmpty,
+      );
+      expect(find.text('First share'), findsOneWidget);
+      expect(find.text('Second share'), findsNothing);
+      expect(inbox.pending?.content?.title, 'Second share');
+      Navigator.of(tester.element(find.text('First share'))).pop();
+      await until(
+        tester,
+        () => find.text('Second share').evaluate().isNotEmpty,
+      );
+      expect(find.text('First share'), findsNothing);
+      expect(inbox.pending, isNull);
+    });
+
+    testGate('a share without an editable board still leaves a draft', 1, (
+      tester,
+    ) async {
+      await waitForBoards(tester);
+      await tester.runAsync(
+        () => database.saveBoards(
+          accounts.selected!.id,
+          accounts.selected!.generation,
+          [
+            DeckBoard.fromJson({
+              ...board,
+              'permissions': {'PERMISSION_READ': true},
+            }),
+          ],
+          null,
+        ),
+      );
+      inbox.offer('Keep me');
+      await until(tester, () => find.byTooltip('Close').evaluate().isNotEmpty);
+      await tester.tap(find.byTooltip('Close'));
+      await tester.pump(const Duration(milliseconds: 500));
+      final drafts = await draftsOf(tester, first.id);
+      expect(drafts.single.draftKey, startsWith(sharedDraftPrefix));
+      expect(jsonDecode(drafts.single.payload)['title'], 'Keep me');
+    });
 
     testGate('a single account is confirmed in the sheet without a picker', 1, (
       tester,
@@ -517,10 +602,9 @@ void main() {
           () => Future<void>.delayed(const Duration(milliseconds: 50)),
         );
         expect(inbox.pending, isNotNull);
-        expect(jsonDecode(store.values[SharedTextInbox.storeKey]!), {
-          'title': 'Later',
-          'description': 'https://example.com/later',
-        });
+        expect(jsonDecode(store.values[SharedTextInbox.storeKey]!), [
+          {'title': 'Later', 'description': 'https://example.com/later'},
+        ]);
         await modelChange(
           tester,
           accounts.add(

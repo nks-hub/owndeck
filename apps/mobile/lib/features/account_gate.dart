@@ -39,6 +39,7 @@ class _DeckAccountGateState extends ConsumerState<DeckAccountGate> {
   GlobalKey<NavigatorState>? _navigation;
   bool _routing = false;
   bool _sharing = false;
+  bool _shareSheetOpen = false;
   int? _authenticationRetry;
 
   @override
@@ -93,6 +94,7 @@ class _DeckAccountGateState extends ConsumerState<DeckAccountGate> {
   void _scheduleShare() {
     if (!mounted ||
         _sharing ||
+        _shareSheetOpen ||
         _routing ||
         _links.pending != null ||
         _shares.pending == null ||
@@ -123,6 +125,28 @@ class _DeckAccountGateState extends ConsumerState<DeckAccountGate> {
             ),
         ],
       ),
+    );
+  }
+
+  Future<void> _saveShareDraft(
+    Accounts accounts,
+    String accountId,
+    SharedText content,
+    String draftKey,
+  ) async {
+    final destination = await ref
+        .read(appPreferencesProvider)
+        .lastCardDestination(accountId);
+    await accounts.database.saveSignedOutDraft(
+      accountId,
+      draftKey,
+      destination?.boardId ?? 0,
+      destination?.stackId ?? 0,
+      {
+        'title': content.title,
+        'description': content.description,
+        'duedate': null,
+      },
     );
   }
 
@@ -172,24 +196,12 @@ class _DeckAccountGateState extends ConsumerState<DeckAccountGate> {
       if (!mounted || !_shares.contains(request)) return;
       final session = accounts.session;
       final navigator = _navigation?.currentState;
+      final draftKey = '$sharedDraftPrefix${const Uuid().v4()}';
       if (session == null ||
           session.account.id != selected.id ||
           !identical(_shown, session) ||
           navigator == null) {
-        final destination = await ref
-            .read(appPreferencesProvider)
-            .lastCardDestination(selected.id);
-        await accounts.database.saveSignedOutDraft(
-          selected.id,
-          '$sharedDraftPrefix${const Uuid().v4()}',
-          destination?.boardId ?? 0,
-          destination?.stackId ?? 0,
-          {
-            'title': content.title,
-            'description': content.description,
-            'duedate': null,
-          },
-        );
+        await _saveShareDraft(accounts, selected.id, content, draftKey);
         if (mounted) {
           messenger.showSnackBar(
             SnackBar(content: Text(text.sharedTextSavedDraft)),
@@ -197,8 +209,24 @@ class _DeckAccountGateState extends ConsumerState<DeckAccountGate> {
         }
         return;
       }
+      try {
+        await _saveShareDraft(accounts, selected.id, content, draftKey);
+      } catch (_) {
+        // The sheet keeps its own draft once a destination is known.
+      }
       _shares.complete(request);
-      unawaited(showQuickAddCard(navigator.context, session, shared: content));
+      _shareSheetOpen = true;
+      unawaited(
+        showQuickAddCard(
+          navigator.context,
+          session,
+          shared: content,
+          draftKey: draftKey,
+        ).whenComplete(() {
+          _shareSheetOpen = false;
+          if (mounted) _scheduleShare();
+        }),
+      );
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
