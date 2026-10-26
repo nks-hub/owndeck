@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
+import 'keychain_migration.dart';
 import 'session.dart';
 import 'attachment_files.dart';
 import '../platform/attachment_storage.dart';
@@ -35,7 +36,10 @@ final class Accounts extends ChangeNotifier {
     FlutterSecureStorage? storage,
     DeckDatabase? database,
     this.transportFactory,
-  }) : _storage = storage ?? const FlutterSecureStorage(),
+  }) : _storage =
+           storage ?? const FlutterSecureStorage(iOptions: deviceOnlyKeychain),
+       _migrateKeychain =
+           storage == null && defaultTargetPlatform == TargetPlatform.iOS,
        database = database ?? DeckDatabase(driftDatabase(name: 'owndeck')) {
     vault = SecureVault(_storage);
     repository = AccountRepository(
@@ -47,6 +51,7 @@ final class Accounts extends ChangeNotifier {
   }
 
   final FlutterSecureStorage _storage;
+  final bool _migrateKeychain;
   final http.Client Function(Uri server, String? fingerprint)? transportFactory;
   final DeckDatabase database;
   late final CredentialVault vault;
@@ -87,6 +92,12 @@ final class Accounts extends ChangeNotifier {
 
   Future<void> _load() async {
     try {
+      if (_migrateKeychain) {
+        await migrateKeychainAccessibility(
+          previous: const FlutterSecretStore(FlutterSecureStorage()),
+          current: FlutterSecretStore(_storage),
+        );
+      }
       await repository.recover();
       await _migrateLegacy();
       await _reload();
