@@ -1,5 +1,5 @@
 name: nextclouddeck
-description: Nextcloud Deck client for Android and iOS.
+description: Nextcloud Deck client for Android, iOS and desktop.
 publish_to: none
 version: 0.1.1+4
 environment:

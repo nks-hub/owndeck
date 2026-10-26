@@ -14,7 +14,7 @@ Kontrola zdrojů 24. 10. 2026. Tabulka popisuje vhodné komponenty rodiny Own ap
 | Automatické testy | OwnNotes `packages/notes_protocol/test/login_test.dart`, mobilní testy účtů a telemetrie | Převzít scénáře a testovací přístupy, upravit očekávání pro Deck. Testy spouštět průběžně na pozadí v odděleném worktree. |
 | Buildy | OwnNotes `.flutter-version`, Android/iOS konfigurace | Stejný tvar identifikátoru a verze. Nepřebírat jejich podpisové soubory, Firebase identitu ani store aplikaci. |
 
-Obě aplikace používají monorepo `apps/mobile` a `packages`. OwnDeck zachová tento tvar: `deck_protocol` pro HTTP a modely, `deck_store` pro data a frontu, `apps/mobile` pro UI a systémové integrace. Riverpod odpovídá aktuálnímu OwnNotes. Kopírování celého Talku by přineslo nepotřebné WebRTC, hovory a desktopové části.
+Obě aplikace používají monorepo `apps/mobile` a `packages`. OwnDeck zachová tento tvar: `deck_protocol` pro HTTP a modely, `deck_store` pro data a frontu, `apps/mobile` pro UI a systémové integrace. Riverpod odpovídá aktuálnímu OwnNotes. Kopírování celého Talku by přineslo nepotřebné WebRTC a hovory. Desktopové části (runner Windows, `MainFlutterWindow.swift`, entitlements, vzor trezoru, CI joby) se naopak převezmou: OwnDeck cílí na Android, iOS a desktop (Windows, macOS, Linux), viz `docs/desktop.md`.
 
 ## Volba technologie
 
