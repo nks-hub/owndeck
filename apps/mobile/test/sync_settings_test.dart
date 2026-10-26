@@ -96,7 +96,6 @@ void main() {
     );
   });
   tearDown(() async {
-    session.dispose();
     await database.close();
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(connectivity, null);
@@ -109,6 +108,14 @@ void main() {
       );
       await tester.pump();
     }
+  }
+
+  Future<void> finish(WidgetTester tester) async {
+    await tester.pumpWidget(const SizedBox());
+    session.dispose();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+    );
   }
 
   Widget app() => localizedTestApp(
@@ -127,6 +134,7 @@ void main() {
     expect(find.textContaining('Last sync: '), findsOneWidget);
     expect(find.text('Sync now'), findsOneWidget);
     expect(find.textContaining('unavailable'), findsNothing);
+    await finish(tester);
   });
 
   testWidgets('a network error keeps the old time and says so', (tester) async {
@@ -146,6 +154,7 @@ void main() {
       before,
     );
     expect(find.text('Sync now'), findsOneWidget);
+    await finish(tester);
   });
 
   testWidgets('a first attempt that fails leaves the account never synced', (
@@ -158,5 +167,6 @@ void main() {
     await settle(tester);
     expect(find.text('Not synced yet'), findsOneWidget);
     expect(find.textContaining('server is unavailable'), findsOneWidget);
+    await finish(tester);
   });
 }
