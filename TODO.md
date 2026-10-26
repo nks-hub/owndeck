@@ -45,7 +45,7 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] B37 Přijatá změna má na kartě štítek Přijato a ikonu synchronizace; podrobné vysvětlení zůstává pro čtečku i tooltip. Původní reprodukce selhala, oprava a 35 souvisejících testů karet/fronty/konfliktů prošly, analyzer i nezávislé review bez nálezu.
 - [x] B38 Nové karty určují konec z čerstvého sloupce a stejně se promítají místně; stará fronta s 999 zůstává čitelná. Před zápisem se atomicky ověří platný vlastní zámek a stav operace. Čtyři reprodukce selhaly před opravou; 200 store a 274 mobilních testů prošlo, analyzer/review čisté. Nativní iOS `21ca536` a server potvrdily dvě nové karty za původními, správné pořadí po potvrzení i restartu a zachování ostatních dat.
 - [x] B39 Formulář je ukotvený nahoře a změnu klávesnice zpracuje bez posunu celého dialogu (`cc0af45`); pět testů prošlo včetně focusu, textu, uložení a 200% landscape. Nativní iOS `21ca536` potvrdil shodu obrazu a přístupnostních souřadnic Uložit, skutečné přerovnání sloupce i zachování pořadí po restartu; server ověřil ostatní data beze změny.
-- [ ] B40 Vypnutí Rybbit ponechávalo offline události; dvě reprodukce se skutečným SDK a Hive selhaly. Oprava mazání po ukončení SDK prochází běžným vypnutím i pozdním zápisem; review ještě vyžaduje obnovení po restartu a bezpečné chování při chybě mazání. Zachovat nezávislé přepínače, běžnou offline frontu a automatické zapnutí nakonfigurovaných buildů.
+- [x] B40 Vypnutí Rybbit odstraní offline frontu po ukončení SDK; přerušený úklid se dokončí před dalším zapnutím a starší zapnutí nepřepíše novější vypnutí. Reprodukce se skutečným SDK/Hive a dvě závodní situace selhaly před opravou; všech 32 telemetrických testů prošlo, analyzer/review čisté. Běžný shutdown frontu zachová, nezávislé přepínače i automatické zapnutí nakonfigurovaných buildů zůstávají.
 - [x] B41 Tlačítko neodeslaných změn má srozumitelný přístupnostní název i lokalizovaný počet. Původní reprodukce ukázala pouze „1“; po opravě 15 testů prošlo včetně skutečné aktivace přes SemanticsAction.tap do fronty, analyzer a nezávislé review bez nálezu. Nové APK ještě ověřit v R06.
 - [x] T04 E2E používá oddělené testovací identity a evidenci vlastních záznamů; úklid odstraňuje pouze testem vytvořená data a přístupy, ověřuje jejich stav a zachovává ostatní účty.
 - [x] U01 Společný souhrn karty zobrazuje štítky, termíny, dokončení, známé počty a přiřazení (`5514cc7`, `3b82d66`, `ea667cd`); widget testy metadat prošly. E2E všech cest zůstává v R06.
@@ -77,6 +77,8 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [ ] F07 Návrh z API auditu: nabídnout nové přiřazení skupiny/týmu na kartu podle skutečně podporovaného typu; stávající přiřazení nyní zachovat a umožnit odebrat bez záměny za stejně pojmenovaného uživatele.
 
 ## Původní plán a průběžné důkazy
+
+- [ ] R07 Na výslovný pokyn připravit a nahrát aktuální `0.1.1+4` do stávajícího uzavřeného testu Google Play; zachovat tři skupiny testerů a ověřit přijatý balíček i skutečný stav vydání. Úplné E2E a výkon S9 zůstávají otevřené.
 
 - [x] P03 Repozitář `nks-hub/owndeck` je veřejný; anonymní přístup ověřen, README, licence a štítky zkontrolované, aplikace doplněna do profilu organizace.
 
