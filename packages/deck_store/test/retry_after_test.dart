@@ -103,6 +103,21 @@ void main() {
     200,
     headers: {'content-type': 'application/json'},
   );
+  http.Response readFixture(http.Request request) {
+    if (request.url.path.endsWith('/boards/1')) {
+      return json(board(1, 'Board', edit: true).raw);
+    }
+    if (request.url.path.endsWith('/stacks/2')) {
+      return json({
+        'id': 2,
+        'boardId': 1,
+        'title': 'Todo',
+        'order': 0,
+        'cards': [],
+      });
+    }
+    throw StateError('Unexpected read: ${request.url.path}');
+  }
 
   test(
     '429 preserves the queue and its pause survives a new sync instance',
@@ -112,7 +127,7 @@ void main() {
         sync(
           MockClient((request) async {
             if (request.method == 'GET') {
-              return json(board(1, 'Board', edit: true).raw);
+              return readFixture(request);
             }
             posts++;
             return http.Response('', 429, headers: {'retry-after': '120'});
@@ -153,16 +168,7 @@ void main() {
             if (request.url.path.endsWith('/cards/9')) {
               return json(cardJson(id: 9));
             }
-            if (request.url.path.endsWith('/stacks/2')) {
-              return json({
-                'id': 2,
-                'boardId': 1,
-                'title': 'Todo',
-                'order': 0,
-                'cards': [],
-              });
-            }
-            return json(board(1, 'Board', edit: true).raw);
+            return readFixture(request);
           }
           posts++;
           return json(cardJson(id: 9));
@@ -197,7 +203,7 @@ void main() {
       await sync(
         MockClient((request) async {
           if (request.method == 'GET') {
-            return json(board(1, 'Board', edit: true).raw);
+            return readFixture(request);
           }
           posts++;
           return http.Response('', 503, headers: {'retry-after': '120'});

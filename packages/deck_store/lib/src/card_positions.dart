@@ -1,5 +1,8 @@
 part of 'database.dart';
 
+int nextCardOrder(Iterable<int> orders) =>
+    orders.fold<int>(0, (next, order) => order >= next ? order + 1 : next);
+
 int cardPositionIndex(List<int> siblings, JsonObject proposal) {
   if (!proposal.containsKey('before') &&
       !proposal.containsKey('anchorCardId')) {

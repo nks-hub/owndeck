@@ -386,6 +386,10 @@ extension DeckViews on DeckDatabase {
       if (write.kind == 'createCard') {
         entries.add({
           ...data,
+          if (data['order'] == null || data['order'] == 999)
+            'order': nextCardOrder(
+              entries.map((card) => intField(card, 'order')),
+            ),
           'id': -write.sequence,
           'stackId': stackId,
           'syncState': write.state,

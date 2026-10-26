@@ -88,6 +88,15 @@ void main() {
       var posts = 0;
       final sync = engine((request) async {
         if (request.method == 'GET') {
+          if (request.url.path.endsWith('/stacks/2')) {
+            return response({
+              'id': 2,
+              'boardId': 1,
+              'title': 'Todo',
+              'order': 0,
+              'cards': [cardJson()],
+            });
+          }
           return response(board(1, 'Board', edit: true).raw);
         }
         posts++;

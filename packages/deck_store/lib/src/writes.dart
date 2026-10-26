@@ -182,6 +182,21 @@ extension DeckWrites on DeckDatabase {
         .go();
   }
 
+  Future<bool> renewWriteLease(
+    StoredAccount account,
+    String owner,
+    String id,
+  ) => transaction(() async {
+    if (!await ownsLease(account, owner)) return false;
+    final write =
+        await (select(pendingWrites)..where(
+              (row) => row.accountId.equals(account.id) & row.id.equals(id),
+            ))
+            .getSingleOrNull();
+    if (write?.state != 'sending') return false;
+    return acquireLease(account, owner);
+  });
+
   Future<void> recoverWrites(StoredAccount account, String owner) =>
       transaction(() async {
         if (!await ownsLease(account, owner)) return;

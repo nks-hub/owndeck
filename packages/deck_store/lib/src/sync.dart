@@ -211,7 +211,34 @@ final class DeckSync {
       ];
       late final DeckCard card;
       if (write.kind == 'createCard') {
-        if (_closed || !await database.ownsLease(account, _owner)) return false;
+        int? appendOrder;
+        // Existing outbox entries use 999 to mean append, not a fixed position.
+        if (proposal['order'] == null || proposal['order'] == 999) {
+          final stack = DeckStack.fromJson(
+            object(
+              (await client.rest('GET', [
+                'boards',
+                '${write.boardId}',
+                'stacks',
+                '${write.stackId}',
+              ])).data,
+            ),
+          );
+          if (stack.id != write.stackId ||
+              stack.boardId != write.boardId ||
+              (stack.raw['deletedAt'] ?? 0) != 0 ||
+              stack.cards.any(
+                (card) => card.id <= 0 || card.stackId != stack.id,
+              )) {
+            throw const DeckException('invalid_destination');
+          }
+          appendOrder = nextCardOrder(stack.cards.map((card) => card.order));
+        }
+        if (!await database.renewWriteLease(account, _owner, write.id) ||
+            _closed) {
+          await database.markWrite(account, _owner, write.id, 'queued');
+          return false;
+        }
         mutationStarted = true;
         final response = await client.rest(
           'POST',
@@ -227,6 +254,7 @@ final class DeckSync {
               'color',
             ])
               if (proposal.containsKey(key)) key: proposal[key],
+            'order': ?appendOrder,
           },
         );
         card = DeckCard.fromJson(object(response.data));
@@ -318,7 +346,8 @@ final class DeckSync {
           boardId: write.boardId,
           changes: proposal,
         );
-        if (_closed || !await database.acquireLease(account, _owner)) {
+        if (!await database.renewWriteLease(account, _owner, write.id) ||
+            _closed) {
           await database.markWrite(account, _owner, write.id, 'queued');
           return false;
         }
