@@ -205,12 +205,8 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
     await runBulkAction(
       context,
       _selection,
-      (cards) => archiveEach(
-        widget.session,
-        _board,
-        cards,
-        archive: !_showArchived,
-      ),
+      (cards) =>
+          archiveEach(widget.session, _board, cards, archive: !_showArchived),
     );
   }
 
@@ -298,7 +294,27 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
               ),
               onPressed: _bulkBusy ? null : _bulkArchive,
             ),
-          ] else
+          ] else ...[
+            for (final value in BoardViewMode.values)
+              if (value != mode)
+                IconButton(
+                  key: ValueKey(('board-view', value)),
+                  tooltip: value == BoardViewMode.columns
+                      ? text.boardColumns
+                      : text.boardList,
+                  icon: Icon(
+                    value == BoardViewMode.columns
+                        ? Icons.view_kanban_outlined
+                        : Icons.view_list_outlined,
+                  ),
+                  onPressed: () => unawaited(
+                    preferences.setBoardViewMode(
+                      session.account.id,
+                      _board.id,
+                      value,
+                    ),
+                  ),
+                ),
             BoardActions(
               session: session,
               board: _board,
@@ -339,6 +355,7 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
                 }
               },
             ),
+          ],
         ],
       ),
       bottomNavigationBar: canCreate
@@ -409,6 +426,7 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
                                     onChanged: (value) =>
                                         _setFilter(_filter.withQuery(value)),
                                     decoration: InputDecoration(
+                                      isDense: true,
                                       hintText: text.searchCards,
                                       prefixIcon: const Icon(Icons.search),
                                       suffixIcon: _query.text.isEmpty
@@ -435,52 +453,29 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
                               ],
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 2,
-                            ),
-                            child: Align(
-                              alignment: AlignmentDirectional.centerStart,
-                              child: Wrap(
-                                spacing: 8,
-                                crossAxisAlignment: WrapCrossAlignment.center,
-                                children: [
-                                  for (final value in BoardViewMode.values)
-                                    ChoiceChip(
-                                      key: ValueKey(('board-view', value)),
-                                      showCheckmark: false,
-                                      avatar: Icon(
-                                        value == BoardViewMode.columns
-                                            ? Icons.view_kanban_outlined
-                                            : Icons.view_list_outlined,
+                          if (_showArchived || _filter.active)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              child: Align(
+                                alignment: AlignmentDirectional.centerStart,
+                                child: Wrap(
+                                  spacing: 8,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  children: [
+                                    if (_showArchived) Text(text.archivedCards),
+                                    if (_filter.active)
+                                      TextButton.icon(
+                                        onPressed: () =>
+                                            _setFilter(const BoardCardFilter()),
+                                        icon: const Icon(Icons.close, size: 18),
+                                        label: Text(text.clearFilters),
                                       ),
-                                      label: Text(
-                                        value == BoardViewMode.columns
-                                            ? text.boardColumns
-                                            : text.boardList,
-                                      ),
-                                      selected: mode == value,
-                                      onSelected: (_) => unawaited(
-                                        preferences.setBoardViewMode(
-                                          session.account.id,
-                                          _board.id,
-                                          value,
-                                        ),
-                                      ),
-                                    ),
-                                  if (_showArchived) Text(text.archivedCards),
-                                  if (_filter.active)
-                                    TextButton.icon(
-                                      onPressed: () =>
-                                          _setFilter(const BoardCardFilter()),
-                                      icon: const Icon(Icons.close, size: 18),
-                                      label: Text(text.clearFilters),
-                                    ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
                           if (preferences.persistenceError)
                             Padding(
                               padding: const EdgeInsets.symmetric(
