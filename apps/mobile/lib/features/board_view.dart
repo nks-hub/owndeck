@@ -236,6 +236,10 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
               return Center(child: Text(text.storageError));
             }
             final columns = _visible(snapshot.data);
+            final scope = 'board:${widget.board.id}';
+            final emptyLoading = columns.isEmpty && session.loading(scope);
+            final emptyUnavailable =
+                columns.isEmpty && session.error(scope) != null;
             return LayoutBuilder(
               builder: (context, constraints) => Column(
                 children: [
@@ -248,7 +252,7 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
                         children: [
                           SyncNotice(
                             session: session,
-                            scope: 'board:${widget.board.id}',
+                            scope: scope,
                             retry: _refresh,
                             hasData: columns.isNotEmpty,
                           ),
@@ -370,7 +374,7 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
                     ),
                   ),
                   Expanded(
-                    child: !snapshot.hasData
+                    child: !snapshot.hasData || emptyLoading
                         ? const Center(child: CircularProgressIndicator())
                         : columns.isEmpty
                         ? Center(
@@ -379,7 +383,11 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text(text.noStacks),
+                                  Text(
+                                    emptyUnavailable
+                                        ? text.noSavedContent
+                                        : text.noStacks,
+                                  ),
                                   if (_board.permissions.manage &&
                                       !_board.archived)
                                     TextButton.icon(

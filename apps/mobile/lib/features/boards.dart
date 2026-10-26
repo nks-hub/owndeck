@@ -278,7 +278,12 @@ class _BoardsScreenState extends State<BoardsScreen> {
           if (snapshot.hasError) {
             return Center(child: Text(text.storageError));
           }
-          final boards = (snapshot.data ?? [])
+          final savedBoards = snapshot.data ?? <DeckBoard>[];
+          final filtering = _query.text.trim().isNotEmpty || _filter != 0;
+          final emptyLoading = savedBoards.isEmpty && session.loading('boards');
+          final emptyUnavailable =
+              savedBoards.isEmpty && session.error('boards') != null;
+          final boards = savedBoards
               .where(
                 (b) => b.title.toLowerCase().contains(
                   _query.text.trim().toLowerCase(),
@@ -345,10 +350,10 @@ class _BoardsScreenState extends State<BoardsScreen> {
                     session: session,
                     scope: 'boards',
                     retry: session.refreshBoards,
-                    hasData: boards.isNotEmpty,
+                    hasData: savedBoards.isNotEmpty,
                   ),
                 ),
-                if (!snapshot.hasData)
+                if (!snapshot.hasData || emptyLoading)
                   const SliverFillRemaining(
                     hasScrollBody: false,
                     child: Center(child: CircularProgressIndicator()),
@@ -365,17 +370,21 @@ class _BoardsScreenState extends State<BoardsScreen> {
                             child: Column(
                               children: [
                                 Text(
-                                  text.noBoards,
+                                  emptyUnavailable
+                                      ? text.noSavedContent
+                                      : filtering || savedBoards.isNotEmpty
+                                      ? text.noMatchingBoards
+                                      : text.noBoards,
                                   style: Theme.of(context).textTheme.titleLarge,
                                 ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  _query.text.isNotEmpty || _filter != 0
-                                      ? text.noMatchingBoards
-                                      : text.noBoardsHint,
-                                ),
+                                if (!emptyUnavailable &&
+                                    !filtering &&
+                                    savedBoards.isEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  Text(text.noBoardsHint),
+                                ],
                                 const SizedBox(height: 16),
-                                if (_query.text.isNotEmpty || _filter != 0)
+                                if (filtering)
                                   OutlinedButton(
                                     onPressed: () => setState(() {
                                       _query.clear();
