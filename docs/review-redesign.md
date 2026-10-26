@@ -1,6 +1,6 @@
 # OwnDeck: celkový review a redesign
 
-Zadání z 25. 10. 2026 požaduje kompletní rozbor, review, redesign, refaktor a E2E všech funkcí. Původně hlášené přesouvání je jeden ze scénářů, nikoli hranice práce. Výchozí zdroj je `1b370a0`; Google Play obsahuje starší `7d13eb6` ve verzi 0.1.0+2. Verzi, ze které uživatel hlásí problémy, zatím nemáme potvrzenou.
+Redesign z 25. 10. 2026 zahrnuje rozbor, review, refaktor a E2E všech funkcí včetně přesouvání. Výchozí zdroj je `1b370a0`; Google Play obsahuje starší `7d13eb6` ve verzi 0.1.0+2.
 
 ## Přijímací podmínky
 
@@ -29,7 +29,7 @@ Zadání z 25. 10. 2026 požaduje kompletní rozbor, review, redesign, refaktor 
 | Koncepty a konflikty | Chybí kontext, čas a význam rozhodnutí; běžný textový náhled skrývá rozdíly metadat. | Rozlišit skupiny, ukázat změněná pole i známá oprávnění a popsat důsledky voleb. |
 | Velké písmo | Pevná hlavička se může nevejít nad seznam v landscape a vytvořit přetečení. | Posouvatelná hlavička a rozložení podle skutečně dostupného prostoru i měřítka textu. |
 
-Seznam je pracovní. Zdrojový nález se nepovažuje za potvrzenou příčinu uživatelovy konkrétní chyby, dokud neodpovídá jeho verzi a reprodukci.
+Seznam je pracovní. Zdrojový nález se nepovažuje za potvrzenou příčinu konkrétní hlášené chyby, dokud neodpovídá dané verzi a reprodukci.
 
 Vyvrácený dílčí nález: náhled konceptu komentáře čte `description` správně, protože do tohoto pole ukládá text `saveCommentDraft`. Mění se jeho kontext a čitelnost, nikoli smlouva uložených dat.
 

@@ -57,7 +57,7 @@ Lokální databáze je chráněna sandboxem a šifrováním zařízení, není a
 
 Konfigurace Sentry DSN a Rybbit host/site ID se injektuje při sestavení. Admin tokeny a Sentry token pro upload symbolů patří pouze do CI secrets, nikdy do APK/IPA. Runtime ingest konfigurace je z distribuční binárky zjistitelná; nelze ji vydávat za utajený administrátorský klíč.
 
-Vlastní build bez konfigurace nepoužije SDK. Oficiální distribuční úloha vyžaduje kompletní konfiguraci obou služeb a ověří její přítomnost bez výpisu hodnot. Podle výslovného rozhodnutí uživatele jsou dostupné služby na čisté instalaci automaticky zapnuté; diagnostiku i statistiku lze samostatně vypnout a volba přežije restart. Nastavení výchozí chování vysvětlí. Selhání telemetrie nesmí blokovat start, přihlášení ani uložení karty.
+Vlastní build bez konfigurace nepoužije SDK. Oficiální distribuční úloha vyžaduje kompletní konfiguraci obou služeb a ověří její přítomnost bez výpisu hodnot. Dostupné služby jsou na čisté instalaci automaticky zapnuté; diagnostiku i statistiku lze samostatně vypnout a volba přežije restart. Nastavení výchozí chování vysvětlí. Selhání telemetrie nesmí blokovat start, přihlášení ani uložení karty.
 
 Sentry: bezpečný kód chyby, stack, verze/build, platforma; bez URL serveru, těl HTTP, názvů, účtů a příloh. Vypnout screenshoty, replay, automatické trasování HTTP a výchozí PII. Rybbit: pouze pevné názvy obrazovek a událostí; žádná ID karet, názvy ani vyhledávaný text. Vypnout jeho automatický sběr chyb, aby raw výjimky neobešly čištění v Sentry.
 

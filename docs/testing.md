@@ -1,10 +1,10 @@
 # Testovací plán
 
-Aktuální pokyn uživatele z 25. 10. 2026 obnovuje testy a požaduje kompletní E2E všech funkcí po celkovém review, redesignu a refaktoru. Níže uvedené výsledky zůstávají historickými důkazy konkrétních revizí; nově sloučený kód jimi není automaticky ověřený. Pokrytí musí sledovat všechny postupy z `docs/review-redesign.md`, včetně chybových stavů, a rozlišovat skutečný Nextcloud od místního testovacího serveru.
+Redesign vyžaduje kompletní E2E všech funkcí. Níže uvedené výsledky zůstávají historickými důkazy konkrétních revizí; nově sloučený kód jimi není automaticky ověřený. Pokrytí musí sledovat všechny postupy z `docs/review-redesign.md`, včetně chybových stavů, a rozlišovat skutečný Nextcloud od místního testovacího serveru.
 
-Podle upřesnění zadání se automatické testy smějí spouštět během vývoje pouze neblokujícím způsobem na pozadí. Nezávislé sady běží souběžně v izolovaném pracovním stromu s přesnou revizí. Hlavní pracovní strom se během testů může měnit. Každý proces má uložené ID, log a konečný návratový kód; samotné spuštění není výsledek.
+Automatické testy během vývoje běží neblokujícím způsobem na pozadí. Nezávislé sady běží souběžně v izolovaném pracovním stromu s přesnou revizí. Hlavní pracovní strom se během testů může měnit. Každý proces má uložené ID, log a konečný návratový kód; samotné spuštění není výsledek.
 
-Podle dalšího upřesnění zadání jsou také fyzické S9/S21 součástí průběžných testů na pozadí, nikoli až krokem po vývoji. Každý telefon má vlastní proces a kandidáta z odděleného pracovního stromu. Stejné zařízení nesmějí řídit dva procesy současně. Během implementace probíhá statická kontrola typů a stylu; ta neprokazuje funkčnost na serveru ani zařízení.
+Fyzické S9/S21 jsou součástí průběžných testů na pozadí. Každý telefon má vlastní proces a kandidáta z odděleného pracovního stromu. Stejné zařízení nesmějí řídit dva procesy současně. Během implementace probíhá statická kontrola typů a stylu; ta neprokazuje funkčnost na serveru ani zařízení.
 
 ## Průběžné automatické ověření
 
@@ -16,7 +16,7 @@ První průběžný běh na izolované revizi `95b19ed4f1a500ff512d4c57fe77b4276
 - Databáze: transakční zápis konceptu a fronty, migrace, plný disk, restart během `sending`, mapování lokálního ID na remote ID.
 - Synchronizace: offline editace, souběžná změna stejného pole, nezávislá pole, vymazaná karta/sloupec, odebrané právo, změna účtu, nejistý POST a žádné automatické vytvoření duplikátu.
 - UI: prázdný a načtený stav, chyba s obnovou, velké písmo, čtečka, seznam/nástěnka, přesun bez tažení, přidání komentáře a přílohy, odebrání účtu s neodeslanou prací.
-- Telemetrie: bez konfigurace nulový síťový provoz SDK; nakonfigurované služby na čisté instalaci automaticky zapnuté podle rozhodnutí uživatele; oddělené vypnutí, zachování volby po restartu, vyprázdnění fronty, výpadek endpointu a redakce citlivých polí.
+- Telemetrie: bez konfigurace nulový síťový provoz SDK; nakonfigurované služby na čisté instalaci automaticky zapnuté podle konfigurace vydavatele; oddělené vypnutí, zachování volby po restartu, vyprázdnění fronty, výpadek endpointu a redakce citlivých polí.
 - Build: kontrola applicationId/bundle ID/verze, debug bez podpisových tajemství, oficiální konfigurace přes CI a absence admin tokenů v balíčku.
 
 ## Integrace s reálným Nextcloudem
@@ -47,11 +47,11 @@ Testované kombinace verzí se doplní podle dostupného prostředí. Jedna zele
 |---|---|---|
 | Samsung Galaxy S9+ | Android 10: kandidát `9134c05`, start a HTTPS validace prošly | Instalace, přihlášení, čtení, všechny hlavní zápisy, offline/restart, velká nástěnka, klávesnice, TalkBack, telemetrie. |
 | Samsung Galaxy S21 | Android 15: kandidát `79c1be8`, nové přihlášení a HTTPS validace prošly | Totéž, přepnutí sítě, návrat z prohlížeče, systémové Zpět, soubory a oprávnění aktuálního OS. |
-| iOS simulátor na macOS | Uživatel výslovně zvolil simulátor; konkrétní model a runtime zaznamenat při rezervaci Macu | Systémový prohlížeč, Keychain, návrat gestem, výběr přílohy, přístupnost, životní cyklus a telemetrie; omezení simulátoru přiznat. |
+| iOS simulátor na macOS | Konkrétní model a runtime zaznamenat při přípravě prostředí | Systémový prohlížeč, Keychain, návrat gestem, výběr přílohy, přístupnost, životní cyklus a telemetrie; omezení simulátoru přiznat. |
 
 Před testem zapsat skutečný model, verzi OS, revizi, verzi balíčku a SHA-256 artefaktu. Pro každou hlavní akci ověřit výsledek v aplikaci i na serveru. U výkonu zaznamenat nejméně 5 studených startů a 30 s scrollování po zahřátí; měřit v profile/release režimu, ne debug.
 
-Oprava po fyzickém testu vytváří nového kandidáta. Znovu ověřit opravený scénář a související regresi na dotčených zařízeních; staré výsledky nepřenášet automaticky. Podle upřesnění uživatele se iOS ověří v simulátoru na macOS; výsledek neoznačovat za fyzický test iPhonu.
+Oprava po fyzickém testu vytváří nového kandidáta. Znovu ověřit opravený scénář a související regresi na dotčených zařízeních; staré výsledky nepřenášet automaticky. iOS se ověřuje v simulátoru na macOS; výsledek neoznačovat za fyzický test iPhonu.
 
 ## Záznam důkazu
 

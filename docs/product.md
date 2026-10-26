@@ -34,7 +34,7 @@ Oznámení: přehled oznámení a otevření karty přes ověřený odkaz. Push 
 
 Použít rodinné rysy OwnTalk/OwnNotes: jednoduchý horní pruh, jasný přepínač účtu, světlý/tmavý režim, čitelná typografie. Hlavní navigace má tři cíle: Nástěnky, Moje úkoly, Nastavení. Hledání je akce dostupná v nástěnkách i vlastních úkolech. Detail karty je samostatná obrazovka, aby klávesnice ponechala místo pro delší popis.
 
-Přihlašovací obrazovka má podle upřesnění zadání odpovídat aktuálnímu OwnTalku texty, ikonami, rozložením i chováním. Stejný vzor platí pro OwnNotes. Shodu ověřit také pro čekání na prohlížeč, QR přihlášení, zrušení a chybové stavy; specifická dostupnost aplikace Deck/Notes na serveru se kontroluje samostatně.
+Přihlašovací obrazovka má odpovídat aktuálnímu OwnTalku texty, ikonami, rozložením i chováním. Stejný vzor platí pro OwnNotes. Shodu ověřit také pro čekání na prohlížeč, QR přihlášení, zrušení a chybové stavy; specifická dostupnost aplikace Deck/Notes na serveru se kontroluje samostatně.
 
 Na šířce pod 600 logických bodů zobrazit jeden sloupec s jasným názvem a počtem karet, sousední sloupec naznačit jen pokud zbývá místo. Nad 600 použít více sloupců nebo seznam/detail. Přepínač pohledu uchová volbu pro nástěnku. Identita položky musí být stabilní při přesunu, nikoli její index v seznamu.
 

@@ -1,7 +1,7 @@
 # Identita a verze
 
 - Název aplikace: OwnDeck.
-- Soukromý GitHub repozitář: `nks-hub/owndeck`.
+- GitHub repozitář: `nks-hub/owndeck`.
 - Android applicationId a namespace: `com.nkshub.nextclouddeck`.
 - iOS bundle identifier: `com.nkshub.nextclouddeck`.
 - Dart název aplikace: `nextclouddeck`.

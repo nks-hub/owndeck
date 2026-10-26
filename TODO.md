@@ -12,7 +12,7 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] B05 Opraven kolizní zápis karty přesunuté jiným klientem mezi nástěnkami i návrat staršího snímku; `f95b78d`, šest reprodukcí před opravou selhalo, po opravě 129 store testů prošlo. E2E patří do R06.
 - [x] B06 Čtení nástěnky z odkazů sjednoceno v `fa63597`; board 403/404/noREAD vyřadí cache, card 403 ostatní nástěnku nemaže. Pět protokolových a 29 mobilních testů prošlo; skutečný E2E zůstává v R06.
 - [x] B07 Přijaté přílohy při následném odstranění nebo přesunu nezablokují frontu a neodesílají další POST; převzato z `cb8b786`, 137 store a 29 mobilních testů prošlo. E2E zůstává v R06.
-- [x] B08 Uživatel potvrdil automatické zapnutí dostupných telemetrií a samostatné vypnutí; výchozí chování zachováno, návrh opraven. Nastavení jej vysvětlí, E17 ověří výchozí stav i vypnutí.
+- [x] B08 Nakonfigurované telemetrie jsou na čisté instalaci zapnuté a lze je samostatně vypnout. Nastavení jej vysvětlí, E17 ověří výchozí stav i vypnutí.
 - [x] B09 Zastaralá fixture testu obnovy fronty doplněna o skutečný tvar readbacku karty/sloupce v `2251930`; cílený test a analyzer prošly, nejde o opravu produkce.
 - [x] B10 Řazení sloupců používá trvalé OCS reorder a převod starých operací (`b54d406`); pořadí pokrývají store testy. Skutečné UI a server zůstávají v R06.
 - [x] B11 Rychlé přidání při zániku výslovného cíle nevymění sloupec; reprodukce před opravou selhala, po opravě prošla v sedmi scénářích rychlého přidání (`1a58735`).
@@ -64,10 +64,10 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 
 ## Původní plán a průběžné důkazy
 
-- [x] P01 Soukromý `nks-hub/owndeck` založen a ověřen přes GitHub API; vydávaná verze je `0.1.0+2`, tag `v0.1.0+2`, pravidla v `docs/versioning.md`.
+- [x] P01 Repozitář `nks-hub/owndeck` založen a ověřen přes GitHub API; vydávaná verze je `0.1.0+2`, tag `v0.1.0+2`, pravidla v `docs/versioning.md`.
 
 - [x] P00 Ověřit výchozí stav a vytvořit plán před zahájením vývoje.
-- [x] A01 Projit aktuální kód OwnTalk/OwnNotes i MCP Memory; konkrétní soubory a revize v `docs/reuse.md`.
+- [x] A01 Projít aktuální kód OwnTalk/OwnNotes; konkrétní soubory a revize v `docs/reuse.md`.
 - [x] A02 Porovnáno 7 produktů podle primárních zdrojů; závěry a meze ověření v `docs/competition.md`.
 - [x] A03 Zdrojová analýza Deck v1.19.1: 86 verzovaných rout, parametry a průběžně doplňované nálezy v `docs/nextcloud-api.md` a `docs/api-inventory.md`; runtime důkaz patří do T02.
 - [x] A04 Mapa klientských rodin Nextcloud a jejich použití/hranice pro Deck je v `docs/nextcloud-api.md`.
@@ -101,7 +101,7 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] D09 České/anglické texty, srozumitelné chyby, společné přihlášení, vlastní launcher ikony a hlavní přístupnost zapojené; 200% text a malá výška ověřené testy, landscape editor i Cancel fyzicky na S9 v `ba364e0`. Formální TalkBack/VoiceOver audit se netvrdí.
 - [x] D10 Kopie karet, směrované vazby, hotový sloupec a přehled oznámení hotové a ověřené i na Decku 1.18.5. Vazby neblokují dokončení karty. OS push není zapnutý; chybí ověřený mobilní push kanál pro Deck.
 - [x] D11 Nastavení vzhledu, jazyka, verze a účtů doplněno v `781dbb0`, třetí navigační cíl v `6c3eeb3`; test ověřil zachování navigace, rozepsaného textu a filtru při změně jazyka/tématu.
-- [x] D12 Seznam/sloupce, uchování pohledu, široké rozložení a tažení mezi sloupci sloučené v `93ab150`; před odložením testů prošlo 12 cílených a 22 navazujících scénářů agentovy revize.
+- [x] D12 Seznam/sloupce, uchování pohledu, široké rozložení a tažení mezi sloupci sloučené v `93ab150`; 12 cílených a 22 navazujících scénářů prošlo pro samostatnou revizi změny.
 - [x] D13 Kopie nástěnky přes trvalou frontu a serverový import jsou zapojené v `4fc690b`, `708defd`, `2cbef2a`; 122 databázových a 9 cílených UI scénářů prošlo, skutečný Deck 1.19.1 ověřil šest voleb API. Průběžný test zařízení patří do T03.
 - [x] D15 Přehled konfliktů v `c5ac925` zobrazuje místní a serverový termín, začátek, barvu a dokončení; rozlišuje vymazanou a chybějící hodnotu. Kód posouzen čtením; nové testy jsou odložené v T01.
 - [x] D14 Oznámení otevírají ověřené karty nativně se stejným účtem; ostatní odkazy zůstávají v prohlížeči. Šest widget testů a analyzer prošly včetně skutečného načtení karty a nulového volání externího prohlížeče.
@@ -109,12 +109,12 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] B02 Přijaté zápisy se už neopakují ani nezaseknou po cizím přesunu; aktuální sloupec/nástěnka se ověřují, 403/404 nevracejí cache. `77cea35` + `ca8c723` + `41b25b3`, 107 databázových testů a analyzer prošly.
 - [x] B03 Známá ztráta přístupu čistí serverovou cache i stažené soubory, blokuje zápisy a zachovává vlastní koncepty/staging. Ověřeno 28 mobilními testy, databázovou sadou a skutečným odebráním sdílení na jednom serveru.
 - [x] B04 Hranice startdate/color opravena na Deck 1.18 v `b9c6903`; 108 protokolových testů prošlo a skutečný Deck 1.18.5 potvrdil vytvoření, změnu i vymazání obou polí se zachováním ostatních hodnot.
-- [ ] T01 Testy obnovené novým pokynem uživatele: ověřit společnou finální revizi; dílčí historické výsledky nepokrývají celý nový strom.
+- [ ] T01 Ověřit společnou finální revizi; dílčí historické výsledky nepokrývají celý nový strom.
 - [ ] T02 Ověřit finální revizi proti skutečnému Nextcloudu, oba buildy a doručení telemetrie.
 - [x] T02b Dva vlastní izolované účty na stejném serveru: READ a EDIT omezení i odebrání sdílení ověřené; skutečný DeckSync vyřadil cache bez mutace a zachoval čekající texty. Celkem 12 scénářů včetně rozšířených polí a úklidu API.
 - [ ] T03 Kompletní E2E na S9/S21 a iOS simulátoru obnovené; kandidát `2cbef2a` má jen dílčí historické ověření proti místnímu testovacímu serveru. Finální redesign tím není ověřený.
 
-Aktuální zadání: uživatel požaduje kompletní analýzu, review, redesign, refaktor a E2E všech funkcí včetně praktického zapracování konkurence. Toto nahrazuje předchozí odložení testů. Probíhá paralelní review datové vrstvy, UI a příprava E2E; staré dokončené implementační body nejsou důkazem přijatelnosti finálního produktu. Google Play zatím obsahuje 0.1.0+2.
+Aktuální rozsah zahrnuje analýzu, review, redesign, refaktor a E2E všech funkcí včetně praktického zapracování konkurenční analýzy. Probíhá paralelní review datové vrstvy, UI a příprava E2E; staré dokončené implementační body nejsou důkazem přijatelnosti finálního produktu. Google Play zatím obsahuje 0.1.0+2.
 
 - [x] N01 Související práce na OwnNotes je dokončená; přesný rozsah a důkazy jsou v jeho vlastním TODO.
 

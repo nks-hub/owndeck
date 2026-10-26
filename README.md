@@ -1,7 +1,7 @@
 # OwnDeck
 
 [![CI](https://github.com/nks-hub/owndeck/actions/workflows/ci.yml/badge.svg)](https://github.com/nks-hub/owndeck/actions/workflows/ci.yml)
-![Version](https://img.shields.io/badge/version-0.1.0--dev-blue)
+[![Source version](https://img.shields.io/badge/source-0.1.1%2B3-blue)](VERSION)
 ![Flutter](https://img.shields.io/badge/Flutter-3.44.4-blue)
 ![Platforms](https://img.shields.io/badge/platforms-Android%20%7C%20iOS-green)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -39,13 +39,11 @@ flutter pub get
 flutter run
 ```
 
-Repository access is currently restricted while development is in progress.
-
 These commands start a development build. Distribution signing and store publishing are separate steps.
 
 ## Configuration
 
-The application version is recorded in `VERSION`. Ordinary builds do not initialize Sentry or Rybbit. Publisher CI requires the repository secrets `SENTRY_DSN`, `RYBBIT_HOST` and `RYBBIT_SITE_ID`, and generates an ignored `telemetry.json` file for the build. Each service can be disabled in the app. Native crash, hang, replay and automatic session collection are disabled.
+The application version is recorded in `VERSION`. Builds without telemetry configuration do not initialize Sentry or Rybbit. Publisher CI requires the repository secrets `SENTRY_DSN`, `RYBBIT_HOST` and `RYBBIT_SITE_ID`, and generates an ignored `telemetry.json` file for the build. Configured services are enabled on a fresh installation; each can be disabled separately in the app. Native crash, hang, replay and automatic session collection are disabled.
 
 Credentials, signing files, local environments, and runtime logs must stay outside Git. Runtime ingestion configuration is readable from an application binary; administrative service tokens must never be bundled.
 
@@ -63,7 +61,7 @@ python tool/inventory_deck_api.py
 
 ## Contributing
 
-1. Fork the repository when access is available.
+1. Fork the repository.
 2. Create a branch for one change.
 3. Commit the change with a message such as `feat: add board filtering`.
 4. Push your branch.

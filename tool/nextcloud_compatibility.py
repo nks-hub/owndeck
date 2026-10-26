@@ -43,8 +43,9 @@ def command(arguments, phase, *, stdin=None, timeout=120):
 def paths():
     if (os.name != "posix" or os.environ.get("GITHUB_ACTIONS") != "true"
             or os.environ.get("COMPAT_RUNNER_ENV") != "github-hosted"
+            or os.environ.get("GITHUB_EVENT_NAME") != "workflow_dispatch"
             or os.environ.get("GITHUB_REPOSITORY") != "nks-hub/owndeck"):
-        raise RuntimeError("github_hosted_private_project_required")
+        raise RuntimeError("github_hosted_manual_project_run_required")
     run = os.environ["GITHUB_RUN_ID"] + "-" + os.environ["GITHUB_RUN_ATTEMPT"]
     if not re.fullmatch(r"\d+-\d+", run):
         raise RuntimeError("invalid_run_identity")

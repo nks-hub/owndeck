@@ -11,7 +11,7 @@ Kontrola zdrojů 24. 10. 2026. Tabulka popisuje vhodné komponenty rodiny Own ap
 | Fronta a obnova | OwnNotes `packages/notes_store/lib/src/sync.dart`, `recovery.dart` | Převzít frontu s trvalým stavem a zámkem účtu. Zápis s nejasným výsledkem po restartu automaticky neopakovat. |
 | Telemetrie | OwnTalk `apps/mobile/lib/core/telemetry.dart`, `telemetry_bootstrap.dart` | Převzít konfiguraci sestavení, oddělení SDK, čištění událostí a bezpečné názvy obrazovek. Přidat samostatná uživatelská nastavení a ověřit chování při selhání inicializace. |
 | Vzhled | OwnTalk `apps/mobile/lib/core/app_theme.dart` | Využít Material 3, světlé/tmavé plochy a dotykové cíle. Zmenšit dekorativní zaoblení karet pro hustší seznam práce. |
-| Automatické testy | OwnNotes `packages/notes_protocol/test/login_test.dart`, mobilní testy účtů a telemetrie | Převzít scénáře a testovací přístupy, upravit očekávání pro Deck. Testy spouštět průběžně na pozadí v odděleném worktree podle aktuálního zadání. |
+| Automatické testy | OwnNotes `packages/notes_protocol/test/login_test.dart`, mobilní testy účtů a telemetrie | Převzít scénáře a testovací přístupy, upravit očekávání pro Deck. Testy spouštět průběžně na pozadí v odděleném worktree. |
 | Buildy | OwnNotes `.flutter-version`, Android/iOS konfigurace | Stejný tvar identifikátoru a verze. Nepřebírat jejich podpisové soubory, Firebase identitu ani store aplikaci. |
 
 Obě aplikace používají monorepo `apps/mobile` a `packages`. OwnDeck zachová tento tvar: `deck_protocol` pro HTTP a modely, `deck_store` pro data a frontu, `apps/mobile` pro UI a systémové integrace. Riverpod odpovídá aktuálnímu OwnNotes. Kopírování celého Talku by přineslo nepotřebné WebRTC, hovory a desktopové části.
