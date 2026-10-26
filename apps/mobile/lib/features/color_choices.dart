@@ -110,7 +110,8 @@ Future<String?> showColorPicker(BuildContext context, {String? initial}) =>
       builder: (_) => ColorPickerDialog(initial: initial),
     );
 
-/// Preset swatches as quick picks plus a chip that opens the custom picker.
+/// Round preset swatches as quick picks, a rainbow swatch that opens the custom
+/// picker, and a caption naming the current choice.
 class ColorChoices extends StatelessWidget {
   const ColorChoices({
     super.key,
@@ -125,67 +126,148 @@ class ColorChoices extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     final normalized = normalizeColorHex(value);
     final isPreset = deckPalette.values.contains(normalized);
     final isCustom = normalized.isNotEmpty && !isPreset;
-    Widget swatch(Color color) => Container(
-      width: 20,
-      height: 20,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-        border: Border.all(color: Theme.of(context).colorScheme.outline),
-      ),
-    );
-    Widget choice(String? hex, String name) {
-      final rgb = hex == null ? null : colorFromHex(hex);
-      return ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 48),
-        child: ChoiceChip(
-          selected: hex == null ? normalized.isEmpty : normalized == hex,
-          materialTapTargetSize: MaterialTapTargetSize.padded,
-          label: Text(name),
-          avatar: rgb == null
-              ? const Icon(Icons.format_color_reset, size: 20)
-              : swatch(rgb),
-          onSelected: onChanged == null ? null : (_) => onChanged!(hex),
-        ),
+    final customColor = isCustom ? colorFromHex(normalized) : null;
+
+    Future<void> pickCustom() async {
+      final picked = await showColorPicker(
+        context,
+        initial: isCustom ? normalized : null,
       );
+      if (picked != null) onChanged!(picked);
     }
 
-    final customColor = isCustom ? colorFromHex(normalized) : null;
-    return Wrap(
-      spacing: 8,
-      runSpacing: 4,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        if (allowNone) choice(null, text.colorDefault),
-        for (final entry in deckPalette.entries)
-          choice(entry.value, _paletteName(entry.key, text)),
-        ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 48),
-          child: ChoiceChip(
-            selected: isCustom,
-            materialTapTargetSize: MaterialTapTargetSize.padded,
-            label: Text(
-              customColor == null
-                  ? text.colorPickCustom
-                  : text.colorCustomNamed(describeColor(customColor, text)),
+        Wrap(
+          spacing: 4,
+          runSpacing: 4,
+          children: [
+            if (allowNone)
+              _Swatch(
+                name: text.colorDefault,
+                selected: normalized.isEmpty,
+                onTap: onChanged == null ? null : () => onChanged!(null),
+                child: Icon(
+                  Icons.format_color_reset,
+                  size: 20,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            for (final entry in deckPalette.entries)
+              _Swatch(
+                name: _paletteName(entry.key, text),
+                color: colorFromHex(entry.value),
+                selected: normalized == entry.value,
+                onTap: onChanged == null ? null : () => onChanged!(entry.value),
+              ),
+            if (customColor != null)
+              _Swatch(
+                name: text.colorCustomNamed(describeColor(customColor, text)),
+                color: customColor,
+                selected: true,
+                onTap: onChanged == null ? null : pickCustom,
+              ),
+            _Swatch(
+              name: text.colorPickCustom,
+              rainbow: true,
+              selected: false,
+              onTap: onChanged == null ? null : pickCustom,
+              child: const Icon(Icons.add, size: 20, color: Colors.white),
             ),
-            avatar: customColor == null
-                ? const Icon(Icons.palette_outlined, size: 20)
-                : swatch(customColor),
-            onSelected: onChanged == null
-                ? null
-                : (_) async {
-                    final picked = await showColorPicker(
-                      context,
-                      initial: isCustom ? normalized : null,
-                    );
-                    if (picked != null) onChanged!(picked);
-                  },
+          ],
+        ),
+        if (normalized.isNotEmpty || allowNone)
+          Padding(
+            padding: const EdgeInsets.only(left: 4, top: 2),
+            child: ExcludeSemantics(
+              child: Text(
+                colorName(normalized, text),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _Swatch extends StatelessWidget {
+  const _Swatch({
+    required this.name,
+    required this.selected,
+    required this.onTap,
+    this.color,
+    this.rainbow = false,
+    this.child,
+  });
+  final String name;
+  final bool selected;
+  final VoidCallback? onTap;
+  final Color? color;
+  final bool rainbow;
+  final Widget? child;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final fill = color;
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: name,
+      excludeSemantics: true,
+      child: Tooltip(
+        message: name,
+        child: InkResponse(
+          onTap: onTap,
+          radius: 24,
+          child: SizedBox.square(
+            dimension: 48,
+            child: Center(
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: fill ?? scheme.surfaceContainerHigh,
+                  gradient: rainbow
+                      ? const SweepGradient(
+                          colors: [
+                            Color(0xffe53935),
+                            Color(0xfffdd835),
+                            Color(0xff43a047),
+                            Color(0xff1e88e5),
+                            Color(0xff8e24aa),
+                            Color(0xffe53935),
+                          ],
+                        )
+                      : null,
+                  border: Border.all(
+                    color: selected ? scheme.onSurface : scheme.outlineVariant,
+                    width: selected ? 3 : 1,
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: selected && fill != null
+                    ? Icon(
+                        Icons.check,
+                        size: 20,
+                        color: readableForeground(fill),
+                      )
+                    : child,
+              ),
+            ),
           ),
         ),
-      ],
+      ),
     );
   }
 }

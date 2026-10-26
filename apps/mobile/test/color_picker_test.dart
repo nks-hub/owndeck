@@ -43,7 +43,7 @@ void main() {
   }
 
   Future<void> openPicker(WidgetTester tester) async {
-    await tester.tap(find.textContaining('Custom color').first);
+    await tester.tap(find.byTooltip('Custom color…'));
     await tester.pumpAndSettle();
   }
 
@@ -62,16 +62,17 @@ void main() {
     tester,
   ) async {
     await open(tester);
-    await tester.tap(find.text('Blue'));
+    await tester.tap(find.byTooltip('Blue'));
     expect(picked, '2563eb');
   });
 
   testWidgets('no color is offered only when allowed', (tester) async {
     await open(tester, value: '2563eb');
-    await tester.tap(find.text('No custom color'));
+    await tester.tap(find.byTooltip('No custom color'));
     expect(picked, isNull);
     await open(tester, allowNone: false);
     expect(find.text('No custom color'), findsNothing);
+    expect(find.byTooltip('No custom color'), findsNothing);
   });
 
   testWidgets('hue slider works with the keyboard and exposes a value', (
@@ -193,8 +194,8 @@ void main() {
         addTearDown(tester.view.resetPhysicalSize);
         addTearDown(tester.view.resetDevicePixelRatio);
         await open(tester, locale: 'cs', scale: 2, brightness: brightness);
-        await tester.ensureVisible(find.textContaining('Vlastní barva').first);
-        await tester.tap(find.textContaining('Vlastní barva').first);
+        await tester.ensureVisible(find.byTooltip('Vlastní barva…'));
+        await tester.tap(find.byTooltip('Vlastní barva…'));
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
         expect(find.text('Zrušit').hitTestable(), findsOneWidget);

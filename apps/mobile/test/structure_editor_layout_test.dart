@@ -89,7 +89,7 @@ void main() {
           await tester.enterText(fields.first, 'Board');
           await tester.pumpAndSettle();
           expect(fields, findsOneWidget);
-          final color = find.widgetWithText(ChoiceChip, 'Modrá');
+          final color = find.byTooltip('Modrá');
           await tester.ensureVisible(color);
           await tester.pumpAndSettle();
           expect(color.hitTestable(), findsOneWidget);

@@ -188,13 +188,13 @@ void main() {
         await tester.tap(find.text('Open form'));
         await settleBoard(tester);
         await tester.scrollUntilVisible(
-          find.textContaining('Custom color'),
+          find.byTooltip('Custom color…'),
           200,
           scrollable: find.byType(Scrollable).first,
         );
         noVisibleHex();
-        await tester.ensureVisible(find.text('Blue'));
-        await tester.tap(find.text('Blue'));
+        await tester.ensureVisible(find.byTooltip('Blue'));
+        await tester.tap(find.byTooltip('Blue'));
         await tester.tap(find.text('Save'));
         await settleBoard(tester);
         final write = (await boardModel(
@@ -212,7 +212,7 @@ void main() {
   );
 
   Future<void> pickCustomHex(WidgetTester tester, String hex) async {
-    final chip = find.textContaining('Custom color');
+    final chip = find.byTooltip('Custom color…');
     if (chip.evaluate().isEmpty) {
       await tester.scrollUntilVisible(
         chip,
@@ -336,8 +336,8 @@ void main() {
           await settleBoard(tester);
           expect(find.textContaining('Custom color'), findsOneWidget);
           noVisibleHex();
-          await tester.ensureVisible(find.text('Purple'));
-          await tester.tap(find.text('Purple'));
+          await tester.ensureVisible(find.byTooltip('Purple'));
+          await tester.tap(find.byTooltip('Purple'));
           await tester.enterText(field('Name'), 'Renamed');
           await tester.tap(find.text('Save'));
           await settleBoard(tester);
