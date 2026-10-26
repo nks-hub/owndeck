@@ -26,6 +26,10 @@ jobs:
           cache: true
       - run: dart pub get --enforce-lockfile
         working-directory: packages/deck_protocol
+      - run: dart pub get --enforce-lockfile
+        working-directory: packages/deck_store
+      - run: dart analyze --fatal-infos tool/nextcloud_transfer_compatibility.dart
+        working-directory: packages/deck_store
       - name: Start pinned isolated server
         env:
           COMPAT_RUNNER_ENV: ${{ runner.environment }}
@@ -33,6 +37,11 @@ jobs:
       - name: Verify clone options and shared-board permissions
         run: dart run tool/nextcloud_compatibility.dart "$COMPAT_CONFIG" "$COMPAT_REPORT" clone
         working-directory: packages/deck_protocol
+      - name: Verify durable cross-board transfers and preserved attachments
+        env:
+          COMPAT_RUNNER_ENV: ${{ runner.environment }}
+        run: dart run tool/nextcloud_transfer_compatibility.dart "$COMPAT_CONFIG" "$COMPAT_REPORT" "$GITHUB_SHA"
+        working-directory: packages/deck_store
       - name: Restrict board creation inside the fixture
         env:
           COMPAT_RUNNER_ENV: ${{ runner.environment }}

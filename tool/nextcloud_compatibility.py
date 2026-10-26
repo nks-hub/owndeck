@@ -215,7 +215,7 @@ def prepare(run, private, report):
         password = mask(secrets.token_urlsafe(36))
         occ(container, ["user:add", "--no-interaction", "--password-from-env",
                         "--display-name=Compatibility " + role, uid], password=password)
-        occ(container, ["user:setting", uid, "files", "quota", "50 MB"])
+        occ(container, ["user:setting", uid, "files", "quota", "200 MB"])
         user_info = json.loads(occ(container, ["user:info", uid, "--output=json"]))
         if "admin" in user_info["groups"]:
             raise RuntimeError("test_actor_is_admin")
