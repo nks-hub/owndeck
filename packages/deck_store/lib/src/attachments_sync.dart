@@ -5,22 +5,12 @@ extension _AttachmentSync on DeckSync {
     var mutationStarted = false;
     try {
       final proposal = object(jsonDecode(write.proposal));
-      final card = DeckCard.fromJson(
-        object(
-          (await client.rest('GET', [
-            'boards',
-            '${write.boardId}',
-            'stacks',
-            '${write.stackId}',
-            'cards',
-            '${write.cardId}',
-          ])).data,
-        ),
+      final context = await _readCurrentCardContext(
+        write.boardId,
+        write.stackId,
+        write.cardId!,
       );
-      if (card.id != write.cardId ||
-          card.stackId != write.stackId ||
-          card.raw['archived'] == true ||
-          (card.raw['deletedAt'] as int? ?? 0) != 0) {
+      if (context.board.id != write.boardId || context.card.archived) {
         await database.markWrite(
           account,
           _owner,
@@ -30,6 +20,7 @@ extension _AttachmentSync on DeckSync {
         );
         return true;
       }
+      final stackId = context.stack.id;
       AttachmentUploadSource? source;
       DeckAttachment? current;
       if (write.kind == 'uploadAttachment') {
@@ -39,7 +30,7 @@ extension _AttachmentSync on DeckSync {
       } else if (write.kind != 'linkAttachment') {
         final items = await client.attachments(
           write.boardId,
-          write.stackId,
+          stackId,
           write.cardId!,
         );
         current = items
@@ -97,6 +88,7 @@ extension _AttachmentSync on DeckSync {
         return false;
       }
       if (!await database.acquireLease(account, _owner)) {
+        await database.requeueUnsent(account.id, write.id);
         return false;
       }
       mutationStarted = true;
@@ -104,7 +96,7 @@ extension _AttachmentSync on DeckSync {
       if (write.kind == 'uploadAttachment') {
         final item = await client.uploadAttachment(
           write.boardId,
-          write.stackId,
+          stackId,
           write.cardId!,
           filename: source!.filename,
           mime: source.mime,
@@ -121,19 +113,24 @@ extension _AttachmentSync on DeckSync {
         receipt = {'attachmentId': id, 'type': 'file'};
       } else {
         if (write.kind == 'deleteAttachment') {
-          await client.removeAttachment(write.boardId, write.stackId, current!);
+          await client.removeAttachment(write.boardId, stackId, current!);
         } else {
-          await client.restoreAttachment(
-            write.boardId,
-            write.stackId,
-            current!,
-          );
+          await client.restoreAttachment(write.boardId, stackId, current!);
         }
         receipt = {'attachmentId': current.id, 'type': current.type};
       }
       await database.markApplied(account, _owner, write, receipt);
       await _finishAttachment(
         write.copyWith(remote: Value(jsonEncode(receipt))),
+      );
+      return true;
+    } on _CardContextUnavailable catch (error) {
+      await database.markWrite(
+        account,
+        _owner,
+        write.id,
+        'blocked',
+        error: error.code,
       );
       return true;
     } on DeckException catch (error) {

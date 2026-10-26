@@ -156,6 +156,21 @@ extension _ObservedCardLocations on DeckDatabase {
       final cardWrite =
           !attachmentKinds.contains(write.kind) &&
           !write.kind.endsWith('Comment');
+      // Only the location is stale; the send path re-reads the card anyway.
+      if (!cardWrite ||
+          write.kind == 'updateCard' &&
+              write.state == 'queued' &&
+              previous.boardId == boardId) {
+        await (update(
+          pendingWrites,
+        )..where((row) => row.id.equals(write.id))).write(
+          PendingWritesCompanion(
+            boardId: cardWrite ? const Value.absent() : Value(boardId),
+            stackId: Value(card.stackId),
+          ),
+        );
+        continue;
+      }
       await (update(
         pendingWrites,
       )..where((row) => row.id.equals(write.id))).write(

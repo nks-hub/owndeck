@@ -33,13 +33,15 @@ extension _CardMoveSync on DeckSync {
       if (latest == null ||
           latest.card.archived ||
           (latest.card.raw['deletedAt'] ?? 0) != 0) {
-        return database.blockUnavailableCardWrite(
+        final blocked = await database.blockUnavailableCardWrite(
           account,
           _owner,
           write,
           epoch,
           'not_found',
         );
+        if (!blocked) await database.requeueUnsent(account.id, write.id);
+        return blocked;
       }
       final target = stacks
           .where(
