@@ -11,6 +11,29 @@ import '../l10n/app_localizations.dart';
 import 'color_choices.dart';
 import 'state_message.dart';
 
+enum QuickDue { today, tomorrow, nextWeek, none }
+
+/// Resolves a quick due-date choice against [now] in the device time zone.
+///
+/// The day is added on the calendar, never as a 24 hour duration, so a DST
+/// change cannot move the date. The time of [current] is kept, else it is noon.
+DateTime? quickDueDate(QuickDue choice, DateTime now, {DateTime? current}) {
+  final days = switch (choice) {
+    QuickDue.today => 0,
+    QuickDue.tomorrow => 1,
+    QuickDue.nextWeek => 7,
+    QuickDue.none => null,
+  };
+  if (days == null) return null;
+  return DateTime(
+    now.year,
+    now.month,
+    now.day + days,
+    current?.hour ?? 12,
+    current?.minute ?? 0,
+  );
+}
+
 Future<void> editCard(
   BuildContext context,
   DeckSession session,
@@ -39,7 +62,9 @@ class CardEditor extends StatefulWidget {
     required this.stackId,
     this.card,
     this.draftKey,
+    this.clock = DateTime.now,
   });
+  final DateTime Function() clock;
   final DeckSession session;
   final int boardId;
   final int stackId;
@@ -419,6 +444,31 @@ class _CardEditorState extends State<CardEditor> {
                       _due = null;
                       _changed();
                     }),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        for (final (choice, label) in [
+                          (QuickDue.today, text.dueToday),
+                          (QuickDue.tomorrow, text.dueTomorrow),
+                          (QuickDue.nextWeek, text.dueNextWeek),
+                          (QuickDue.none, text.withoutDueDate),
+                        ])
+                          ActionChip(
+                            key: ValueKey(('quick-due', choice)),
+                            label: Text(label),
+                            onPressed: _saving
+                                ? null
+                                : () {
+                                    _due = quickDueDate(
+                                      choice,
+                                      widget.clock(),
+                                      current: _due,
+                                    );
+                                    _changed();
+                                  },
+                          ),
+                      ],
+                    ),
                     if (_supports('color'))
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 16),
