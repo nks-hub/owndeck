@@ -836,6 +836,30 @@ abstract class AppLocalizations {
   /// **'No comments yet.'**
   String get noComments;
 
+  /// No description provided for @activity.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get activity;
+
+  /// No description provided for @noActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'No recorded activity for this card.'**
+  String get noActivity;
+
+  /// No description provided for @activityUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity is read from the server and is not stored on this device. Connect and try again.'**
+  String get activityUnavailable;
+
+  /// No description provided for @loadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Load older'**
+  String get loadMore;
+
   /// No description provided for @commentMessage.
   ///
   /// In en, this message translates to:

@@ -11,6 +11,7 @@ import '../data/session.dart';
 import '../data/card_edits.dart';
 import '../data/card_reads.dart';
 import '../l10n/app_localizations.dart';
+import 'card_activity.dart';
 import 'card_editor.dart';
 import 'board_moves.dart';
 import 'board_presence.dart';
@@ -476,6 +477,9 @@ class _CardScreenState extends State<_CardContent> {
                     ),
                   ),
                 ),
+                if (widget.session.capabilities?.supportsActivity == true &&
+                    card.id > 0)
+                  CardActivity(session: widget.session, cardId: card.id),
               ],
             ),
           );

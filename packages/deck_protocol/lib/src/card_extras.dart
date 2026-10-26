@@ -60,7 +60,82 @@ final class DeckNotifications {
   final List<DeckNotification> items;
 }
 
+final class DeckActivity {
+  DeckActivity.fromJson(JsonObject json)
+    : id = intField(json, 'activity_id'),
+      subject = stringField(json, 'subject'),
+      user = json['user'] is String ? json['user'] as String : '',
+      created = DateTime.parse(stringField(json, 'datetime')),
+      objectType = stringField(json, 'object_type'),
+      objectId = int.tryParse('${json['object_id']}') ?? 0;
+
+  final int id;
+  final String subject;
+  final String user;
+  final DateTime created;
+  final String objectType;
+  final int objectId;
+}
+
+final class DeckActivityPage {
+  const DeckActivityPage(this.items, {this.next});
+  final List<DeckActivity> items;
+
+  /// Value for the `since` argument of the next page, null at the end.
+  final int? next;
+}
+
 extension DeckCardExtras on DeckClient {
+  /// Reads card history from the Activity app (`object_type` deck_card).
+  Future<DeckActivityPage> cardActivity(
+    int cardId, {
+    int? since,
+    int limit = 30,
+  }) async {
+    if (cardId <= 0 || limit < 1 || limit > 100) {
+      throw ArgumentError('invalid_activity_request');
+    }
+    final DeckResponse response;
+    try {
+      response = await ocs(
+        'GET',
+        ['apps', 'activity', 'api', 'v2', 'activity', 'filter'],
+        query: {
+          'object_type': 'deck_card',
+          'object_id': '$cardId',
+          'limit': '$limit',
+          'sort': 'desc',
+          'since': ?since?.toString(),
+        },
+        allowNoContent: true,
+      );
+    } on DeckException catch (error) {
+      // The server answers 304 when the end of the list was reached.
+      if (error.status == 304) return const DeckActivityPage([]);
+      rethrow;
+    }
+    try {
+      final items = objects(response.data).map(DeckActivity.fromJson).toList();
+      if (items.any(
+        (a) => a.objectType != 'deck_card' || a.objectId != cardId,
+      )) {
+        throw const FormatException('activity_card_mismatch');
+      }
+      final last = items.isEmpty ? null : items.last.id;
+      return DeckActivityPage(
+        items,
+        next:
+            items.length >= limit &&
+                last != null &&
+                (since == null || last < since)
+            ? last
+            : null,
+      );
+    } on FormatException {
+      throw const DeckException('invalid_response');
+    }
+  }
+
   Future<void> reorderStack(int boardId, int stackId, int order) async {
     if (boardId <= 0 || stackId <= 0 || order < 0) {
       throw ArgumentError('invalid_stack_position');

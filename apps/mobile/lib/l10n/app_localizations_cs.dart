@@ -402,6 +402,19 @@ class AppLocalizationsCs extends AppLocalizations {
   String get noComments => 'Zatím žádné komentáře.';
 
   @override
+  String get activity => 'Aktivita';
+
+  @override
+  String get noActivity => 'U této karty není zaznamenaná žádná aktivita.';
+
+  @override
+  String get activityUnavailable =>
+      'Aktivita se čte ze serveru a v zařízení se neukládá. Připojte se a zkuste to znovu.';
+
+  @override
+  String get loadMore => 'Načíst starší';
+
+  @override
   String get commentMessage => 'Text komentáře';
 
   @override

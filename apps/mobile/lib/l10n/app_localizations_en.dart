@@ -401,6 +401,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noComments => 'No comments yet.';
 
   @override
+  String get activity => 'Activity';
+
+  @override
+  String get noActivity => 'No recorded activity for this card.';
+
+  @override
+  String get activityUnavailable =>
+      'Activity is read from the server and is not stored on this device. Connect and try again.';
+
+  @override
+  String get loadMore => 'Load older';
+
+  @override
   String get commentMessage => 'Comment text';
 
   @override

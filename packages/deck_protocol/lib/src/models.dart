@@ -27,11 +27,15 @@ final class DeckCapabilities {
     required this.version,
     required this.apiVersion,
     required this.canCreateBoards,
+    this.supportsActivity = false,
   });
 
   factory DeckCapabilities.fromJson(JsonObject capabilities) {
     final deck = object(capabilities['deck']);
     final versions = deck['apiVersions'];
+    final apiv2 = capabilities['activity'] is Map
+        ? (capabilities['activity'] as Map)['apiv2']
+        : null;
     if (versions is! List || !versions.contains('1.1')) {
       throw const FormatException('unsupported_deck_api');
     }
@@ -39,12 +43,16 @@ final class DeckCapabilities {
       version: stringField(deck, 'version'),
       apiVersion: '1.1',
       canCreateBoards: deck['canCreateBoards'] == true,
+      supportsActivity: apiv2 is List && apiv2.contains('filters-api'),
     );
   }
 
   final String version;
   final String apiVersion;
   final bool canCreateBoards;
+
+  /// The Activity app advertises `apiv2` `filters-api`, which the object filter needs.
+  final bool supportsActivity;
 
   bool get supportsExtendedCardFields => _supportsVersion(18);
   bool get supportsBoardCloning => _supportsVersion(19);
