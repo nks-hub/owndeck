@@ -2,7 +2,7 @@
 
 Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat výsledek a důkaz; nedokončený bod ponechat otevřený. Nové požadavky doplnit sem před implementací.
 
-- [ ] R03 Kompletní review všech funkcí, datových cest a obrazovek proti zadání; nálezy a přijímací podmínky v `docs/review-redesign.md`.
+- [x] R03 Kompletní review proběhlo ve dvou částech: první našla B46–B58, druhá (přesuny mezi nástěnkami, řazení, přílohy, fronta, sdílení, protokol) B59–B68; řazení sloupců, kopie nástěnky, štítky/ACL, `deck_protocol` a soubory z cloudu bez nálezu. Nálezy vedené jako samostatné body.
 - [ ] R04 Redesign a refaktor celé aplikace podle review a konkrétních vzorů Trella/Todoistu/Asany; jednotné akce, viditelná metadata, rychlé přidání, filtry a srozumitelné stavy.
 - [ ] R05 Opravit všechny doložené funkční chyby z review a E2E; nezúžit práci jen na původně zmíněné přesouvání.
 - [ ] R06 Kompletní E2E všech funkcí na finálním kandidátu; skutečný Nextcloud, Android S9/S21 a iOS simulátor, samostatně chyby, offline, restart a oprávnění. Dílčí widget test ani místní náhrada serveru nejsou důkazem této položky.
@@ -96,6 +96,12 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [ ] B60 P2 R03b: nejistá změna nemá akci Zkontrolovat server, kterou vyžaduje architektura; varování před duplicitou se ukazuje i u PUT/DELETE. Doplnit kontrolu podle typu (příloha, komentář, karta) a u idempotentních změn opakovat bez varování.
 - [ ] B61 P2 R03b: upload, smazání i obnovení přílohy se zablokuje jako `card_unavailable`, když karta mezitím změní sloupec (`attachments_sync.dart:20-31`); použít aktuální kontext karty jako ostatní zápisy.
 - [ ] B62 P3 R03b: opakování nejistého přesunu mezi nástěnkami, který server už provedl, skončí `invalid_destination` a ztratí umístění podle kotvy (`card_transfer_sync.dart:87-118`).
+- [ ] B63 P3 R03b: cizí přesun karty zbytečně zablokuje komentáře (`blocked card_moved`) a úpravy ve stejné nástěnce (`concurrent_edit`) ve frontě (`card_snapshots.dart:145-171`); u komentářů, příloh a úprav jen přepsat umístění.
+- [ ] B64 P3 R03b: po zabití aplikace během odesílání drží zámek `sync_leases` mrtvého vlastníka dvě minuty a nic se neodešle ani neobnoví (`writes.dart:148-167`); při otevření databáze zámky uvolnit.
+- [ ] B65 P3 R03b: změna bez odeslaného požadavku (zastaralá epocha, ztracený zámek) zůstane `sending` a po restartu se tváří jako nejistá (`card_move_sync.dart:36-42`, `attachments_sync.dart:99-101`).
+- [ ] B66 P3 R03b: konflikt přesunu mezi nástěnkami neukazuje, kde karta na serveru je teď (`pending.dart:603-604`).
+- [ ] B67 P3 R03b: sdílení hlásí každou chybu, i čekající rozhodnutí nebo nedostupný účet, jako chybějící oprávnění (`share_permissions.dart:110-116`, `sharing.dart:120-125`).
+- [ ] B68 P3 R03b: přístupnost: chyba ve sdílení se čtečce neohlásí (liveRegion), nabídky příloh a sdílení mají obecný tooltip bez jména položky, rozhodování v čekajících změnách nemá indikátor ani ohlášení.
 - [ ] R09 Před vydáním iOS zaregistrovat App Group `group.com.nkshub.nextclouddeck` a identifikátor `com.nkshub.nextclouddeck.ShareExtension` v Apple účtu a ověřit podepsaný build; nález z implementace F04.
 - [x] F08 Archivované karty lze vybrat a hromadně obnovit (bez přesunu), výběr všech zobrazených karet respektuje filtr (`d42f12b`); dva nové widget testy prošly.
 - [x] B44 Skrytý seznam Mých úkolů při přepnutí na kalendář znovu spouštěl stejný dotaz a do jeho dokončení animoval indikátor; StreamBuilder je nově klíčovaný dotazem (`50cd2fa`). Nález z testu F03, reprodukce selhala před opravou a 22 navazujících testů prošlo.
