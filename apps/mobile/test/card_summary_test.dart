@@ -177,7 +177,6 @@ void main() {
             home: Scaffold(body: CardMetadata(card: card)),
           ),
         );
-        expect(find.text('Engineering +2'), findsOneWidget);
         expect(
           find.bySemanticsLabel(
             RegExp('Assignees: Engineering, Operations, Partner'),
@@ -226,7 +225,7 @@ void main() {
             home: Scaffold(body: CardMetadata(card: card)),
           ),
         );
-        expect(find.text('User +3'), findsOneWidget);
+        expect(find.text('+1'), findsOneWidget);
         expect(
           find.bySemanticsLabel(
             RegExp('Assignees: User, Group, External recipient, Team name'),

@@ -106,7 +106,8 @@ void main() {
               home: Scaffold(body: CardSummary(card: card)),
             ),
           );
-          expect(find.text('Readable task Diagram'), findsOneWidget);
+          // Checklist items are summarised by the progress badge, not the preview.
+          expect(find.text('Diagram'), findsOneWidget);
           expect(find.text(source), findsNothing);
           expect(find.byType(Image), findsNothing);
           expect(tester.takeException(), isNull);
@@ -160,7 +161,7 @@ void main() {
         app('**Changed**\n\n- [ ] Next', Brightness.dark),
       );
       expect(parses, 2);
-      expect(find.text('Changed Next'), findsOneWidget);
+      expect(find.text('Changed'), findsOneWidget);
       expect(
         lengths.every((length) => length <= markdownPreviewSourceLimit + 1),
         isTrue,

@@ -89,8 +89,8 @@ class _BoardCardTileState extends State<BoardCardTile> {
           border: card.rgbColor == null
               ? null
               : Border(
-                  left: BorderSide(
-                    width: 4,
+                  top: BorderSide(
+                    width: 6,
                     color: Color(0xff000000 | card.rgbColor!),
                   ),
                 ),
@@ -120,6 +120,10 @@ class _BoardCardTileState extends State<BoardCardTile> {
               : editable || hasPending || selection != null
               ? PopupMenuButton<String>(
                   tooltip: text.cardActions,
+                  icon: Icon(
+                    Icons.more_horiz,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                   onSelected: (action) {
                     if (action == 'move') {
                       showBoardCardMove(context, session, board, card);

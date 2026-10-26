@@ -104,6 +104,7 @@ class CompletionBox extends StatelessWidget {
             )
           : Checkbox(
               value: card.raw['done'] != null,
+              shape: const CircleBorder(),
               semanticLabel: '${text.completed}: ${card.title}',
               onChanged: (value) {
                 if (value != null) onChanged?.call(value);
@@ -136,42 +137,59 @@ class CardSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final completed = card.raw['done'] != null;
     final content = Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 8, 12),
+      padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (contextLabel case final String label)
             Padding(
-              padding: const EdgeInsets.only(bottom: 4),
+              padding: const EdgeInsets.only(bottom: 4, right: 8),
               child: Text(
                 label,
-                style: theme.textTheme.labelMedium?.copyWith(
+                style: theme.textTheme.labelSmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-          CardLabels(card: card, limit: 3),
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: CardLabels(card: card, limit: 3),
+          ),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (onCompletedChanged != null || changingCompletion)
-                CompletionBox(
-                  card: card,
-                  saving: changingCompletion,
-                  onChanged: onCompletedChanged,
+                Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: CompletionBox(
+                    card: card,
+                    saving: changingCompletion,
+                    onChanged: onCompletedChanged,
+                  ),
                 ),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  padding: EdgeInsets.only(
+                    top: onCompletedChanged != null || changingCompletion
+                        ? 12
+                        : 2,
+                    right: trailing == null ? 8 : 0,
+                  ),
                   child: Text(
                     card.title,
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodyLarge?.copyWith(
+                    style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
+                      height: 1.3,
+                      color: completed
+                          ? theme.colorScheme.onSurfaceVariant
+                          : theme.colorScheme.onSurface,
+                      decoration: completed ? TextDecoration.lineThrough : null,
                     ),
                   ),
                 ),
@@ -180,8 +198,14 @@ class CardSummary extends StatelessWidget {
             ],
           ),
           if (showDescription && card.description.isNotEmpty)
-            CardDescriptionPreview(description: card.description),
-          CardMetadata(card: card),
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: CardDescriptionPreview(description: card.description),
+            ),
+          Padding(
+            padding: const EdgeInsets.only(top: 6, right: 8),
+            child: CardMetadata(card: card),
+          ),
         ],
       ),
     );
@@ -211,7 +235,7 @@ class _CardDescriptionPreviewState extends State<CardDescriptionPreview> {
   @override
   void initState() {
     super.initState();
-    _input = markdownPreviewInput(widget.description);
+    _input = markdownPreviewInput(_withoutTasks(widget.description));
     _preview = widget.buildPreview(_input);
   }
 
@@ -222,7 +246,7 @@ class _CardDescriptionPreviewState extends State<CardDescriptionPreview> {
         widget.buildPreview == oldWidget.buildPreview) {
       return;
     }
-    final input = markdownPreviewInput(widget.description);
+    final input = markdownPreviewInput(_withoutTasks(widget.description));
     if (input != _input || widget.buildPreview != oldWidget.buildPreview) {
       _input = input;
       _preview = widget.buildPreview(input);
@@ -234,18 +258,28 @@ class _CardDescriptionPreviewState extends State<CardDescriptionPreview> {
     if (_preview.isEmpty) return const SizedBox.shrink();
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(top: 2, bottom: 8),
+      padding: const EdgeInsets.only(top: 4),
       child: Text(
         _preview,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
-        style: theme.textTheme.bodyMedium?.copyWith(
+        style: theme.textTheme.bodySmall?.copyWith(
           color: theme.colorScheme.onSurfaceVariant,
         ),
       ),
     );
   }
 }
+
+/// Checklist items are summarised by the progress badge, so the preview skips them.
+final _taskLine = RegExp(
+  r'^\s*(?:[-*+]|\d+[.)])\s+\[[ xX]\].*$',
+  multiLine: true,
+);
+
+String _withoutTasks(String description) => description.contains('[')
+    ? description.replaceAll(_taskLine, '')
+    : description;
 
 class CardLabels extends StatelessWidget {
   const CardLabels({super.key, required this.card, this.limit});
@@ -261,7 +295,7 @@ class CardLabels extends StatelessWidget {
         ? labels.length
         : limit!.clamp(0, labels.length);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.only(bottom: 6),
       child: Wrap(
         spacing: 4,
         runSpacing: 4,
@@ -338,8 +372,8 @@ class _CardMetadataState extends State<CardMetadata> {
         !overdue &&
         due.isBefore(now.add(const Duration(hours: 24)));
     final local = MaterialLocalizations.of(context);
-    return Wrap(
-      spacing: 8,
+    final badges = Wrap(
+      spacing: 10,
       runSpacing: 6,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
@@ -386,18 +420,7 @@ class _CardMetadataState extends State<CardMetadata> {
               icon: assignee.icon,
               label: assignee.name,
               semanticLabel: '${text.assignees}: ${assignee.name}',
-            )
-        else if (assignees.isNotEmpty)
-          _MetadataBadge(
-            icon: assignees.length == 1
-                ? assignees.first.icon
-                : Icons.groups_outlined,
-            label: assignees.length == 1
-                ? assignees.first.name
-                : '${assignees.first.name} +${assignees.length - 1}',
-            semanticLabel:
-                '${text.assignees}: ${assignees.map((assignee) => assignee.name).join(', ')}',
-          ),
+            ),
         if (_checklist.total > 0)
           _MetadataBadge(
             icon: Icons.checklist,
@@ -425,6 +448,116 @@ class _CardMetadataState extends State<CardMetadata> {
           ),
       ],
     );
+    if (widget.showAllAssignees || assignees.isEmpty) return badges;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Expanded(child: badges),
+        Semantics(
+          label:
+              '${text.assignees}: ${assignees.map((assignee) => assignee.name).join(', ')}',
+          excludeSemantics: true,
+          child: _Avatars(assignees),
+        ),
+      ],
+    );
+  }
+}
+
+/// Up to three overlapping initials, with the rest summarised as +n.
+class _Avatars extends StatelessWidget {
+  const _Avatars(this.people);
+  final List<({String name, IconData icon})> people;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final shown = people.take(3).toList(growable: false);
+    const size = 26.0;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: size + (shown.length - 1) * (size - 8),
+          height: size,
+          child: Stack(
+            children: [
+              for (var i = 0; i < shown.length; i++)
+                Positioned(
+                  left: i * (size - 8),
+                  child: _Avatar(shown[i], size: size),
+                ),
+            ],
+          ),
+        ),
+        if (people.length > shown.length)
+          Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: Text(
+              '+${people.length - shown.length}',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _Avatar extends StatelessWidget {
+  const _Avatar(this.person, {required this.size});
+  final ({String name, IconData icon}) person;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final dark = theme.brightness == Brightness.dark;
+    final hue = (person.name.hashCode % 360).abs().toDouble();
+    final background = HSLColor.fromAHSL(
+      1,
+      hue,
+      .45,
+      dark ? .62 : .42,
+    ).toColor();
+    final words = person.name
+        .split(RegExp(r'\s+'))
+        .where((word) => word.isNotEmpty)
+        .toList(growable: false);
+    final initials = words
+        .take(2)
+        .map((word) => String.fromCharCode(word.runes.first).toUpperCase())
+        .join();
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: background,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: theme.colorScheme.surfaceContainerLowest,
+          width: 2,
+        ),
+      ),
+      child: person.icon == Icons.person_outline && initials.isNotEmpty
+          ? Text(
+              initials,
+              // Names are announced by the parent semantics; keep the circle legible.
+              textScaler: TextScaler.noScaling,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: dark ? Colors.black87 : Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 10,
+              ),
+            )
+          : Icon(
+              person.icon,
+              size: 14,
+              color: dark ? Colors.black87 : Colors.white,
+            ),
+    );
   }
 }
 
@@ -439,16 +572,23 @@ class _LabelBadge extends StatelessWidget {
     final color = RegExp(r'^[0-9a-fA-F]{6}$').hasMatch(raw)
         ? Color(0xff000000 | int.parse(raw, radix: 16))
         : theme.colorScheme.outline;
+    final foreground =
+        ThemeData.estimateBrightnessForColor(color) == Brightness.dark
+        ? Colors.white
+        : Colors.black87;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
-        border: Border(left: BorderSide(color: color, width: 4)),
+        color: color,
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         child: Text(
           cardLabelName(label, AppLocalizations.of(context)!),
-          style: theme.textTheme.labelMedium,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: foreground,
+            fontWeight: FontWeight.w600,
+          ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
