@@ -7,6 +7,11 @@
 
 #include "flutter/generated_plugin_registrant.h"
 
+// Smallest window the adaptive layout is designed for, in logical pixels.
+// Keep in sync with the Windows and macOS runners.
+constexpr int kMinimumWindowWidth = 600;
+constexpr int kMinimumWindowHeight = 400;
+
 struct _MyApplication {
   GtkApplication parent_instance;
   char** dart_entrypoint_arguments;
@@ -52,6 +57,8 @@ static void my_application_activate(GApplication* application) {
     gtk_window_set_title(window, "OwnDeck");
   }
 
+  gtk_widget_set_size_request(GTK_WIDGET(window), kMinimumWindowWidth,
+                              kMinimumWindowHeight);
   gtk_window_set_default_size(window, 1280, 720);
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();
