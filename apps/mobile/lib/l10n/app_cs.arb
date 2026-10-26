@@ -364,8 +364,12 @@
   "quickAddAccount": "Účet: {account} ({server})",
   "@quickAddAccount": {
     "placeholders": {
-      "account": {"type": "String"},
-      "server": {"type": "String"}
+      "account": {
+        "type": "String"
+      },
+      "server": {
+        "type": "String"
+      }
     }
   },
   "chooseShareAccount": "Vyberte účet pro novou kartu",
@@ -443,6 +447,8 @@
   },
   "moveSelectedCards": "Přesunout vybrané karty",
   "archiveSelectedCards": "Archivovat vybrané karty",
+  "unarchiveSelectedCards": "Obnovit vybrané karty z archivu",
+  "selectAllVisibleCards": "Vybrat všechny zobrazené karty",
   "bulkAllQueued": "Změny uložené v telefonu: {count}. Čekají na potvrzení serverem.",
   "@bulkAllQueued": {
     "placeholders": {

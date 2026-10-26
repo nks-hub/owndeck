@@ -29,6 +29,13 @@ class BoardSelection extends ChangeNotifier {
     _cards.updateAll((id, _) => fresh[id]!);
   }
 
+  void addAll(Iterable<DeckCard> cards) {
+    for (final card in cards) {
+      _cards[card.id] = card;
+    }
+    notifyListeners();
+  }
+
   void drop(Set<int> ids) {
     _cards.removeWhere((id, _) => ids.contains(id));
     notifyListeners();
@@ -90,14 +97,15 @@ Future<List<BulkOutcome>> runPerCard(
 Future<List<BulkOutcome>> archiveEach(
   DeckSession session,
   DeckBoard board,
-  List<DeckCard> cards,
-) => runPerCard(
+  List<DeckCard> cards, {
+  bool archive = true,
+}) => runPerCard(
   cards,
   (card) => session.database.queueCardAction(
     session.account,
     board.id,
     card,
-    'archiveCard',
+    archive ? 'archiveCard' : 'unarchiveCard',
     {},
   ),
 );

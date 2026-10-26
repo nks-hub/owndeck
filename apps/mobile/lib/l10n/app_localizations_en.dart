@@ -1262,6 +1262,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get archiveSelectedCards => 'Archive selected cards';
 
   @override
+  String get unarchiveSelectedCards => 'Restore selected cards from archive';
+
+  @override
+  String get selectAllVisibleCards => 'Select all shown cards';
+
+  @override
   String bulkAllQueued(int count) {
     return '$count changes saved on this device. They await server confirmation.';
   }

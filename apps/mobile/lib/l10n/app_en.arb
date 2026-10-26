@@ -364,8 +364,12 @@
   "quickAddAccount": "Account: {account} ({server})",
   "@quickAddAccount": {
     "placeholders": {
-      "account": {"type": "String"},
-      "server": {"type": "String"}
+      "account": {
+        "type": "String"
+      },
+      "server": {
+        "type": "String"
+      }
     }
   },
   "chooseShareAccount": "Choose an account for the new card",
@@ -443,6 +447,8 @@
   },
   "moveSelectedCards": "Move selected cards",
   "archiveSelectedCards": "Archive selected cards",
+  "unarchiveSelectedCards": "Restore selected cards from archive",
+  "selectAllVisibleCards": "Select all shown cards",
   "bulkAllQueued": "{count} changes saved on this device. They await server confirmation.",
   "@bulkAllQueued": {
     "placeholders": {

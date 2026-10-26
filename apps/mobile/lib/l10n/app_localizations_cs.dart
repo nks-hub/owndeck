@@ -1265,6 +1265,12 @@ class AppLocalizationsCs extends AppLocalizations {
   String get archiveSelectedCards => 'Archivovat vybrané karty';
 
   @override
+  String get unarchiveSelectedCards => 'Obnovit vybrané karty z archivu';
+
+  @override
+  String get selectAllVisibleCards => 'Vybrat všechny zobrazené karty';
+
+  @override
   String bulkAllQueued(int count) {
     return 'Změny uložené v telefonu: $count. Čekají na potvrzení serverem.';
   }

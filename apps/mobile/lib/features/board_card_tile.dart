@@ -71,7 +71,11 @@ class _BoardCardTileState extends State<BoardCardTile> {
       cardId: card.id,
     );
     final hasPending = card.raw['syncState'] != null;
-    final selection = editable ? BoardSelectionScope.maybeOf(context) : null;
+    // Archived cards cannot be dragged or moved, but can still be restored.
+    final selectable =
+        editable ||
+        (card.archived && board.permissions.edit && !board.archived);
+    final selection = selectable ? BoardSelectionScope.maybeOf(context) : null;
     final selecting = selection != null && selection.active;
     final selected = selecting && selection.contains(card);
     final content = Card(
@@ -111,7 +115,7 @@ class _BoardCardTileState extends State<BoardCardTile> {
                   semanticLabel: text.selectCard,
                   onChanged: (_) => selection.toggle(card),
                 )
-              : editable || hasPending
+              : editable || hasPending || selection != null
               ? PopupMenuButton<String>(
                   tooltip: text.cardActions,
                   onSelected: (action) {
@@ -131,8 +135,7 @@ class _BoardCardTileState extends State<BoardCardTile> {
                   itemBuilder: (_) => [
                     if (editable)
                       PopupMenuItem(value: 'move', child: Text(text.moveCard)),
-                    if (editable &&
-                        BoardSelectionScope.maybeOf(context) != null)
+                    if (selection != null)
                       PopupMenuItem(
                         value: 'select',
                         child: Text(text.selectCard),

@@ -2390,6 +2390,18 @@ abstract class AppLocalizations {
   /// **'Archive selected cards'**
   String get archiveSelectedCards;
 
+  /// No description provided for @unarchiveSelectedCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore selected cards from archive'**
+  String get unarchiveSelectedCards;
+
+  /// No description provided for @selectAllVisibleCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all shown cards'**
+  String get selectAllVisibleCards;
+
   /// No description provided for @bulkAllQueued.
   ///
   /// In en, this message translates to:

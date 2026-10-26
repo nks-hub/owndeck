@@ -188,9 +188,20 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
     await runBulkAction(
       context,
       _selection,
-      (cards) => archiveEach(widget.session, _board, cards),
+      (cards) => archiveEach(
+        widget.session,
+        _board,
+        cards,
+        archive: !_showArchived,
+      ),
     );
   }
+
+  void _selectAllVisible() => _selection.addAll(
+    _columns
+        .where((column) => (column.stack.raw['deletedAt'] ?? 0) == 0)
+        .expand((column) => column.cards),
+  );
 
   @override
   Widget build(BuildContext context) => BoardSelectionScope(
@@ -243,13 +254,25 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
         actions: [
           if (_selection.active) ...[
             IconButton(
-              tooltip: text.moveSelectedCards,
-              icon: const Icon(Icons.drive_file_move_outlined),
-              onPressed: _bulkMove,
+              tooltip: text.selectAllVisibleCards,
+              icon: const Icon(Icons.select_all),
+              onPressed: _selectAllVisible,
             ),
+            if (!_showArchived)
+              IconButton(
+                tooltip: text.moveSelectedCards,
+                icon: const Icon(Icons.drive_file_move_outlined),
+                onPressed: _bulkMove,
+              ),
             IconButton(
-              tooltip: text.archiveSelectedCards,
-              icon: const Icon(Icons.archive_outlined),
+              tooltip: _showArchived
+                  ? text.unarchiveSelectedCards
+                  : text.archiveSelectedCards,
+              icon: Icon(
+                _showArchived
+                    ? Icons.unarchive_outlined
+                    : Icons.archive_outlined,
+              ),
               onPressed: _bulkArchive,
             ),
           ] else

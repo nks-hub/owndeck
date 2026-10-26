@@ -250,6 +250,93 @@ void main() {
     }
   });
 
+  testWidgets('archived cards can be selected and restored, but not moved', (
+    tester,
+  ) async {
+    final fixture = (await tester.runAsync(
+      () => BoardFixture.create(counts: [2], archivedLeading: true),
+    ))!;
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(500, 1000);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    try {
+      await tester.pumpWidget(
+        boardTestApp(
+          BoardScreen(session: fixture.session, board: fixture.board),
+          preferences: AppPreferences(store: MemoryBoardPreferences()),
+        ),
+      );
+      await settleBoard(tester);
+      await tester.tap(find.byTooltip('Board actions'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Archived cards'));
+      await settleBoard(tester);
+      await tester.tap(
+        find.descendant(
+          of: boardTile(99),
+          matching: find.byTooltip('Card actions'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Move card'), findsNothing);
+      await tester.tap(find.text('Select card'));
+      await settleBoard(tester);
+      expect(find.text('Selected: 1'), findsOneWidget);
+      expect(find.byTooltip('Move selected cards'), findsNothing);
+      await tester.tap(find.byTooltip('Restore selected cards from archive'));
+      await settleBoard(tester);
+      final writes = await boardModel(
+        tester,
+        fixture.db.writesFor(fixture.account.id),
+      );
+      expect(writes.map((w) => w.kind), ['unarchiveCard']);
+      expect(writes.single.cardId, 99);
+    } finally {
+      await tester.pumpWidget(const SizedBox());
+      await boardModel(tester, fixture.close());
+    }
+  });
+
+  testWidgets('select all picks every shown card and respects the filter', (
+    tester,
+  ) async {
+    final fixture = (await tester.runAsync(
+      () => BoardFixture.create(counts: [3, 2]),
+    ))!;
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(500, 1000);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    try {
+      await tester.pumpWidget(
+        boardTestApp(
+          BoardScreen(session: fixture.session, board: fixture.board),
+          preferences: AppPreferences(store: MemoryBoardPreferences()),
+        ),
+      );
+      await settleBoard(tester);
+      // Matches card 101 in the first column and card 1101 in the second.
+      await tester.enterText(find.byType(TextField).first, '101');
+      await settleBoard(tester);
+      await tester.tap(
+        find.descendant(
+          of: boardTile(101),
+          matching: find.byTooltip('Card actions'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Select card'));
+      await settleBoard(tester);
+      await tester.tap(find.byTooltip('Select all shown cards'));
+      await settleBoard(tester);
+      expect(find.text('Selected: 2'), findsOneWidget);
+    } finally {
+      await tester.pumpWidget(const SizedBox());
+      await boardModel(tester, fixture.close());
+    }
+  });
+
   testWidgets('failed cards stay selected and can be retried from the result', (
     tester,
   ) async {
