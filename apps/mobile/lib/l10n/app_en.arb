@@ -410,5 +410,10 @@
         "type": "String"
       }
     }
-  }
+  },
+  "cardArchivedError": "This card is archived. Restore it before editing.",
+  "commentUnavailable": "This comment is no longer available. Refresh the comments.",
+  "itemUnavailable": "This item is no longer available. Refresh and check its current state.",
+  "attachmentMissingError": "The file to upload is no longer on this device. Attach it again.",
+  "unsupportedOperation": "This action is not available here."
 }

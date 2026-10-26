@@ -33,6 +33,7 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] B26 Čekající přesun zachová názvy cíle po potvrzení místních ID; zahození obnoví zdroj i cíl bez mutací, opakování pozice odešle právě jedno řazení. Tři reprodukce před opravou selhaly, poté prošlo 17 cílených a 34 regresních testů, analyzer čistý.
 - [x] B27 Sdílení ukazuje pouze dostupné textové jméno příjemce; chybný typ nezobrazí jako JSON a chybějící jméno nenahradí interním ID. Widget reprodukce před opravou selhala, po opravě prošla, analyzer čistý.
 - [x] T05 Sedm zastaralých očekávání CI `40295912768` sladěno s obnovováním viditelného detailu, plným seznamem přiřazených a kotvou přesunu; nulové mutace při zrušení zůstávají ověřené. Všech 21 souvisejících testů a analyzer prošly; společné CI zopakovat v T01.
+- [x] B28 Fronta zobrazuje známý důvod odmítnutí (cíl, archivace, soubor, odpověď) bez syrových chyb; význam nejistého a přijatého zápisu zůstává zachován. Čtyři reprodukce před opravou selhaly, po opravě všech 13 testů prošlo, analyzer čistý.
 - [x] T04 E2E používá oddělené testovací identity a evidenci vlastních záznamů; úklid odstraňuje pouze testem vytvořená data a přístupy, ověřuje jejich stav a zachovává ostatní účty.
 - [x] U01 Společný souhrn karty zobrazuje štítky, termíny, dokončení, známé počty a přiřazení (`5514cc7`, `3b82d66`, `ea667cd`); widget testy metadat prošly. E2E všech cest zůstává v R06.
 - [x] U02 Rychlé přidání z přehledu a sloupce uchová cíl podle účtu i koncept (`1a58735`, `b5ba90b`); osm cílených testů prošlo. Opravený bezpečný okraj ověřit v R06.
@@ -52,7 +53,7 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] U16 Náhled Markdownu je čitelný a omezený délkou, checkboxy v kódu nezvyšují průběh (`e91c96f`); cílené parser/widget testy prošly.
 - [x] U17 Konflikty nástěnek, štítků a sdílení ukazují známá metadata a práva bez JSON/ID/bitů (`8ef69fc`); testy porovnání prošly.
 - [x] F01 Checklist mění položku přes stejnou trvalou frontu a zachová ostatní popis (`e485272`, `6465b8e`); devět parser/widget testů a zapnutí/vypnutí ve skutečném UI kandidátu `96b8662` prošly. Finální společná revize v R06.
-- [ ] F06 Přesun mezi nástěnkami implementován (`e68650c`, `cdb05f0`); skutečné API 1.18.5 ověřilo identitu, obsah, metadata, komentáře, štítky podle práv a kotvu. Zbývá příloha (testovací účet nemá dostupnou kapacitu), API 1.19.1 a nativní UI obou systémů v R06.
+- [ ] F06 Přesun mezi nástěnkami implementován (`e68650c`, `cdb05f0`); skutečné API 1.18.5 ověřilo identitu, obsah, metadata, komentáře, štítky podle práv a kotvu. API 1.18.5 ověřilo i zachování obsahu přílohy; API 1.19.1 a nativní UI obou systémů zůstávají v R06.
 
 ## Navazující funkce z konkurenční analýzy
 

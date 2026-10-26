@@ -1191,4 +1191,23 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get confirmTransferRetry =>
       'Check the card on the server before sending the remaining change again.';
+
+  @override
+  String get cardArchivedError =>
+      'This card is archived. Restore it before editing.';
+
+  @override
+  String get commentUnavailable =>
+      'This comment is no longer available. Refresh the comments.';
+
+  @override
+  String get itemUnavailable =>
+      'This item is no longer available. Refresh and check its current state.';
+
+  @override
+  String get attachmentMissingError =>
+      'The file to upload is no longer on this device. Attach it again.';
+
+  @override
+  String get unsupportedOperation => 'This action is not available here.';
 }

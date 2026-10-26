@@ -2275,6 +2275,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Check the card on the server before sending the remaining change again.'**
   String get confirmTransferRetry;
+
+  /// No description provided for @cardArchivedError.
+  ///
+  /// In en, this message translates to:
+  /// **'This card is archived. Restore it before editing.'**
+  String get cardArchivedError;
+
+  /// No description provided for @commentUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This comment is no longer available. Refresh the comments.'**
+  String get commentUnavailable;
+
+  /// No description provided for @itemUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This item is no longer available. Refresh and check its current state.'**
+  String get itemUnavailable;
+
+  /// No description provided for @attachmentMissingError.
+  ///
+  /// In en, this message translates to:
+  /// **'The file to upload is no longer on this device. Attach it again.'**
+  String get attachmentMissingError;
+
+  /// No description provided for @unsupportedOperation.
+  ///
+  /// In en, this message translates to:
+  /// **'This action is not available here.'**
+  String get unsupportedOperation;
 }
 
 class _AppLocalizationsDelegate

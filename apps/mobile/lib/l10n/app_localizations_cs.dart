@@ -1194,4 +1194,23 @@ class AppLocalizationsCs extends AppLocalizations {
   @override
   String get confirmTransferRetry =>
       'Před opakováním zbývající změny ověřte aktuální stav karty na serveru.';
+
+  @override
+  String get cardArchivedError =>
+      'Karta je archivovaná. Před další úpravou ji obnovte.';
+
+  @override
+  String get commentUnavailable =>
+      'Komentář už není dostupný. Obnovte seznam komentářů.';
+
+  @override
+  String get itemUnavailable =>
+      'Položka už není dostupná. Obnovte data a ověřte její aktuální stav.';
+
+  @override
+  String get attachmentMissingError =>
+      'Soubor k odeslání už není v zařízení dostupný. Připojte ho znovu.';
+
+  @override
+  String get unsupportedOperation => 'Tuto akci zde nelze provést.';
 }

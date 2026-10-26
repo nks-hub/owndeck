@@ -410,5 +410,10 @@
         "type": "String"
       }
     }
-  }
+  },
+  "cardArchivedError": "Karta je archivovaná. Před další úpravou ji obnovte.",
+  "commentUnavailable": "Komentář už není dostupný. Obnovte seznam komentářů.",
+  "itemUnavailable": "Položka už není dostupná. Obnovte data a ověřte její aktuální stav.",
+  "attachmentMissingError": "Soubor k odeslání už není v zařízení dostupný. Připojte ho znovu.",
+  "unsupportedOperation": "Tuto akci zde nelze provést."
 }

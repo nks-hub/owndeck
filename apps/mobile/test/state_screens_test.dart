@@ -197,6 +197,42 @@ Future<void> _using(
 }
 
 void main() {
+  for (final entry in {
+    'invalid_destination':
+        'This destination has changed or is no longer available. Refresh and choose again.',
+    'card_archived': 'This card is archived. Restore it before editing.',
+    'attachment_missing':
+        'The file to upload is no longer on this device. Attach it again.',
+    'invalid_response':
+        'The server returned a response this app cannot safely use.',
+    'server_private_payload':
+        'This change cannot be sent. Check access and content.',
+  }.entries) {
+    testWidgets(
+      'blocked change explains ${entry.key} without exposing raw errors',
+      (tester) async {
+        await _using(tester, (fixture) async {
+          await tester.runAsync(() async {
+            final write = await fixture.write('blocked');
+            await (fixture.database.update(fixture.database.pendingWrites)
+                  ..where((row) => row.id.equals(write.id)))
+                .write(PendingWritesCompanion(error: Value(entry.key)));
+          });
+          await tester.pumpWidget(
+            _app(PendingScreen(session: fixture.session)),
+          );
+          await _until(
+            tester,
+            () => find.text('My task').evaluate().isNotEmpty,
+          );
+          expect(find.text(entry.value), findsOneWidget);
+          expect(find.textContaining(entry.key), findsNothing);
+          expect(fixture.requests, isEmpty);
+        });
+      },
+    );
+  }
+
   testWidgets(
     'metadata conflicts show named permissions and colors without identifiers',
     (tester) async {

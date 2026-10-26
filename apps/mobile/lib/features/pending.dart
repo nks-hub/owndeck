@@ -275,7 +275,14 @@ class _PendingScreenState extends State<PendingScreen> {
       'applied' => text.awaitingReadback,
       'conflict' => text.pendingConflictHelp,
       'uncertain' => text.uncertain,
-      _ => text.blocked,
+      _ =>
+        write.error == null
+            ? text.blocked
+            : errorMessage(
+                StateError(write.error!),
+                text,
+                fallback: text.blocked,
+              ),
     };
   }
 
