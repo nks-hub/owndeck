@@ -279,6 +279,34 @@ void main() {
     ]);
   });
 
+  test('group and team assignments send their participant type', () async {
+    final group = {'uid': 'alice', 'displayname': 'Team group'};
+    for (final type in [1, 7]) {
+      await db.queueCardAction(account, 1, card, 'assignUser', {
+        'userId': 'alice',
+        'type': type,
+        'user': group,
+      });
+    }
+    final bodies = <Object?>[];
+    await engine((request) async {
+      if (request.url.path.endsWith('/boards/1')) {
+        return reply(board(1, 'Board', edit: true).raw);
+      }
+      if (request.method == 'PUT') {
+        expect(request.url.path, endsWith('/cards/8/assignUser'));
+        bodies.add(jsonDecode(request.body));
+        return reply({'id': 99, 'cardId': 8, 'participant': group});
+      }
+      return reply(card.raw);
+    }).run();
+    expect(bodies, [
+      {'userId': 'alice', 'type': 1},
+      {'userId': 'alice', 'type': 7},
+    ]);
+    expect(await db.writesFor(account.id), isEmpty);
+  });
+
   test('deletion pauses when another client changed the description', () async {
     await db.queueCardAction(account, 1, card, 'deleteCard', {});
     var deletes = 0;

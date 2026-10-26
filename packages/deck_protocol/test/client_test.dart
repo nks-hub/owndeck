@@ -67,6 +67,22 @@ void main() {
   });
 
   test(
+    'group and team assignment follow the upstream release that accepts them',
+    () {
+      DeckCapabilities capabilities(String version) => DeckCapabilities(
+        version: version,
+        apiVersion: '1.1',
+        canCreateBoards: true,
+      );
+      expect(capabilities('1.9.0').supportsGroupAssignment, isFalse);
+      expect(capabilities('1.10.0').supportsGroupAssignment, isTrue);
+      expect(capabilities('1.17.0').supportsTeamAssignment, isFalse);
+      expect(capabilities('1.18.0').supportsTeamAssignment, isTrue);
+      expect(capabilities('unknown').supportsGroupAssignment, isFalse);
+    },
+  );
+
+  test(
     'renaming preserves start and color while explicit null clears them',
     () {
       final card = DeckCard.fromJson({

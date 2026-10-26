@@ -22,6 +22,7 @@ import 'pending.dart';
 import 'comments.dart';
 import 'attachments.dart';
 import 'card_links.dart';
+import 'sharing.dart' show shareParticipantId;
 
 part 'card_actions_ui.dart';
 

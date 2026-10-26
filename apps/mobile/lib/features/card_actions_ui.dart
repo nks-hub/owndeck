@@ -239,6 +239,28 @@ extension _CardDialogs on _CardScreenState {
       if (id.isEmpty) continue;
       users['0:$id'] = (id: id, type: 0, user: user);
     }
+    final capabilities = widget.session.capabilities;
+    final offeredTypes = {
+      if (capabilities?.supportsGroupAssignment == true) 1,
+      if (capabilities?.supportsTeamAssignment == true) 7,
+    };
+    // The server only accepts groups and teams that are shared with the board.
+    for (final entry in _items(board.raw['acl'])) {
+      final type = entry['type'];
+      final participant = entry['participant'];
+      final id = shareParticipantId(participant);
+      if (!offeredTypes.contains(type) || id.isEmpty) continue;
+      users.putIfAbsent(
+        '$type:$id',
+        () => (
+          id: id,
+          type: type as int,
+          user: participant is JsonObject
+              ? participant
+              : <String, Object?>{'displayname': id},
+        ),
+      );
+    }
     final assigned = <String>{};
     for (final assignment in _items(card.raw['assignedUsers'])) {
       final participant = assignment['participant'];
@@ -261,7 +283,13 @@ extension _CardDialogs on _CardScreenState {
     String name(JsonObject user, int type) {
       for (final key in ['displayname', 'displayName', 'name']) {
         final value = user[key];
-        if (value is String && value.trim().isNotEmpty) return value;
+        if (value is String && value.trim().isNotEmpty) {
+          return switch (type) {
+            1 => '$value (${text.group})',
+            7 => '$value (${text.team})',
+            _ => value,
+          };
+        }
       }
       return switch (type) {
         0 => text.user,

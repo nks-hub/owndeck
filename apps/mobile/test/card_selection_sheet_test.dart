@@ -51,6 +51,7 @@ class _Fixture {
   ];
   final remoteLabels = <JsonObject>[];
   final remoteUsers = <JsonObject>[];
+  final acl = <JsonObject>[];
 
   DeckBoard get board => DeckBoard.fromJson({
     'id': 1,
@@ -61,6 +62,7 @@ class _Fixture {
     'permissions': {'PERMISSION_READ': true, 'PERMISSION_EDIT': canEdit},
     'labels': labels,
     'users': users,
+    'acl': acl,
   });
 
   DeckCard get card => DeckCard.fromJson({
@@ -124,9 +126,14 @@ class _Fixture {
               confirmed.add('remove-label:$id');
             } else if (path.endsWith('/assignUser')) {
               final id = body['userId'];
+              final type = body['type'];
               remoteUsers.add({
-                'type': 0,
-                'participant': users.singleWhere((user) => user['uid'] == id),
+                'type': type,
+                'participant': type == 0
+                    ? users.singleWhere((user) => user['uid'] == id)
+                    : acl.singleWhere(
+                        (entry) => entry['type'] == type,
+                      )['participant'],
               });
               confirmed.add('user:$id');
             } else if (path.endsWith('/unassignUser')) {
@@ -300,7 +307,7 @@ void main() {
         expect(
           tester
               .widget<CheckboxListTile>(
-                find.widgetWithText(CheckboxListTile, 'Previous team'),
+                find.widgetWithText(CheckboxListTile, 'Previous team (Group)'),
               )
               .value,
           isTrue,
@@ -314,7 +321,7 @@ void main() {
           isFalse,
         );
         await tester.tap(
-          find.widgetWithText(CheckboxListTile, 'Previous team'),
+          find.widgetWithText(CheckboxListTile, 'Previous team (Group)'),
         );
         await tester.pump();
         await tester.tap(find.widgetWithText(CheckboxListTile, 'Alice'));
@@ -444,6 +451,73 @@ void main() {
       },
     );
   }
+
+  Future<void> seedAcl(_Fixture fixture, String version) async {
+    fixture.acl.addAll([
+      {
+        'type': 1,
+        'participant': {'uid': 'alice', 'displayname': 'Alice'},
+      },
+      {
+        'type': 7,
+        'participant': {'uid': 'crew', 'displayname': 'Crew'},
+      },
+    ]);
+    fixture.session.capabilities = DeckCapabilities(
+      version: version,
+      apiVersion: '1.1',
+      canCreateBoards: true,
+    );
+    await fixture.database.saveBoards(
+      fixture.account.id,
+      fixture.account.generation,
+      [fixture.board],
+      null,
+    );
+  }
+
+  testWidgets('shared groups and teams are offered with their own type', (
+    tester,
+  ) async {
+    await _using(tester, (fixture) async {
+      await tester.runAsync(() => seedAcl(fixture, '1.19.1'));
+      await _open(tester, fixture, 'Assignees', optionCount: 4);
+      expect(find.widgetWithText(CheckboxListTile, 'Alice'), findsOneWidget);
+      await tester.tap(find.widgetWithText(CheckboxListTile, 'Alice (Group)'));
+      await tester.pump();
+      await tester.tap(find.widgetWithText(CheckboxListTile, 'Crew (Team)'));
+      await tester.pump();
+      await tester.tap(find.widgetWithText(FilledButton, 'Done'));
+      await _until(
+        tester,
+        () =>
+            fixture.confirmed.length == 2 &&
+            find.byType(CheckboxListTile).evaluate().isEmpty &&
+            !fixture.session.loading('board:1'),
+      );
+      expect(
+        fixture.requests
+            .where((request) => request.url.path.endsWith('/assignUser'))
+            .map((request) => object(jsonDecode(request.body))),
+        unorderedEquals([
+          {'userId': 'alice', 'type': 1},
+          {'userId': 'crew', 'type': 7},
+        ]),
+      );
+    });
+  });
+
+  testWidgets(
+    'groups and teams are hidden where the server cannot assign them',
+    (tester) async {
+      await _using(tester, (fixture) async {
+        await tester.runAsync(() => seedAcl(fixture, '1.17.0'));
+        await _open(tester, fixture, 'Assignees', optionCount: 3);
+        expect(find.text('Alice (Group)'), findsOneWidget);
+        expect(find.textContaining('Crew'), findsNothing);
+      });
+    },
+  );
 
   testWidgets('unnamed prior assignments do not expose internal identifiers', (
     tester,

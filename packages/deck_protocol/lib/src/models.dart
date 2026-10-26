@@ -49,6 +49,10 @@ final class DeckCapabilities {
   bool get supportsExtendedCardFields => _supportsVersion(18);
   bool get supportsBoardCloning => _supportsVersion(19);
 
+  /// Upstream AssignmentService accepts type 1 (group) in 1.10 and type 7 (team) from 1.18.
+  bool get supportsGroupAssignment => _supportsVersion(10);
+  bool get supportsTeamAssignment => _supportsVersion(18);
+
   bool _supportsVersion(int minor) {
     final match = RegExp(r'^(\d+)\.(\d+)').firstMatch(version);
     if (match == null) return false;
