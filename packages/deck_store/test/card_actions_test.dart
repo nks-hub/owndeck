@@ -58,7 +58,9 @@ void main() {
           appPassword: 'test-password',
           transport: MockClient((request) async {
             final path = request.url.pathSegments;
-            if (request.method == 'GET' && path[path.length - 2] == 'stacks') {
+            if (request.method == 'GET' &&
+                path[path.length - 2] == 'stacks' &&
+                int.tryParse(path.last) != null) {
               final id = int.parse(path.last);
               expect([2, 3], contains(id));
               return reply({
@@ -110,7 +112,7 @@ void main() {
   );
 
   test(
-    'move uses destination in route and body and accepts the array response',
+    'move uses the OCS destination scope and confirms complete stack order',
     () async {
       await db.queueCardAction(account, 1, card, 'moveCard', {
         'stackId': 3,
@@ -127,17 +129,45 @@ void main() {
           mutationPath = request.url.path;
           sent = object(jsonDecode(request.body));
           moved = true;
+          return reply({
+            'ocs': {
+              'meta': {'status': 'ok', 'statuscode': 200},
+              'data': [
+                {...card.raw, 'stackId': 3},
+              ],
+            },
+          });
+        }
+        if (request.url.path.endsWith('/stacks/archived')) return reply([]);
+        if (request.url.path.endsWith('/stacks')) {
           return reply([
-            {...card.raw, 'stackId': 3},
+            {
+              'id': 2,
+              'boardId': 1,
+              'title': 'Todo',
+              'order': 0,
+              'cards': moved ? [] : [card.raw],
+            },
+            {
+              'id': 3,
+              'boardId': 1,
+              'title': 'Doing',
+              'order': 1,
+              'cards': moved
+                  ? [
+                      {...card.raw, 'stackId': 3},
+                    ]
+                  : [],
+            },
           ]);
         }
         return reply({...card.raw, 'stackId': moved ? 3 : 2});
       }).run();
       expect(
         mutationPath,
-        '/nextcloud/index.php/apps/deck/api/v1.1/boards/1/stacks/3/cards/8/reorder',
+        '/nextcloud/ocs/v2.php/apps/deck/api/v1.0/cards/8/reorder',
       );
-      expect(sent, {'stackId': 3, 'order': 0});
+      expect(sent, {'boardId': 1, 'stackId': 3, 'order': 0});
       expect(await db.writesFor(account.id), isEmpty);
       final stacks = await db.stackView(account.id, 1);
       expect(stacks.first.cards, isEmpty);

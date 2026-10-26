@@ -1,5 +1,25 @@
 part of 'sync.dart';
 
+DeckCardContext? _cardInBoardSnapshot(
+  DeckBoard board,
+  int cardId,
+  List<DeckStack> stacks,
+) {
+  DeckCardContext? result;
+  for (final stack in stacks) {
+    for (final card in stack.cards) {
+      if (card.id != cardId) continue;
+      if (result != null ||
+          stack.boardId != board.id ||
+          card.stackId != stack.id) {
+        throw const FormatException('invalid_card_identity');
+      }
+      result = DeckCardContext(board: board, stack: stack, card: card);
+    }
+  }
+  return result;
+}
+
 final class _CardContextUnavailable implements Exception {
   const _CardContextUnavailable(this.code, {this.boardId});
   final String code;

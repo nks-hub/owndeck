@@ -72,6 +72,7 @@ extension DeckViews on DeckDatabase {
       'dependentStackId': 'createStack',
       'dependentCardId': 'createCard',
       'anchorStackId': 'createStack',
+      'anchorCardId': 'createCard',
     }.entries) {
       if (metadata[field.key] is int && (metadata[field.key] as int) < 0) {
         final id = await resolveId(
@@ -110,6 +111,7 @@ extension DeckViews on DeckDatabase {
         'dependentStackId',
         'dependentCardId',
         'anchorStackId',
+        'anchorCardId',
       ])
         if (data[key] is int && (data[key] as int) < 0) -(data[key] as int),
       if (write.kind.endsWith('Comment'))
@@ -298,6 +300,10 @@ extension DeckViews on DeckDatabase {
       final parent =
           await resolveId(accountId, write.boardId, 'createBoard') ??
           write.boardId;
+      if (write.kind == 'cardTransfer') {
+        await _projectCardTransfer(accountId, boardId, stacks, write);
+        continue;
+      }
       if (parent != boardId) continue;
       final data = object(jsonDecode(write.proposal));
       if (write.kind == 'createStack') {
@@ -441,16 +447,31 @@ extension DeckViews on DeckDatabase {
                 data['stackId'];
             final target = stacks[targetId];
             if (target != null) {
-              sourceCards.removeAt(index);
               final targetCards = target['cards'] as List<JsonObject>;
+              final positionData = {...data};
+              final anchor = positionData['anchorCardId'];
+              if (anchor is int) {
+                positionData['anchorCardId'] =
+                    await resolveId(accountId, anchor, 'createCard') ?? anchor;
+              }
+              late int activeOrder;
+              try {
+                activeOrder = cardPositionIndex(
+                  targetCards
+                      .where((card) => _activeCard(card) && card['id'] != id)
+                      .map((card) => intField(card, 'id'))
+                      .toList(),
+                  positionData,
+                );
+              } on StateError {
+                sourceCards[index] = projected;
+                break;
+              }
+              sourceCards.removeAt(index);
               final activePositions = [
                 for (var i = 0; i < targetCards.length; i++)
                   if (_activeCard(targetCards[i])) i,
               ];
-              final activeOrder = intField(
-                data,
-                'order',
-              ).clamp(0, activePositions.length);
               final position = activeOrder == activePositions.length
                   ? targetCards.length
                   : activePositions[activeOrder];

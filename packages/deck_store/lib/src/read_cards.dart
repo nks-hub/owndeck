@@ -75,7 +75,7 @@ extension DeckReadCards on DeckDatabase {
             ))
             .getSingleOrNull();
     if (pending?.state != 'sending' ||
-        !{'updateCard', 'cardTransfer'}.contains(pending?.kind) ||
+        !{'updateCard', 'cardTransfer', 'moveCard'}.contains(pending?.kind) ||
         !await saveReadCard(account, context, epoch)) {
       return false;
     }

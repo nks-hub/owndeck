@@ -18,6 +18,9 @@ part 'board_clones.dart';
 part 'read_cards.dart';
 part 'card_snapshots.dart';
 part 'stack_reordering.dart';
+part 'card_transfers.dart';
+part 'card_transfer_projection.dart';
+part 'card_positions.dart';
 
 const attachmentKinds = {
   'uploadAttachment',

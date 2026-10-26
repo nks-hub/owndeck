@@ -23,28 +23,22 @@ extension _CardActionSync on DeckSync {
           ? <String, Object?>{}
           : object(jsonDecode(write.base!));
       final conflict =
-          write.kind == 'moveCard' && current.stackId != write.stackId ||
           {'deleteCard', 'cloneCard'}.contains(write.kind) &&
-              [
-                    'title',
-                    'description',
-                    'stackId',
-                    'duedate',
-                    'archived',
-                    'lastModified',
-                    if (write.kind == 'cloneCard') ...[
-                      'labels',
-                      'assignedUsers',
-                    ],
-                  ]
-                  .where(base.containsKey)
-                  .any(
-                    (key) =>
-                        jsonEncode(current.raw[key]) !=
-                        jsonEncode(
-                          key == 'stackId' ? write.stackId : base[key],
-                        ),
-                  );
+          [
+                'title',
+                'description',
+                'stackId',
+                'duedate',
+                'archived',
+                'lastModified',
+                if (write.kind == 'cloneCard') ...['labels', 'assignedUsers'],
+              ]
+              .where(base.containsKey)
+              .any(
+                (key) =>
+                    jsonEncode(current.raw[key]) !=
+                    jsonEncode(key == 'stackId' ? write.stackId : base[key]),
+              );
       if (conflict) {
         await database.markWrite(
           account,
@@ -107,11 +101,6 @@ extension _CardActionSync on DeckSync {
       var method = 'PUT';
       JsonObject? body;
       switch (write.kind) {
-        case 'moveCard':
-          // Deck binds stackId from the route before the body: use the destination in both.
-          path[3] = '${intField(proposal, 'stackId')}';
-          path.add('reorder');
-          body = {'stackId': proposal['stackId'], 'order': proposal['order']};
         case 'archiveCard':
           path.add('archive');
         case 'unarchiveCard':
@@ -173,9 +162,7 @@ extension _CardActionSync on DeckSync {
       final receipt = <String, Object?>{
         'boardId': write.boardId,
         'cardId': current.id,
-        'stackId': write.kind == 'moveCard'
-            ? proposal['stackId']
-            : current.stackId,
+        'stackId': current.stackId,
         if (write.kind == 'deleteCard')
           'deleted': {...current.raw, ...object(response.data)},
         if (write.kind == 'addCardLink' || write.kind == 'removeCardLink') ...{

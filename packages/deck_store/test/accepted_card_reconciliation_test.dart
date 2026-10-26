@@ -51,6 +51,14 @@ final class CardServer {
       if (path.last == 'clone') {
         return reply({...cardJson(id: 20), 'stackId': 4});
       }
+      if (request.url.path.contains('/ocs/') && path.last == 'reorder') {
+        return reply({
+          'ocs': {
+            'meta': {'status': 'ok', 'statuscode': 200},
+            'data': [],
+          },
+        });
+      }
       return reply([]);
     }
     if (path[path.length - 2] == 'cards') {
@@ -66,9 +74,47 @@ final class CardServer {
         'dependentCards': links,
       });
     }
+    if (path.last == 'stacks' || path.last == 'archived') {
+      final parentIndex = path.lastIndexOf('boards');
+      final requested = int.parse(path[parentIndex + 1]);
+      final wantArchived = path.last == 'archived';
+      final scopes = <int, int>{
+        2: 1,
+        3: 1,
+        4: 3,
+        if (accepted) stackId: boardId,
+      };
+      final currentStack = accepted ? stackId : 2;
+      return reply([
+        for (final entry in scopes.entries)
+          if (entry.value == requested &&
+              (!wantArchived || archived && entry.key == currentStack))
+            column(entry.key, entry.value, [
+              if (!wantArchived && entry.key == 2)
+                DeckCard.fromJson(cardJson(id: 9)),
+              if (entry.key == currentStack && archived == wantArchived)
+                DeckCard.fromJson({
+                  ...cardJson(),
+                  'stackId': currentStack,
+                  'archived': archived,
+                  'dependentCards': links,
+                }),
+            ]).raw,
+      ]);
+    }
     if (path[path.length - 2] == 'stacks') {
       final id = int.parse(path.last);
-      return reply(column(wrongStackId ?? id, accepted ? boardId : 3, []).raw);
+      return reply(
+        column(
+          wrongStackId ?? id,
+          accepted
+              ? boardId
+              : id == 4
+              ? 3
+              : 1,
+          [],
+        ).raw,
+      );
     }
     if (path[path.length - 2] == 'boards') {
       final id = int.parse(path.last);

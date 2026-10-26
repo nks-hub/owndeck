@@ -22,8 +22,10 @@ extension _ObservedCardLocations on DeckDatabase {
     Iterable<StoredCard> missing,
   ) async {
     final changed = <int>{};
+    final previousBoards = <int, int>{};
     for (final card in missing) {
       if (!_missingCardSnapshot(card)) changed.add(card.remoteId);
+      previousBoards[card.remoteId] = card.boardId;
       final raw = object(jsonDecode(card.payload));
       await into(storedCards).insertOnConflictUpdate(
         StoredCardsCompanion.insert(
@@ -42,12 +44,19 @@ extension _ObservedCardLocations on DeckDatabase {
       );
     }
     if (changed.isEmpty) return false;
-    for (final write in await writesFor(accountId)) {
+    final pending = await writesFor(accountId);
+    for (final write in pending) {
       if (write.state != 'queued' || write.cardId == null) continue;
       final id =
           await resolveId(accountId, write.cardId!, 'createCard') ??
           write.cardId;
       if (!changed.contains(id)) continue;
+      final transfer = _acceptedCardTransfer(
+        pending,
+        id!,
+        missingBoardId: previousBoards[id],
+      );
+      if (transfer != null && write.sequence > transfer.sequence) continue;
       await (update(
         pendingWrites,
       )..where((row) => row.id.equals(write.id))).write(
@@ -58,6 +67,45 @@ extension _ObservedCardLocations on DeckDatabase {
       );
     }
     return true;
+  }
+
+  Future<void> _relocateCardDrafts(
+    String accountId,
+    int cardId,
+    int boardId,
+    int stackId,
+  ) async {
+    final drafts =
+        await (select(editorDrafts)..where(
+              (row) => row.accountId.equals(accountId) & row.cardId.isNotNull(),
+            ))
+            .get();
+    for (final draft in drafts) {
+      final id =
+          await resolveId(accountId, draft.cardId!, 'createCard') ??
+          draft.cardId;
+      if (id != cardId) continue;
+      final original = draft.base == null
+          ? null
+          : object(jsonDecode(draft.base!));
+      final resolveBase =
+          draft.kind == 'card' && draft.cardId! < 0 && original != null;
+      await (update(editorDrafts)..where(
+            (row) =>
+                row.accountId.equals(accountId) &
+                row.draftKey.equals(draft.draftKey),
+          ))
+          .write(
+            EditorDraftsCompanion(
+              boardId: Value(boardId),
+              stackId: Value(stackId),
+              cardId: Value(cardId),
+              base: resolveBase
+                  ? Value(jsonEncode({...original, 'id': cardId}))
+                  : const Value.absent(),
+            ),
+          );
+    }
   }
 
   Future<bool> _storeObservedCard(
@@ -86,38 +134,16 @@ extension _ObservedCardLocations on DeckDatabase {
           (row) => row.accountId.equals(accountId) & row.cardId.equals(card.id),
         ))
         .write(StoredAttachmentsCompanion(boardId: Value(boardId)));
-    final drafts =
-        await (select(editorDrafts)..where(
-              (row) => row.accountId.equals(accountId) & row.cardId.isNotNull(),
-            ))
-            .get();
-    for (final draft in drafts) {
-      final id =
-          await resolveId(accountId, draft.cardId!, 'createCard') ??
-          draft.cardId;
-      if (id != card.id) continue;
-      final original = draft.base == null
-          ? null
-          : object(jsonDecode(draft.base!));
-      final resolveBase =
-          draft.kind == 'card' && draft.cardId! < 0 && original != null;
-      await (update(editorDrafts)..where(
-            (row) =>
-                row.accountId.equals(accountId) &
-                row.draftKey.equals(draft.draftKey),
-          ))
-          .write(
-            EditorDraftsCompanion(
-              boardId: Value(boardId),
-              stackId: Value(card.stackId),
-              cardId: Value(card.id),
-              base: resolveBase
-                  ? Value(jsonEncode({...original, 'id': card.id}))
-                  : const Value.absent(),
-            ),
-          );
-    }
-    for (final write in await writesFor(accountId)) {
+    await _relocateCardDrafts(accountId, card.id, boardId, card.stackId);
+    final pending = await writesFor(accountId);
+    final transfer = _acceptedCardTransfer(
+      pending,
+      card.id,
+      boardId: boardId,
+      stackId: card.stackId,
+    );
+    for (final write in pending) {
+      if (transfer != null && write.sequence > transfer.sequence) continue;
       if (write.cardId == null ||
           !{'queued', 'conflict', 'blocked'}.contains(write.state)) {
         continue;

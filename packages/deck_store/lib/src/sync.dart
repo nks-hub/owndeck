@@ -16,6 +16,8 @@ part 'attachments_sync.dart';
 part 'board_clone_sync.dart';
 part 'card_context_reads.dart';
 part 'stack_reorder_sync.dart';
+part 'card_transfer_sync.dart';
+part 'card_move_sync.dart';
 
 bool _shouldRetry(DeckException error, bool mutationStarted) =>
     error.status == 401 ||
@@ -84,6 +86,10 @@ final class DeckSync {
           if (resolved != null) {
             if (resolved.kind == 'boardClone') {
               await _finishClonedBoard(resolved);
+            } else if (resolved.kind == 'cardTransfer') {
+              await _finishCardTransfer(resolved);
+            } else if (resolved.kind == 'moveCard') {
+              await _finishCardMove(resolved);
             } else if (resolved.kind == 'stackReorder') {
               await _finishStackReorder(resolved);
             } else if (resolved.kind == 'setDoneStack') {
@@ -169,7 +175,11 @@ final class DeckSync {
           );
           continue;
         }
-        final shouldContinue = attachmentKinds.contains(queued.kind)
+        final shouldContinue = queued.kind == 'cardTransfer'
+            ? await _sendCardTransfer(queued, board)
+            : queued.kind == 'moveCard'
+            ? await _sendCardMove(queued, board)
+            : attachmentKinds.contains(queued.kind)
             ? await _sendAttachment(queued)
             : queued.kind.endsWith('Comment')
             ? await _sendComment(queued)
