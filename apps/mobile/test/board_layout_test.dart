@@ -264,6 +264,7 @@ void main() {
   testWidgets('move menu uses a named anchor at 200 percent text', (
     tester,
   ) async {
+    final semantics = tester.ensureSemantics();
     final fixture = (await tester.runAsync(() => BoardFixture.create()))!;
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(390, 700);
@@ -280,11 +281,21 @@ void main() {
       await settleBoard(tester);
       final menu = find.descendant(
         of: boardTile(100),
-        matching: find.byType(PopupMenuButton<String>),
+        matching: find.byType(CardMenuButton),
       );
       await tester.ensureVisible(menu);
       await tester.pumpAndSettle();
       expect(menu.hitTestable(), findsOneWidget);
+      expect(tester.getSize(menu).shortestSide, greaterThanOrEqualTo(48));
+      expect(
+        tester.getSemantics(menu),
+        matchesSemantics(
+          label: 'Card actions',
+          isButton: true,
+          hasTapAction: true,
+        ),
+      );
+      semantics.dispose();
       await tester.tap(menu);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Move card'));
@@ -357,7 +368,7 @@ void main() {
       expect(
         find.descendant(
           of: find.byType(BoardCardTile),
-          matching: find.byType(PopupMenuButton<String>),
+          matching: find.byType(CardMenuButton),
         ),
         findsNothing,
       );

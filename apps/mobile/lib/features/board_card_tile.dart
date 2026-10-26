@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:deck_protocol/deck_protocol.dart';
 import 'package:flutter/material.dart';
 
@@ -57,6 +59,59 @@ class _BoardCardTileState extends State<BoardCardTile> {
     }
   }
 
+  void _menuAction(String action, BoardSelection? selection) {
+    if (action == 'move') {
+      showBoardCardMove(context, widget.session, widget.board, widget.card);
+    } else if (action == 'select') {
+      selection?.toggle(widget.card);
+    } else {
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          settings: const RouteSettings(name: '/sync'),
+          builder: (_) => PendingScreen(session: widget.session),
+        ),
+      );
+    }
+  }
+
+  List<PopupMenuEntry<String>> _menuItems(
+    AppLocalizations text, {
+    required bool editable,
+    required bool hasPending,
+    required bool selectable,
+  }) => [
+    if (editable) PopupMenuItem(value: 'move', child: Text(text.moveCard)),
+    if (selectable) PopupMenuItem(value: 'select', child: Text(text.selectCard)),
+    if (hasPending)
+      PopupMenuItem(value: 'pending', child: Text(text.pendingChanges)),
+  ];
+
+  Future<void> _openMenu(
+    BuildContext buttonContext,
+    AppLocalizations text,
+    BoardSelection? selection, {
+    required bool editable,
+    required bool hasPending,
+  }) async {
+    final button = buttonContext.findRenderObject()! as RenderBox;
+    final overlay =
+        Overlay.of(buttonContext).context.findRenderObject()! as RenderBox;
+    final action = await showMenu<String>(
+      context: buttonContext,
+      position: RelativeRect.fromRect(
+        button.localToGlobal(Offset.zero, ancestor: overlay) & button.size,
+        Offset.zero & overlay.size,
+      ),
+      items: _menuItems(
+        text,
+        editable: editable,
+        hasPending: hasPending,
+        selectable: selection != null,
+      ),
+    );
+    if (action != null && mounted) _menuAction(action, selection);
+  }
+
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context)!;
@@ -83,7 +138,8 @@ class _BoardCardTileState extends State<BoardCardTile> {
     final content = Card(
       color: selected ? Theme.of(context).colorScheme.secondaryContainer : null,
       semanticContainer: false,
-      clipBehavior: Clip.antiAlias,
+      // Only the colour band needs rounded clipping; skipping it saves a clip per card.
+      clipBehavior: card.rgbColor == null ? Clip.none : Clip.antiAlias,
       child: DecoratedBox(
         decoration: BoxDecoration(
           border: card.rgbColor == null
@@ -118,40 +174,17 @@ class _BoardCardTileState extends State<BoardCardTile> {
                   onChanged: (_) => selection.toggle(card),
                 )
               : editable || hasPending || selection != null
-              ? PopupMenuButton<String>(
-                  tooltip: text.cardActions,
-                  icon: Icon(
-                    Icons.more_horiz,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ? CardMenuButton(
+                  label: text.cardActions,
+                  onOpen: (buttonContext) => unawaited(
+                    _openMenu(
+                      buttonContext,
+                      text,
+                      selection,
+                      editable: editable,
+                      hasPending: hasPending,
+                    ),
                   ),
-                  onSelected: (action) {
-                    if (action == 'move') {
-                      showBoardCardMove(context, session, board, card);
-                    } else if (action == 'select') {
-                      selection?.toggle(card);
-                    } else {
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          settings: const RouteSettings(name: '/sync'),
-                          builder: (_) => PendingScreen(session: session),
-                        ),
-                      );
-                    }
-                  },
-                  itemBuilder: (_) => [
-                    if (editable)
-                      PopupMenuItem(value: 'move', child: Text(text.moveCard)),
-                    if (selection != null)
-                      PopupMenuItem(
-                        value: 'select',
-                        child: Text(text.selectCard),
-                      ),
-                    if (hasPending)
-                      PopupMenuItem(
-                        value: 'pending',
-                        child: Text(text.pendingChanges),
-                      ),
-                  ],
                 )
               : null,
         ),
@@ -182,4 +215,34 @@ class _BoardCardTileState extends State<BoardCardTile> {
       child: Semantics(hint: text.reorderCard, child: content),
     );
   }
+}
+
+/// A 48 dp "more" button that opens the card menu without a per-card
+/// [PopupMenuButton], whose IconButton and Tooltip are costly to build while
+/// scrolling.
+class CardMenuButton extends StatelessWidget {
+  const CardMenuButton({super.key, required this.label, required this.onOpen});
+  final String label;
+  final ValueChanged<BuildContext> onOpen;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    label: label,
+    excludeSemantics: true,
+    onTap: () => onOpen(context),
+    child: GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => onOpen(context),
+      child: SizedBox.square(
+        dimension: 48,
+        child: Center(
+          child: Icon(
+            Icons.more_horiz,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ),
+    ),
+  );
 }

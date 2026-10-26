@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:nextclouddeck/core/app_preferences.dart';
+import 'package:nextclouddeck/features/board_card_tile.dart';
 import 'package:nextclouddeck/features/board_view.dart';
 import 'package:nextclouddeck/features/card_detail.dart';
 import 'package:nextclouddeck/features/card_editor.dart';
@@ -527,7 +528,7 @@ void main() {
             await tester.tap(
               find.descendant(
                 of: boardTile(100),
-                matching: find.byType(PopupMenuButton<String>),
+                matching: find.byType(CardMenuButton),
               ),
             );
             await tester.pumpAndSettle();

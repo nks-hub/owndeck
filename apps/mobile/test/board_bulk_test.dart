@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nextclouddeck/core/app_preferences.dart';
+import 'package:nextclouddeck/features/board_card_tile.dart';
 import 'package:nextclouddeck/features/board_bulk.dart';
 import 'package:nextclouddeck/features/board_view.dart';
 import 'package:nextclouddeck/features/card_move_dialog.dart';
@@ -212,7 +213,7 @@ void main() {
       await tester.tap(
         find.descendant(
           of: boardTile(100),
-          matching: find.byTooltip('Card actions'),
+          matching: find.byType(CardMenuButton),
         ),
       );
       await tester.pumpAndSettle();
@@ -275,7 +276,7 @@ void main() {
       await tester.tap(
         find.descendant(
           of: boardTile(99),
-          matching: find.byTooltip('Card actions'),
+          matching: find.byType(CardMenuButton),
         ),
       );
       await tester.pumpAndSettle();
@@ -322,7 +323,7 @@ void main() {
       await tester.tap(
         find.descendant(
           of: boardTile(101),
-          matching: find.byTooltip('Card actions'),
+          matching: find.byType(CardMenuButton),
         ),
       );
       await tester.pumpAndSettle();
@@ -471,7 +472,7 @@ void main() {
       await tester.tap(
         find.descendant(
           of: boardTile(100),
-          matching: find.byTooltip('Card actions'),
+          matching: find.byType(CardMenuButton),
         ),
       );
       await tester.pumpAndSettle();

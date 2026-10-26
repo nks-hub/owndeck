@@ -1,6 +1,7 @@
 import 'package:deck_protocol/deck_protocol.dart';
 import 'package:flutter/material.dart';
 
+import '../core/deck_theme.dart';
 import '../core/markdown_tasks.dart';
 import '../core/markdown_preview.dart';
 import '../l10n/app_localizations.dart';
@@ -209,7 +210,13 @@ class CardSummary extends StatelessWidget {
         ],
       ),
     );
-    return onOpen == null ? content : InkWell(onTap: onOpen, child: content);
+    return onOpen == null
+        ? content
+        : InkWell(
+            onTap: onOpen,
+            borderRadius: BorderRadius.circular(DeckTheme.cardRadius),
+            child: content,
+          );
   }
 }
 
