@@ -78,7 +78,8 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 
 ## Původní plán a průběžné důkazy
 
-- [ ] R07 Na výslovný pokyn připravit a nahrát aktuální `0.1.1+4` do stávajícího uzavřeného testu Google Play; zachovat tři skupiny testerů a ověřit přijatý balíček i skutečný stav vydání. Úplné E2E a výkon S9 zůstávají otevřené.
+- [x] R07 `0.1.1+4` nahráno přes API do Google Play alpha ze zdroje `e6b54b8`; celé CI `40387820624` prošlo. API ověřilo shodu podepsaného AAB, zachování tří skupin testerů a grafiky. Stav je IN_REVIEW, nikoli publikováno; úplné E2E a výkon S9 zůstávají otevřené.
+- [ ] R08 Ověřit schválení a dostupnost `0.1.1+4` v uzavřeném testu Google Play; při poslední kontrole je nová verze IN_REVIEW a dosavadní `0.1.0+2` PUBLISHED.
 
 - [x] P03 Repozitář `nks-hub/owndeck` je veřejný; anonymní přístup ověřen, README, licence a štítky zkontrolované, aplikace doplněna do profilu organizace.
 
