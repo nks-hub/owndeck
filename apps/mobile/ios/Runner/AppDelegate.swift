@@ -85,6 +85,10 @@ final class ShareDelivery {
     WorkmanagerPlugin.setPluginRegistrantCallback { registry in
       GeneratedPluginRegistrant.register(with: registry)
     }
+    // BGTaskScheduler aborts the app when Dart submits a task whose handler was not registered
+    // during launch; on a first start nothing is stored yet, so register the sync task explicitly.
+    WorkmanagerPlugin.registerPeriodicTask(
+      withIdentifier: "com.nkshub.nextclouddeck.sync", earliestBeginInSeconds: 900)
     // With UIScene the plugin registers late, so BGTaskScheduler handlers are restored here.
     WorkmanagerPlugin.registerLaunchHandlers()
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
