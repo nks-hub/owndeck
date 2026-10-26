@@ -142,6 +142,28 @@ Rozpad z auditu desktopového režimu OwnTalku, souhrn a nálezy v `docs/desktop
 - [x] F05 Vícerádkové přidání položek `- [ ] ` na konec popisu stejnou trvalou frontou jako F01 a přepínač Skrýt hotové jen v pohledu; ostatní text zůstává bajtově shodný včetně CRLF (`2a2c49c`). Parserové a widget testy prošly.
 - [x] F07 Přiřazení sdílené skupiny (typ 1, Deck 1.10+) a týmu (typ 7, 1.18+) podle verze serveru; bez známých capabilities se nenabízí. Skupiny a týmy mají v názvu typ, existující přiřazení lze odebrat bez záměny (`99b3acb`). Protokolové, store a widget testy prošly; živý server v R06.
 
+## Inspirace oficiální aplikací Deck pro Android
+
+Z rozboru zdrojů a issues oficiální aplikace (GPL-3.0, jen nápady bez převzatého kódu), souhrn v `docs/competition.md`.
+
+- [ ] F09 P1 Sdílení souborů z jiné aplikace (obrázky, PDF, víc najednou) jako přílohy nové nebo existující karty: Android SEND/SEND_MULTIPLE pro všechny typy, iOS Share Extension s obrázky a soubory, nahrání přes trvalou frontu; doklad tři fotky z Galerie na S21 a iOS simulátoru se shodnou SHA-256 na serveru a offline odeslání po obnovení sítě.
+- [ ] F10 P1 Sdílený text jde připojit k existující kartě (konec popisu, položka checklistu nebo komentář); doklad widget test výběru karty a server s bajtově shodným zbytkem popisu.
+- [ ] F11 P1 Odeslání fronty a obnova cache na pozadí: Android WorkManager (výchozí 15 min, jen se sítí, vypínatelné), iOS BGAppRefreshTask v mezích systému; doklad offline změna na S21 s ukončenou aplikací je po zapnutí sítě na serveru do 20 min.
+- [ ] F12 P2 Vyfotit přílohu přímo z detailu karty s vlastní hláškou při zamítnutém oprávnění; doklad S21 a iOS: fotka na serveru a po restartu se otevře.
+- [ ] F13 P2 Místní připomínka termínu z cache s volitelným předstihem, otevře kartu ve správném účtu a zruší se po dokončení či změně termínu; doklad oznámení při zavřené aplikaci na S21 i iOS a žádné po dokončení.
+- [ ] F14 P2 Widget Moje úkoly na ploše (Android AppWidget, iOS WidgetKit) z místní cache, klepnutí otevře kartu; doklad stejné karty jako záložka a změna po dokončení.
+- [ ] F15 P2 Zkratky ikony Přidat kartu a Moje úkoly (Android i iOS) a dlaždice Přidat kartu v rychlém nastavení Androidu; doklad studené i teplé spuštění otevře rychlé přidání s posledním cílem účtu.
+- [ ] F16 P2 Historie aktivity karty z Nextcloud Activity API (object_type deck_card) v detailu, bez aplikace Activity se nenabízí; doklad změna z webu se zobrazí na Decku 1.19 a protokolový test projde.
+- [ ] F17 P2 Zmínky @uživatel v komentářích s našeptávačem z účastníků nástěnky a zvýrazněním; doklad mention na serveru a oznámení druhému testovacímu účtu.
+- [ ] F18 P2 Rychlé volby termínu Dnes, Zítra, Příští týden a Bez termínu v editoru karty; doklad widget test správného data v časové zóně zařízení včetně přechodu na letní čas.
+- [ ] F19 P2 Nabídka karty na nástěnce a v seznamu doplněná o Přiřadit mně, Archivovat, Kopírovat odkaz a Smazat se stejnou kontrolou práv jako detail; doklad widget testy pro READ a EDIT a zápis přes frontu.
+- [ ] F20 P3 Moje úkoly ve skupinách Po termínu, Dnes, Zítra, Tento týden, Později a Bez termínu; doklad widget test s kartou v každé skupině.
+- [ ] F21 P3 Filtr nástěnky se uloží pro účet a nástěnku a obnoví po restartu i přepnutí nástěnky; doklad test restartu a zrušení filtru.
+- [ ] F22 P3 Volitelný kompaktní vzhled karty (název, štítky, termín) v Nastavení; doklad test výšky při 100 a 200 % textu a měření P02 bez zhoršení.
+- [ ] F23 P3 Volitelná obálka karty z obrázkové přílohy přes serverový náhled, výchozí vypnutá; doklad žádný požadavek na náhled při vypnuté volbě a měření P02 bez zhoršení.
+- [ ] F24 P3 Editor popisu a komentáře: Enter pokračuje v odrážce a checklistu, lišta pro tučné písmo, seznam, checklist a odkaz; doklad widget test vložení `- [ ] ` a ukončení seznamu prázdnou položkou.
+- [ ] F25 P3 Volitelná komprese fotek před nahráním se zachováním orientace; doklad 12MP fotka pod 2 MB se správnou orientací na serveru.
+
 ## Původní plán a průběžné důkazy
 
 - [x] R07 `0.1.1+4` nahráno přes API do Google Play alpha ze zdroje `e6b54b8`; celé CI `40387820624` prošlo. API ověřilo shodu podepsaného AAB, zachování tří skupin testerů a grafiky. Stav je IN_REVIEW, nikoli publikováno; úplné E2E a výkon S9 zůstávají otevřené.

@@ -39,3 +39,11 @@ Praktické zapracování po review z 25. 10. 2026 je rozdělené do U01–U17 a 
 - [Asana pro iOS](https://help.asana.com/s/article/asana-for-ios?language=en_US)
 - [Vikunja: pohledy](https://vikunja.io/help/views/)
 - [Vikunja: funkce](https://vikunja.io/features/)
+
+## Oficiální Nextcloud Deck pro Android
+
+Rozbor z 26. 10. 2026 (verze 1.27.0, GPL-3.0, jen Android, přihlášení přes aplikaci Nextcloud Files). Kód nepřebíráme, OwnDeck je pod MIT.
+
+- Má navíc: sdílení souborů a více souborů do existující karty, fotoaparát pro přílohy, widgety (nadcházející, sloupec, karta), zkratku Přidat kartu a dlaždici v rychlém nastavení, synchronizaci na pozadí, aktivitu karty, zmínky v komentářích, kompaktní vzhled a obálky karet. Body F09–F25 v `TODO.md`.
+- Nejčastější stížnosti uživatelů: duplicitní nebo nevytvořené karty po offline práci a zaseknutý první import, pády přihlášení přes SSO, chybějící více sloupců na tabletu, nepamatované filtry, odkazy na kartu mimo aplikaci a chybějící upozornění na termín.
+- OwnDeck už řeší: iOS, Login Flow v2 bez další aplikace, trvalou frontu bez automatického opakování nejistého POST (přímo proti duplicitám), široké rozložení s více sloupci, nativní otevírání odkazů, kopii karty a nástěnky, hromadné akce a kalendář.
