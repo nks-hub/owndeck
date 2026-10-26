@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/widgets.dart';
+import 'package:hive/hive.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:rybbit_flutter_sdk/rybbit_flutter_sdk.dart';
 // ignore: implementation_imports
 import 'package:rybbit_flutter_sdk/src/services/http_client.dart';
@@ -32,7 +35,8 @@ abstract interface class TelemetryBackend {
 
 final class TelemetrySdkBackend implements TelemetryBackend {
   RybbitHttpClient? _analyticsHttp;
-  HiveOfflineStore? _analyticsStore;
+  final _analyticsStore = HiveOfflineStore(maxEvents: 100, ttlDays: 1);
+  bool _analyticsClearPending = false;
 
   @override
   Future<void> startCrashes(
@@ -50,8 +54,13 @@ final class TelemetrySdkBackend implements TelemetryBackend {
     TelemetryConfig config,
     TelemetryPreferences preferences,
   ) async {
-    final store = HiveOfflineStore(maxEvents: 100, ttlDays: 1);
-    _analyticsStore = store;
+    final markerType = await FileSystemEntity.type(
+      (await _clearMarker()).path,
+      followLinks: false,
+    );
+    if (_analyticsClearPending || markerType != FileSystemEntityType.notFound) {
+      await stopAnalytics(clearPendingEvents: true);
+    }
     final host = config.rybbitHost.replaceFirst(RegExp(r'/$'), '');
     final http = RybbitHttpClient(
       host: host,
@@ -69,31 +78,56 @@ final class TelemetrySdkBackend implements TelemetryBackend {
       autoTrackLifecycle: false,
       autoUploadIcon: false,
       debug: false,
-      maxOfflineEvents: store.maxEvents,
-      offlineTtlDays: store.ttlDays,
+      maxOfflineEvents: _analyticsStore.maxEvents,
+      offlineTtlDays: _analyticsStore.ttlDays,
       userAgent: 'OwnDeck',
     );
   }
 
   @override
   Future<void> stopAnalytics({bool clearPendingEvents = false}) async {
+    _analyticsClearPending |= clearPendingEvents;
+    File? marker;
+    Object? markerError;
+    StackTrace? markerStack;
+    if (_analyticsClearPending) {
+      try {
+        marker = await _clearMarker();
+        await marker.writeAsString('pending', flush: true);
+      } catch (error, stack) {
+        markerError = error;
+        markerStack = stack;
+      }
+    }
     try {
       await Rybbit.reset();
-      final store = _analyticsStore;
-      if (clearPendingEvents && store != null) {
+      if (markerError != null) {
+        Error.throwWithStackTrace(markerError, markerStack!);
+      }
+      if (_analyticsClearPending) {
         // reset waits for in-flight retries before closing the SDK's box.
-        // Reopen its default box only after that final write has completed.
-        await store.init();
+        // An explicit path also works before this process has initialized SDKs.
+        final box = await Hive.openBox<String>(
+          _analyticsStore.boxName,
+          path: marker!.parent.path,
+        );
         try {
-          await store.clear();
+          await box.clear();
         } finally {
-          await store.close();
+          await box.close();
         }
+        await marker.delete();
+        _analyticsClearPending = false;
       }
     } finally {
       _analyticsHttp?.close();
       _analyticsHttp = null;
     }
+  }
+
+  Future<File> _clearMarker() async {
+    final directory = await getApplicationDocumentsDirectory();
+    return File('${directory.path}/owndeck-analytics-clear-pending');
   }
 
   @override
@@ -138,6 +172,7 @@ final class TelemetryRuntime extends ChangeNotifier {
   String? _currentScreen;
   bool _crashProbed = false;
   bool _analyticsProbed = false;
+  bool _analyticsOptOutHandled = false;
 
   Future<void> initialize() => _initializing ??= _initialize();
   Future<void> _initialize() async {
@@ -154,7 +189,16 @@ final class TelemetryRuntime extends ChangeNotifier {
 
   Future<void> setCrashReporting(bool value) =>
       preferences.setCrashReporting(value);
-  Future<void> setAnalytics(bool value) => preferences.setAnalytics(value);
+  Future<void> setAnalytics(bool value) async {
+    if (value && config.analyticsAvailable && !preferences.analytics) {
+      await _tail;
+      if (!_analyticsOptOutHandled) {
+        await _backend.stopAnalytics(clearPendingEvents: true);
+        _analyticsOptOutHandled = true;
+      }
+    }
+    await preferences.setAnalytics(value);
+  }
 
   Future<void> synchronize() {
     final next = _tail.then((_) => _synchronize());
@@ -190,6 +234,7 @@ final class TelemetryRuntime extends ChangeNotifier {
         preferences.loaded &&
         preferences.analytics;
     if (analytics && !analyticsReady) {
+      _analyticsOptOutHandled = false;
       try {
         await _backend.startAnalytics(config, preferences);
         analyticsReady = true;
@@ -207,13 +252,19 @@ final class TelemetryRuntime extends ChangeNotifier {
           await _backend.stopAnalytics();
         } catch (_) {}
       }
-    } else if (!analytics && analyticsReady) {
+    } else if (!analytics &&
+        (analyticsReady ||
+            (config.analyticsAvailable &&
+                preferences.loaded &&
+                !_analyticsOptOutHandled))) {
       analyticsReady = false;
       _lastScreen = null;
       try {
-        await _backend.stopAnalytics(
-          clearPendingEvents: preferences.loaded && !preferences.analytics,
-        );
+        final clearPending = preferences.loaded && !preferences.analytics;
+        await _backend.stopAnalytics(clearPendingEvents: clearPending);
+        if (clearPending) {
+          _analyticsOptOutHandled = true;
+        }
       } catch (_) {}
     }
     if (config.releaseProbe && !_closed) {

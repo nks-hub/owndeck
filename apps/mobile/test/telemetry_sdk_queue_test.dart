@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive/hive.dart';
 import 'package:nextclouddeck/core/telemetry.dart';
 import 'package:nextclouddeck/core/telemetry_bootstrap.dart';
 import 'package:nextclouddeck/core/telemetry_preferences.dart';
@@ -202,5 +203,101 @@ void main() {
     await TelemetrySdkBackend().stopAnalytics();
     await queue.init();
     expect(await queue.count, before);
+  });
+
+  test(
+    'startup with saved opt-out clears old events without starting SDK',
+    () async {
+      await runtime.close();
+      storage.values[TelemetryPreferences.analyticsKey] = false;
+      preferences = TelemetryPreferences(store: storage);
+      runtime = TelemetryRuntime(config: config, preferences: preferences);
+      Hive.init('${folder.path}/unused-global-path');
+      final attempts = recorder.attempts.length;
+      await runtime.initialize();
+      expect(Rybbit.isInitialized, isFalse);
+      expect(runtime.analyticsReady, isFalse);
+      expect(recorder.attempts.length, attempts);
+      Hive.init(folder.path);
+      await queue.init();
+      expect(await queue.count, 0);
+      await queue.close();
+      recorder.succeeds = true;
+      await startSdk();
+      await runtime.setAnalytics(true);
+      await runtime.synchronize();
+      runtime.screen('/search');
+      await until(() => recorder.attempts.contains('/search'));
+      await queue.init();
+      expect(await queue.count, 0);
+    },
+  );
+
+  test(
+    'failed queue cleanup retries and blocks re-enable until it succeeds',
+    () async {
+      final blocker = Directory(
+        '${folder.path}/owndeck-analytics-clear-pending',
+      );
+      await blocker.create();
+      await runtime.setAnalytics(false);
+      await runtime.synchronize();
+      expect(runtime.analyticsReady, isFalse);
+      expect(Rybbit.isInitialized, isFalse);
+      await queue.init();
+      expect(await queue.count, greaterThan(0));
+      await queue.close();
+      await startSdk();
+      final attempts = recorder.attempts.length;
+      await expectLater(
+        runtime.setAnalytics(true),
+        throwsA(isA<FileSystemException>()),
+      );
+      expect(preferences.analytics, isFalse);
+      expect(storage.values[TelemetryPreferences.analyticsKey], isFalse);
+      await runtime.synchronize();
+      expect(runtime.analyticsReady, isFalse);
+      expect(Rybbit.isInitialized, isFalse);
+      expect(recorder.attempts.length, attempts);
+      await runtime.close();
+      preferences = TelemetryPreferences(store: storage);
+      runtime = TelemetryRuntime(config: config, preferences: preferences);
+      await runtime.initialize();
+      expect(runtime.analyticsReady, isFalse);
+      expect(Rybbit.isInitialized, isFalse);
+      expect(recorder.attempts.length, attempts);
+      await blocker.delete();
+      await runtime.setAnalytics(false);
+      await runtime.synchronize();
+      await queue.init();
+      expect(await queue.count, 0);
+      await queue.close();
+      recorder.succeeds = true;
+      await startSdk();
+      await runtime.setAnalytics(true);
+      await runtime.synchronize();
+      runtime.screen('/board');
+      await until(() => recorder.attempts.contains('/board'));
+    },
+  );
+
+  test('an interrupted clear is completed before an enabled startup', () async {
+    await runtime.close();
+    final marker = File('${folder.path}/owndeck-analytics-clear-pending');
+    await marker.writeAsString('pending');
+    preferences = TelemetryPreferences(store: storage);
+    runtime = TelemetryRuntime(config: config, preferences: preferences);
+    final attempts = recorder.attempts.length;
+    await runtime.initialize();
+    expect(recorder.attempts.length, attempts);
+    await queue.init();
+    expect(await queue.count, 0);
+    expect(await marker.exists(), isFalse);
+    await queue.close();
+    recorder.succeeds = true;
+    await startSdk();
+    await runtime.synchronize();
+    runtime.screen('/settings');
+    await until(() => recorder.attempts.contains('/settings'));
   });
 }
