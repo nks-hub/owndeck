@@ -1,6 +1,6 @@
 # Testovací plán
 
-Poslední pokyn uživatele z 25. 10. 2026 další testy odkládá. Do nového pokynu se nespouštějí testy, analyzéry ani měření na zařízeních. Níže uvedené výsledky zůstávají historickými důkazy konkrétních revizí; nově sloučený kód jimi není automaticky ověřený.
+Aktuální pokyn uživatele z 25. 10. 2026 obnovuje testy a požaduje kompletní E2E všech funkcí po celkovém review, redesignu a refaktoru. Níže uvedené výsledky zůstávají historickými důkazy konkrétních revizí; nově sloučený kód jimi není automaticky ověřený. Pokrytí musí sledovat všechny postupy z `docs/review-redesign.md`, včetně chybových stavů, a rozlišovat skutečný Nextcloud od místního testovacího serveru.
 
 Podle upřesnění zadání se automatické testy smějí spouštět během vývoje pouze neblokujícím způsobem na pozadí. Nezávislé sady běží souběžně v izolovaném pracovním stromu s přesnou revizí. Hlavní pracovní strom se během testů může měnit. Každý proces má uložené ID, log a konečný návratový kód; samotné spuštění není výsledek.
 
@@ -16,7 +16,7 @@ První průběžný běh na izolované revizi `95b19ed4f1a500ff512d4c57fe77b4276
 - Databáze: transakční zápis konceptu a fronty, migrace, plný disk, restart během `sending`, mapování lokálního ID na remote ID.
 - Synchronizace: offline editace, souběžná změna stejného pole, nezávislá pole, vymazaná karta/sloupec, odebrané právo, změna účtu, nejistý POST a žádné automatické vytvoření duplikátu.
 - UI: prázdný a načtený stav, chyba s obnovou, velké písmo, čtečka, seznam/nástěnka, přesun bez tažení, přidání komentáře a přílohy, odebrání účtu s neodeslanou prací.
-- Telemetrie: bez konfigurace nulový síťový provoz SDK, konfigurace každé služby zvlášť, nesouhlas, odvolání souhlasu, vyprázdnění fronty, výpadek endpointu a redakce citlivých polí.
+- Telemetrie: bez konfigurace nulový síťový provoz SDK; nakonfigurované služby na čisté instalaci automaticky zapnuté podle rozhodnutí uživatele; oddělené vypnutí, zachování volby po restartu, vyprázdnění fronty, výpadek endpointu a redakce citlivých polí.
 - Build: kontrola applicationId/bundle ID/verze, debug bez podpisových tajemství, oficiální konfigurace přes CI a absence admin tokenů v balíčku.
 
 ## Integrace s reálným Nextcloudem

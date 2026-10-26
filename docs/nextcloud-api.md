@@ -64,7 +64,7 @@ Přílohy `file` používají jako ID sdílení, nikoli ID souboru. Nový soubor
 5. Config dokumentace naznačuje `{id}/{key}`, vydaná routa má pouze `{key}`.
 6. `GET /dashboard/due` odkazuje na `CardApiController::findAllWithDue`, která v analyzovaném controlleru není. Pro nový klient nepoužívat jako garantovaný endpoint. Použít OCS overview nebo místní přehled.
 7. REST update karty není PATCH. Vynechaný popis má default prázdný, pořadí nula a termín null. Pouhý zápis title by mohl poškodit ostatní data.
-8. `done` se v update čte zvlášť pomocí přítomnosti klíče. Vynechání, null a čas nejsou zaměnitelné. Nastavení `done` a webová akce done nemusí mít stejné vedlejší účinky přesunu do hotového sloupce; ověřit v T02.
+8. `done` se v controlleru čte zvlášť pomocí přítomnosti klíče, ale aktualizační služba při jeho vynechání stav dokončení vymaže. Odeslat současnou nebo požadovanou hodnotu výslovně. Nastavení `done` a přesun do hotového sloupce mají rozdílné vedlejší účinky.
 9. ETag slouží k podmíněnému čtení. V analyzované cestě aktualizace není kontrola `If-Match`; samotné odeslání této hlavičky nezaručí ochranu před přepsáním souběžné změny.
 10. Název boardId/stackId v URL není dostačující důkaz oprávnění. Server má vlastní kontroly nad kartou a cílem. Klient musí správně reagovat na odmítnutí i po dříve úspěšné synchronizaci.
 11. `CardService::reorder` vrací seznam přerovnaných karet. Cílový `stackId` patří do URL i těla. Obecná mutace nemusí vracet detail karty; například přiřazení může vrátit vazbu. Po přijetí zápisu načíst aktuální kartu a neopakovat mutaci při selhání tohoto následného GET.
@@ -111,6 +111,10 @@ Oprava původní hranice rozšířených polí: `startdate` a `color` přijímaj
 První implementační cíl: stabilní REST 1.1, OCS comments/config a jednotlivě ověřené doplňkové funkce. Fallback 1.0 musí výslovně omezit typy příloh. Podporované verze Nextcloud/Deck v obchodě uvést až podle skutečně provedené matice T02, nikoli pouze podle úspěchu proti jednomu serveru.
 
 ## Kopie, vazby, hotový sloupec a oznámení
+
+Běžné editace používají OCS aktualizaci karty s povinným `id` také v těle požadavku, shodným s ID v cestě. `deletedAt: null` zabrání obnově souběžně smazané karty, `archived: null` zachová archivaci. REST controller totiž při aktualizaci předává `deletedAt=0`, což může smazání vrátit. Ostatní vyžadovaná pole musí vycházet z čerstvého ověřeného snímku. Tento kontrakt byl ověřen i na skutečném Decku 1.18.5; neodstraňuje obecný limit chybějícího atomického `If-Match`. Zdroj: [CardApiController 1.18.5](https://github.com/nextcloud/deck/blob/v1.18.5/lib/Controller/CardApiController.php), [CardOcsController 1.18.5](https://github.com/nextcloud/deck/blob/v1.18.5/lib/Controller/CardOcsController.php).
+
+Přesun mezi místními nástěnkami stejného účtu používá podle oficiálního webu plnou aktualizaci, nikoli samotný reorder. Aktualizace převádí štítky podle názvu v cílové nástěnce; chybějící vytvoří pouze při právu správy, jinak je nepřenese. ID karty, komentáře, přílohy a přiřazení zůstávají zachované. Přesné umístění vyžaduje navazující reorder s vlastním potvrzením. Změnu dokončení je nutné poslat výslovně podle cílového sloupce. Federované nástěnky vyžadují jiný kontrakt. Zdroj: [CardService 1.18.5](https://github.com/nextcloud/deck/blob/v1.18.5/lib/Service/CardService.php), [webový přesun 1.19.1](https://github.com/nextcloud/deck/blob/v1.19.1/src/stores/card.js).
 
 Kopie karty používá OCS adresu `apps/deck/api/v1.0/cards/{cardId}/clone` s `targetStackId`, ale vrací přímo JSON karty bez OCS obálky. Zdroj vyžaduje čtení, cílový sloupec úpravy. Kopíruje název, popis, štítky a dostupná přiřazení; termíny, komentáře a přílohy nejsou součástí této operace. Potvrzené ID nové karty se uloží před načtením výsledku, takže výpadek čtení nevyvolá další POST. Zdroj: [připnutý CardApi](https://github.com/nextcloud/deck/blob/28efc84c108807cf0821d83e52f45b43cac27412/src/services/CardApi.js).
 

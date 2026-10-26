@@ -11,4 +11,4 @@ Verze má tvar `major.minor.patch+build`. Číslo buildu roste při každém dis
 
 Kandidátní aplikace pro souběžné testování může používat příponu `.candidate`, podle vzoru OwnTalk a OwnNotes. Nesmí nahradit distribuční identifikátor ani načíst jeho místní data.
 
-Sentry a Rybbit jsou volitelné. V běžném zdrojovém kódu nesmějí být jejich skutečné klíče ani adresy naší telemetrie. Naše distribuční CI je dodá při sestavení. Bez konfigurace se SDK nezapne a aplikace normálně funguje. Souhlas uživatele zůstává samostatnou podmínkou odesílání i v našem buildu.
+Sentry a Rybbit jsou volitelné. V běžném zdrojovém kódu nesmějí být jejich skutečné klíče ani adresy naší telemetrie. Naše distribuční CI je dodá při sestavení. Bez konfigurace se SDK nezapne a aplikace normálně funguje. Dostupné služby jsou v našich buildech na čisté instalaci automaticky zapnuté; každou lze zvlášť vypnout a nastavení se zachová.

@@ -2,6 +2,65 @@
 
 Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat výsledek a důkaz; nedokončený bod ponechat otevřený. Nové požadavky doplnit sem před implementací.
 
+- [ ] R03 Kompletní review všech funkcí, datových cest a obrazovek proti zadání; nálezy a přijímací podmínky v `docs/review-redesign.md`.
+- [ ] R04 Redesign a refaktor celé aplikace podle review a konkrétních vzorů Trella/Todoistu/Asany; jednotné akce, viditelná metadata, rychlé přidání, filtry a srozumitelné stavy.
+- [ ] R05 Opravit všechny doložené funkční chyby z review a E2E; nezúžit práci jen na původně zmíněné přesouvání.
+- [ ] R06 Kompletní E2E všech funkcí na finálním kandidátu; skutečný Nextcloud, Android S9/S21 a iOS simulátor, samostatně chyby, offline, restart a oprávnění. Dílčí widget test ani místní náhrada serveru nejsou důkazem této položky.
+
+## Nálezy celkového review a právě prováděný redesign
+
+- [x] B05 Opraven kolizní zápis karty přesunuté jiným klientem mezi nástěnkami i návrat staršího snímku; `f95b78d`, šest reprodukcí před opravou selhalo, po opravě 129 store testů prošlo. E2E patří do R06.
+- [x] B06 Čtení nástěnky z odkazů sjednoceno v `fa63597`; board 403/404/noREAD vyřadí cache, card 403 ostatní nástěnku nemaže. Pět protokolových a 29 mobilních testů prošlo; skutečný E2E zůstává v R06.
+- [x] B07 Přijaté přílohy při následném odstranění nebo přesunu nezablokují frontu a neodesílají další POST; převzato z `cb8b786`, 137 store a 29 mobilních testů prošlo. E2E zůstává v R06.
+- [x] B08 Uživatel potvrdil automatické zapnutí dostupných telemetrií a samostatné vypnutí; výchozí chování zachováno, návrh opraven. Nastavení jej vysvětlí, E17 ověří výchozí stav i vypnutí.
+- [x] B09 Zastaralá fixture testu obnovy fronty doplněna o skutečný tvar readbacku karty/sloupce v `2251930`; cílený test a analyzer prošly, nejde o opravu produkce.
+- [x] B10 Řazení sloupců používá trvalé OCS reorder a převod starých operací (`b54d406`); pořadí pokrývají store testy. Skutečné UI a server zůstávají v R06.
+- [x] B11 Rychlé přidání při zániku výslovného cíle nevymění sloupec; reprodukce před opravou selhala, po opravě prošla v sedmi scénářích rychlého přidání (`1a58735`).
+- [x] B12 Nový sloupec ukládá název a samostatné umístění bez starého order=999 (`ba77d62`); widget/SQLite scénář ověřil vytvoření za zvoleným sloupcem.
+- [x] B13 Akce Přidat kartu při malé výšce patří do horního pruhu (`3110575`); původní překrytí nabídky reprodukováno a cílený widget test i analyzer prošly. Opravené APK ještě ověřit na S9.
+- [x] B14 Evidence zaniklé polohy a opakování odmítnutého čtení chrání přesun při závodu prázdný zdroj → cíl → starý zdroj (`0b11e38`); regresní store scénáře prošly.
+- [x] B15 Převod staré pozice zachovává původní pořadí záměrů před novějšími přesuny (`bd5fcd5`); regresní store scénáře prošly.
+- [x] B16 Již přiřazené osoby a štítky mimo nabídku cílové nástěnky lze zachovat nebo odebrat (`7611139`); testy ověřily i rozlišení typu účastníka.
+- [x] B17 Editory rozlišují ztrátu oprávnění, přihlášení, čekající rozhodnutí a chybu místního uložení (`36352f9`); osm widget/SQLite scénářů prošlo.
+- [x] B18 Metadata přijímají pouze textové názvy a zobrazují známé typy přiřazení bez raw JSON (`ea667cd`); regresní testy prošly.
+- [x] B19 Filtr Nepřiřazeno respektuje i skupiny a další existující typy přiřazení (`ea667cd`); regresní scénář prošel.
+- [x] B20 Běžné editace používají OCS aktualizaci s povinným ID a zachováním archivace/smazání (`6831b8c`, `b6f0a83`); tři skutečné API scénáře na Decku 1.18.5 prošly včetně souběžného smazání a archivace. Nativní UI patří do R06.
+- [x] B21 Viditelný detail i přehled obnovují data po návratu a změně sítě bez nového čtení zakrytých tras (`1d058b4`, `ed41e58`); 25 testů prošlo, analyzer čistý.
+- [x] B22 Správa sloupce je v nabídce bez přetečení (`e7d07c2`); reprodukce selhala před opravou, po opravě osm testů prošlo včetně správce a 200% textu. Opravené APK ještě ověřit na S21.
+- [x] B23 Rychlé přidání respektuje spodní systémový okraj i klávesnici (`b5ba90b`); reprodukce selhala před opravou, po opravě osm testů prošlo. Opravený dotykový cíl ještě ověřit na S21.
+- [ ] B24 Pojmenované umístění karty se dosud mění na číselné pořadí už při zařazení; zachovat kotvu/začátek/konec a vyhodnotit je proti čerstvému úplnému sloupci před odesláním, i po offline změnách jiného klienta.
+- [ ] B25 Systémové Zpět na Androidu 15 ze skutečně otevřeného detailu opustí aplikaci místo návratu; reprodukováno na S21/kandidátu `96b8662` bez opakovaného spuštění aktivity. Ověřit příčinu a návrat i z komentářů/editorů.
+- [x] T04 E2E používá oddělené testovací identity a evidenci vlastních záznamů; úklid odstraňuje pouze testem vytvořená data a přístupy, ověřuje jejich stav a zachovává ostatní účty.
+- [ ] U01 Ukazovat na kartě termín/dokončení, štítky, lidi, známé počty a stav fronty; stejný souhrn v nástěnce, seznamu a hledání bez načítání příloh každé karty.
+- [ ] U02 Přidání karty zpřístupnit z hlavní navigace i hlavičky sloupce; poslední stále platný cíl uchovávat pro každý účet, rozepsaný text zachovat jako koncept.
+- [ ] U03 Zjednodušit hlavičky: čitelný název, rozpoznatelný účet, hlavní pracovní akce; správu, archiv a obnovu přesunout do vedlejší nabídky.
+- [ ] U04 Sjednotit přesun z detailu, nástěnky a seznamu; místo číselné pozice volby Začátek/Konec/Před/Za kartu a aktuální kotva i při filtrech.
+- [ ] U05 V detailu zobrazit celý název a kontext, metadata a popis před komentáři, přílohami a vazbami; zachovat také všechny štítky, začátek a barvu při převodu na společné komponenty.
+- [ ] U06 Moje úkoly začínají úkoly a rychlými termínovými volbami; podrobné filtry patří do panelu, nástěnka dostane vlastní kombinovatelné filtry a jasné zrušení.
+- [ ] U07 Sjednotit význam a zobrazení místního uložení, odesílání, potvrzení a problému; počet čekajících změn a srozumitelné konkrétní chyby místo obecné hlášky.
+- [ ] U08 Uložit/Odeslat držet dostupné i nad klávesnicí a dlouhým textem; zachovat autosave a pravdivě hlásit selhání uložení konceptu.
+- [ ] U09 Barvy vybírat vizuálně podle názvu; nikde v běžném UI nevypisovat hex, serverová ID, nulové indexy ani syrové chyby. Platí pro karty, nástěnky, štítky i konflikty; stávající vlastní barvu zachovat.
+- [ ] U10 Výběr více štítků/lidí nesmí po každém klepnutí zavírat panel; průběžně ukazovat vlastní změny, chyby a jedno Hotovo. Panel se nesmí zavřít tažením během ukládání a skrýt chybu transakce.
+- [ ] U11 Zachovat filtry, vyhledávání a posun hlavních záložek odděleně pro účet; skrytá záložka nesmí spouštět zbytečné online obnovy.
+- [ ] U12 Neodeslané změny rozlišit na čekání, konflikt, nejistý výsledek a koncepty; ukázat rozdíly a důsledky jednotlivých rozhodnutí.
+- [ ] U13 Koncepty doplnit o typ, kontext a čas; podezření na chybné pole náhledu komentáře vyvráceno, protože saveCommentDraft záměrně ukládá jeho text do description.
+- [ ] U14 Prázdné/chybové stavy rozlišují prázdný obsah, filtr, neúplnou cache a chybějící oprávnění; nabídnout jednu odpovídající následující akci.
+- [ ] U15 Sjednotit vzhled a význam komponent napříč všemi obrazovkami při zachování rodiny OwnTalk/Notes; ověřit světlý/tmavý režim, 200% text, klávesnici a čtečku.
+- [ ] U16 Zkontrolovat čitelnost náhledu Markdownu na kartách; formátovací značky ani příklady checkboxů v kódu nesmějí vytvářet zavádějící metadata.
+- [ ] U17 Konflikty nástěnek, štítků a sdílení musí zobrazit i rozdíly známých metadat a oprávnění; obecné textové srovnání tyto hodnoty skrývá. Bez raw JSON, ID a číselných bitů práv.
+- [ ] F01 Interaktivní checklist v podporovaném Markdownu: změna položky a přehled postupu zachovají ostatní popis a projdou stejnou frontou/konflikty jako editace karty.
+- [ ] F06 Doplnit přesun karty mezi nástěnkami stejného účtu po vzoru Trella a oficiálního Decku; plná zachovaná aktualizace kvůli migraci štítků, navazující trvalé řazení, jasná pravidla dokončení a ověření práv/příloh/komentářů na 1.18.5 i 1.19.1.
+
+## Navazující funkce z konkurenční analýzy
+
+- [ ] F02 Návrh z Trella: hromadný výběr karet a přesun/archivace; před realizací vyřešit částečný úspěch, oprávnění každé karty a srozumitelné obnovení.
+- [ ] F03 Návrh z Trella/Vikunji: kalendářní přehled existujících termínů bez kopírování dat; rozlišit začátek, termín a dokončení, přiznat neúplná místní data.
+- [ ] F04 Návrh z rychlého zachycení Trella: příjem textu/odkazu ze systémového sdílení do nového úkolu; vždy potvrdit účet a cíl, zachovat koncept při zrušení přihlášení.
+- [ ] F05 Návrh z Trello checklistů: vložení více položek najednou a skrytí hotových; nejprve zachovat bezeztrátový převod do podporovaného Markdownu Decku.
+- [ ] F07 Návrh z API auditu: nabídnout nové přiřazení skupiny/týmu na kartu podle skutečně podporovaného typu; stávající přiřazení nyní zachovat a umožnit odebrat bez záměny za stejně pojmenovaného uživatele.
+
+## Původní plán a průběžné důkazy
+
 - [x] P01 Soukromý `nks-hub/owndeck` založen a ověřen přes GitHub API; vydávaná verze je `0.1.0+2`, tag `v0.1.0+2`, pravidla v `docs/versioning.md`.
 
 - [x] P00 Ověřit výchozí stav a vytvořit plán před zahájením vývoje.
@@ -47,15 +106,15 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] B02 Přijaté zápisy se už neopakují ani nezaseknou po cizím přesunu; aktuální sloupec/nástěnka se ověřují, 403/404 nevracejí cache. `77cea35` + `ca8c723` + `41b25b3`, 107 databázových testů a analyzer prošly.
 - [x] B03 Známá ztráta přístupu čistí serverovou cache i stažené soubory, blokuje zápisy a zachovává vlastní koncepty/staging. Ověřeno 28 mobilními testy, databázovou sadou a skutečným odebráním sdílení na jednom serveru.
 - [x] B04 Hranice startdate/color opravena na Deck 1.18 v `b9c6903`; 108 protokolových testů prošlo a skutečný Deck 1.18.5 potvrdil vytvoření, změnu i vymazání obou polí se zachováním ostatních hodnot.
-- [ ] T01 Odloženo na pokyn uživatele: ověřit společnou finální revizi; vydaný `7d13eb6` má úspěšné CI, dílčí novější výsledky nepokrývají celý nový strom.
-- [ ] T02 Odloženo na pokyn uživatele: ověřit finální revizi proti skutečnému Nextcloudu, oba buildy a doručení telemetrie.
+- [ ] T01 Testy obnovené novým pokynem uživatele: ověřit společnou finální revizi; dílčí historické výsledky nepokrývají celý nový strom.
+- [ ] T02 Ověřit finální revizi proti skutečnému Nextcloudu, oba buildy a doručení telemetrie.
 - [x] T02b Dva vlastní izolované účty na stejném serveru: READ a EDIT omezení i odebrání sdílení ověřené; skutečný DeckSync vyřadil cache bez mutace a zachoval čekající texty. Celkem 12 scénářů včetně rozšířených polí a úklidu API.
-- [ ] T03 Další testy zařízení odloženy na pokyn uživatele; kandidát `2cbef2a` již prošel nastavením, oznámeními, kopií a importem na S9/S21 a iOS simulátoru proti místnímu testovacímu serveru. D12 ani pozdější změny tím nejsou ověřené.
+- [ ] T03 Kompletní E2E na S9/S21 a iOS simulátoru obnovené; kandidát `2cbef2a` má jen dílčí historické ověření proti místnímu testovacímu serveru. Finální redesign tím není ověřený.
 
-Aktuální stav: D12 a D15 jsou sloučené, související R01 opravené v OwnTalku. Zbývají odložené testy, analyzéry a měření výkonu finální revize. Úspora práce při vykreslování je součástí D12; dosažení cíle na S9 se zatím netvrdí. Google Play obsahuje vydanou verzi 0.1.0+2, nikoli tyto nové změny.
+Aktuální zadání: uživatel požaduje kompletní analýzu, review, redesign, refaktor a E2E všech funkcí včetně praktického zapracování konkurence. Toto nahrazuje předchozí odložení testů. Probíhá paralelní review datové vrstvy, UI a příprava E2E; staré dokončené implementační body nejsou důkazem přijatelnosti finálního produktu. Google Play zatím obsahuje 0.1.0+2.
 
 - [x] N01 Související práce na OwnNotes je dokončená; přesný rozsah a důkazy jsou v jeho vlastním TODO.
 
 - [x] R01 OwnTalk `c994a07b`: kontrola názvu serveru čte SAN certifikátu místo CN a přihlašovací karta neslučuje ovládací prvky pro čtečku. Převzato stejné řešení jako v Decku; nové testy a vydání OwnTalku se neprováděly.
 - [x] R02 Google Play alpha 0.1.0+2 schváleno a publikováno; API potvrzuje PUBLISHED, ověřené podklady a tři skupiny jako OwnNotes; testovací odkaz: https://play.google.com/apps/testing/com.nkshub.nextclouddeck.
-- [ ] P02 Nové měření výkonu odloženo: D12 odstranilo opakované kopírování/parsing všech karet a vytváří jen viditelné řádky. Na finální revizi zbývá ověřit p95 celého snímku do 16,7 ms; staré měření S9 bylo 24,388 ms, S21 10,268 ms. Splnění cíle na S9 zatím není doložené.
+- [ ] P02 Na finální revizi ověřit p95 celého snímku do 16,7 ms a podle měření odstranit příčinu zpomalení; staré měření S9 bylo 24,388 ms, S21 10,268 ms. Úspory D12 samy splnění cíle nedokládají.

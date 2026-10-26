@@ -24,7 +24,13 @@ Název karty, dva řádky obsahu, označený termín, štítky a stav synchroniz
 
 ## Zdroje
 
+Praktické zapracování po review z 25. 10. 2026 je rozdělené do U01–U17 a F01 v `TODO.md`: souhrn karty s termínem, štítky a lidmi; rychlé zachycení s cílem; kombinované filtry přímo v nástěnce; jeden přesunový postup; interaktivní Markdown checklist; jasné čekání a řešení konfliktu. Stav zdrojového kódu a stav E2E se vedou zvlášť v `docs/review-redesign.md`. Hromadné operace, kalendář a příjem systémového sdílení jsou samostatné navazující návrhy F02–F05, nikoli tvrzení o už hotových funkcích.
+
 - [Trello Inbox](https://support.atlassian.com/trello/docs/trello-inbox/)
+- [Trello: filtry přímo v nástěnce](https://support.atlassian.com/trello/docs/filtering-for-cards-on-a-board/)
+- [Trello: metadata termínů](https://support.atlassian.com/trello/docs/adding-dates-to-cards/)
+- [Trello: checklist a průběh dokončení](https://support.atlassian.com/trello/docs/adding-checklists-to-cards/)
+- [Trello: přesuny a hromadné akce](https://support.atlassian.com/trello/docs/moving-cards-or-lists/)
 - [Trello Planner na mobilu](https://support.atlassian.com/trello/docs/use-trello-planner-on-mobile/)
 - [Nextcloud Deck Android](https://github.com/stefan-niedermann/nextcloud-deck)
 - [Deck NG v Google Play](https://play.google.com/store/apps/details?id=net.meltzow.deckng)
