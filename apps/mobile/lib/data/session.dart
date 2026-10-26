@@ -281,9 +281,9 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
         current?.contentEpoch == epoch;
   }
 
-  Future<void> refreshStacks(int boardId) =>
+  Future<void> refreshStacks(int boardId, {bool syncPending = true}) =>
       _refresh('board:$boardId', () async {
-        await sync.run();
+        if (syncPending) await sync.run();
         final resolved = await database.resolveId(
           account.id,
           boardId,

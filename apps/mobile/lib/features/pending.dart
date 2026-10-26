@@ -125,6 +125,45 @@ class _PendingScreenState extends State<PendingScreen> {
     return write.state == 'uncertain' ? text.confirmRetry : text.blocked;
   }
 
+  Future<void> _refreshTransfer(PendingWrite write, bool discard) async {
+    final session = widget.session;
+    final proposal = object(jsonDecode(write.proposal));
+    final receipt = proposal['transferReceipt'] is Map
+        ? object(proposal['transferReceipt'])
+        : write.remote == null
+        ? <String, Object?>{}
+        : object(jsonDecode(write.remote!));
+    final boards = <int>{};
+    for (final id in {
+      receipt['sourceBoardId'] ?? write.boardId,
+      proposal['destinationBoardId'],
+      receipt['boardId'],
+    }.whereType<int>()) {
+      boards.add(
+        await session.database.resolveId(
+              session.account.id,
+              id,
+              'createBoard',
+            ) ??
+            id,
+      );
+    }
+    if (!discard) {
+      await session.refreshStacks(write.boardId);
+      boards.remove(
+        await session.database.resolveId(
+              session.account.id,
+              write.boardId,
+              'createBoard',
+            ) ??
+            write.boardId,
+      );
+    }
+    await Future.wait([
+      for (final id in boards) session.refreshStacks(id, syncPending: false),
+    ]);
+  }
+
   Future<void> _decide(PendingWrite write, bool discard) async {
     if (!_deciding.add(write.id)) return;
     setState(() {});
@@ -156,7 +195,9 @@ class _PendingScreenState extends State<PendingScreen> {
         discard: discard,
         acceptRemoteBase: !discard && write.state == 'conflict',
       );
-      if (write.boardId == 0 ||
+      if (write.kind == 'cardTransfer') {
+        await _refreshTransfer(write, discard);
+      } else if (write.boardId == 0 ||
           write.kind.endsWith('Board') ||
           write.kind == 'boardClone') {
         unawaited(widget.session.refreshBoards());
@@ -436,27 +477,47 @@ class _PendingScreenState extends State<PendingScreen> {
 
   String _textValue(Object? value) => value is String ? value : '';
 
+  Future<({int boardId, int stackId})> _transferIds(JsonObject changes) async {
+    final boardId = intField(changes, 'destinationBoardId');
+    final stackId = intField(changes, 'destinationStackId');
+    final session = widget.session;
+    final ids = await Future.wait([
+      session.database.resolveId(session.account.id, boardId, 'createBoard'),
+      session.database.resolveId(session.account.id, stackId, 'createStack'),
+    ]);
+    return (boardId: ids[0] ?? boardId, stackId: ids[1] ?? stackId);
+  }
+
   Widget _transferDestination(JsonObject changes, Map<int, String> boardNames) {
     final text = AppLocalizations.of(context)!;
-    final boardId = changes['destinationBoardId'];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '${text.destinationBoard}: ${boardNames[boardId] ?? text.pendingValueUnavailable}',
-        ),
-        StreamBuilder<List<DeckStack>>(
-          stream: boardId is int ? widget.session.watchStacks(boardId) : null,
-          builder: (context, snapshot) {
-            final stack = snapshot.data
-                ?.where((stack) => stack.id == changes['destinationStackId'])
-                .firstOrNull;
-            return Text(
-              '${text.destinationColumn}: ${stack?.title ?? text.pendingValueUnavailable}',
-            );
-          },
-        ),
-      ],
+    final boardId = intField(changes, 'destinationBoardId');
+    final stackId = intField(changes, 'destinationStackId');
+    return FutureBuilder<({int boardId, int stackId})>(
+      key: ValueKey((boardId, stackId)),
+      future: _transferIds(changes),
+      initialData: (boardId: boardId, stackId: stackId),
+      builder: (context, ids) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${text.destinationBoard}: ${boardNames[ids.data?.boardId] ?? text.pendingValueUnavailable}',
+          ),
+          StreamBuilder<List<DeckStack>>(
+            key: ValueKey(ids.data),
+            stream: ids.hasError
+                ? null
+                : widget.session.watchStacks(ids.data!.boardId),
+            builder: (context, snapshot) {
+              final stack = snapshot.data
+                  ?.where((stack) => stack.id == ids.data?.stackId)
+                  .firstOrNull;
+              return Text(
+                '${text.destinationColumn}: ${stack?.title ?? text.pendingValueUnavailable}',
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 
