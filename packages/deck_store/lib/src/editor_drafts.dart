@@ -38,6 +38,31 @@ extension DeckEditorDrafts on DeckDatabase {
     );
   });
 
+  /// Stores text received while the account is signed out; no server write is involved.
+  Future<void> saveSignedOutDraft(
+    String accountId,
+    String key,
+    int boardId,
+    int stackId,
+    JsonObject payload,
+  ) => transaction(() async {
+    final current = await account(accountId);
+    if (current == null ||
+        (current.state != 'active' && current.state != 'reauthRequired')) {
+      throw StateError('account_unavailable');
+    }
+    await into(editorDrafts).insertOnConflictUpdate(
+      EditorDraftsCompanion.insert(
+        accountId: accountId,
+        draftKey: key,
+        boardId: boardId,
+        stackId: stackId,
+        payload: jsonEncode(payload),
+        updatedAt: DateTime.now().toUtc(),
+      ),
+    );
+  });
+
   Future<void> deleteEditorDraft(String accountId, String key) async {
     await (delete(
           editorDrafts,

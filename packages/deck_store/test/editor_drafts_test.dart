@@ -98,4 +98,16 @@ void main() {
       expect(await db.watchEditorDrafts(account.id).first, isEmpty);
     },
   );
+
+  test('a signed-out draft is stored for a reauthentication account only', () async {
+    await AccountRepository(db, vault).requireAuthentication(account);
+    await db.saveSignedOutDraft(account.id, 'share:1', 0, 0, {'title': 'T'});
+    final draft = (await db.editorDraft(account.id, 'share:1'))!;
+    expect(object(jsonDecode(draft.payload))['title'], 'T');
+    expect(await db.writesFor(account.id), isEmpty);
+    expect(
+      () => db.saveSignedOutDraft('missing', 'share:2', 0, 0, {}),
+      throwsStateError,
+    );
+  });
 }
