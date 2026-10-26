@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import '../data/session.dart';
 import '../core/errors.dart';
 import '../l10n/app_localizations.dart';
+import 'markdown_field.dart';
 import 'sharing.dart' show shareParticipantId, shareParticipantName;
 import 'state_message.dart';
 
@@ -304,11 +305,9 @@ class _CommentEditorState extends State<CommentEditor> {
                       padding: const EdgeInsets.only(bottom: 16),
                       child: Text('${text.replyTo}: ${_replyTo!.message}'),
                     ),
-                  TextField(
+                  MarkdownField(
                     controller: _message,
                     enabled: !_saving,
-                    minLines: 5,
-                    maxLines: null,
                     onChanged: _changed,
                     decoration: InputDecoration(
                       labelText: text.commentMessage,

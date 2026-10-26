@@ -9,6 +9,7 @@ import '../data/session.dart';
 import '../core/errors.dart';
 import '../l10n/app_localizations.dart';
 import 'color_choices.dart';
+import 'markdown_field.dart';
 import 'state_message.dart';
 
 enum QuickDue { today, tomorrow, nextWeek, none }
@@ -418,11 +419,9 @@ class _CardEditorState extends State<CardEditor> {
                       onChanged: (_) => _changed(),
                     ),
                     const SizedBox(height: 16),
-                    TextField(
+                    MarkdownField(
                       controller: _description,
                       enabled: !_saving,
-                      minLines: 5,
-                      maxLines: null,
                       decoration: InputDecoration(
                         labelText: text.description,
                         alignLabelWithHint: true,
