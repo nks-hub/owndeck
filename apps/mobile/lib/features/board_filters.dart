@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:deck_protocol/deck_protocol.dart';
 import 'package:flutter/material.dart';
 
@@ -38,6 +40,41 @@ final class BoardCardFilter {
     due: due,
     completion: completion,
   );
+
+  /// JSON form stored in preferences; `null` when no filter is active.
+  String? encode() => active
+      ? jsonEncode({
+          'query': query,
+          'memberId': memberId,
+          'labelId': labelId,
+          'due': due.name,
+          'completion': completion.name,
+        })
+      : null;
+
+  /// Restores a filter from [encode]; damaged input gives the empty filter.
+  static BoardCardFilter decode(String? value) {
+    if (value == null || value.isEmpty) return const BoardCardFilter();
+    try {
+      final json = jsonDecode(value);
+      if (json is! Map) return const BoardCardFilter();
+      return BoardCardFilter(
+        query: json['query'] is String ? json['query'] as String : '',
+        memberId: json['memberId'] is String ? json['memberId'] as String : null,
+        labelId: json['labelId'] is int ? json['labelId'] as int : null,
+        due: BoardDueFilter.values.firstWhere(
+          (v) => v.name == json['due'],
+          orElse: () => BoardDueFilter.any,
+        ),
+        completion: BoardCompletionFilter.values.firstWhere(
+          (v) => v.name == json['completion'],
+          orElse: () => BoardCompletionFilter.any,
+        ),
+      );
+    } on FormatException {
+      return const BoardCardFilter();
+    }
+  }
 
   bool matches(DeckCard card, {DateTime? now}) {
     if (!active) return true;

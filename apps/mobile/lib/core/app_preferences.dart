@@ -43,7 +43,8 @@ final class AppPreferences extends ChangeNotifier {
   final _changed = <String>{};
   final _failed = <String>{};
   final _boardModes = <String, BoardViewMode>{};
-  final _cardDestinations = <String, CardDestination>{};
+  final _boardFilters = <String, String>{};
+  final _cardDestinations =<String, CardDestination>{};
   final _destinationLoads = <String, Future<void>>{};
   final _boardLoads = <String, Future<void>>{};
   Future<void>? _loading;
@@ -102,6 +103,8 @@ final class AppPreferences extends ChangeNotifier {
       } on FormatException {
         // A damaged preference must not select an unrelated destination.
       }
+    } else if (key.startsWith('app.board-filter.')) {
+      _boardFilters[key] = value ?? '';
     } else {
       _boardModes[key] = BoardViewMode.values.firstWhere(
         (mode) => mode.name == value,
@@ -152,6 +155,30 @@ final class AppPreferences extends ChangeNotifier {
     return _persist(key, value.name);
   }
 
+  static String _filterKey(String accountId, int boardId) =>
+      'app.board-filter.${base64Url.encode(utf8.encode(accountId))}.$boardId';
+
+  /// Stored filter JSON for a board, or `null` when none is saved.
+  String? boardFilter(String accountId, int boardId) {
+    final value = _boardFilters[_filterKey(accountId, boardId)];
+    return value == null || value.isEmpty ? null : value;
+  }
+
+  Future<String?> loadBoardFilter(String accountId, int boardId) async {
+    final key = _filterKey(accountId, boardId);
+    final value = await _read(key);
+    _applyLoaded(key, value);
+    return boardFilter(accountId, boardId);
+  }
+
+  /// Saves the filter JSON; `null` clears the stored filter.
+  Future<bool> setBoardFilter(String accountId, int boardId, String? value) {
+    final key = _filterKey(accountId, boardId);
+    _boardFilters[key] = value ?? '';
+    _changed.add(key);
+    return _persist(key, value ?? '');
+  }
+
   static String _destinationKey(String accountId) =>
       'app.last-card.${base64Url.encode(utf8.encode(accountId))}';
 
@@ -192,6 +219,8 @@ final class AppPreferences extends ChangeNotifier {
                 _ when key.startsWith('app.last-card.') => _destinationValue(
                   key,
                 ),
+                _ when key.startsWith('app.board-filter.') =>
+                  _boardFilters[key]!,
                 _ => _boardModes[key]!.name,
               })
             : _retryRead(key),

@@ -69,6 +69,7 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
     _stacks = session.watchStacks(widget.board.id);
     final preferences = ref.read(appPreferencesProvider);
     unawaited(preferences.loadBoardViewMode(session.account.id, _board.id));
+    unawaited(_restoreFilter(binding));
     _boardChanges = session.database
         .watchBoard(session.account.id, widget.board.id)
         .listen(
@@ -145,6 +146,25 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
     setState(() {
       _filter = value;
       if (_query.text != value.query) _query.text = value.query;
+    });
+    unawaited(
+      ref
+          .read(appPreferencesProvider)
+          .setBoardFilter(widget.session.account.id, _board.id, value.encode()),
+    );
+  }
+
+  Future<void> _restoreFilter(int binding) async {
+    final saved = await ref
+        .read(appPreferencesProvider)
+        .loadBoardFilter(widget.session.account.id, _board.id);
+    if (!mounted || binding != _binding || _filter.active || saved == null) {
+      return;
+    }
+    final value = BoardCardFilter.decode(saved);
+    setState(() {
+      _filter = value;
+      _query.text = value.query;
     });
   }
 
