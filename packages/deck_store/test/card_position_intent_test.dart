@@ -162,6 +162,33 @@ void main() {
       );
     },
   );
+
+  for (final change in ['delete', 'move']) {
+    test(
+      'a $change between accepted context and sibling reads resolves on retry',
+      () async {
+        await queue({'anchorCardId': null, 'before': false});
+        server.changeDuringReadback = change;
+        await sync.run();
+        expect((await database.writesFor(account.id)).single.state, 'applied');
+        expect(server.puts, 1);
+        await sync.run();
+        expect(await database.writesFor(account.id), isEmpty);
+        expect(server.puts, 1);
+        final local = (await database.stackView(
+          account.id,
+          1,
+        )).expand((s) => s.cards);
+        expect(local.any((c) => c.id == 8), isFalse);
+        if (change == 'move') {
+          expect(
+            (await database.stackView(account.id, 3)).single.cards.single.id,
+            8,
+          );
+        }
+      },
+    );
+  }
 }
 
 class _Server {
@@ -171,12 +198,13 @@ class _Server {
   };
   var puts = 0;
   var targetInBoard = true, failReadback = false;
+  String? changeDuringReadback;
   List<JsonObject> ordered(int id) =>
       cards.values.where((c) => c['stackId'] == id).toList()
         ..sort((a, b) => (a['order']! as int).compareTo(b['order']! as int));
   JsonObject stack(int id) => {
     'id': id,
-    'boardId': 1,
+    'boardId': id == 4 ? 3 : 1,
     'title': 'Column',
     'order': id - 2,
     'isDoneColumn': false,
@@ -213,14 +241,29 @@ class _Server {
     if (path.endsWith('/boards/1')) {
       return reply(board(1, 'Board', edit: true).raw);
     }
+    if (path.endsWith('/boards/3')) {
+      return reply(board(3, 'Other board', edit: true).raw);
+    }
     if (path.endsWith('/stacks/archived')) return reply([]);
     if (path.endsWith('/stacks')) {
       if (puts > 0 && failReadback) return http.Response('', 503);
+      if (puts > 0 && changeDuringReadback != null) {
+        if (changeDuringReadback == 'delete') {
+          cards.remove(8);
+        } else {
+          cards[8]!['stackId'] = 4;
+        }
+        changeDuringReadback = null;
+      }
+      if (path.contains('/boards/3/')) return reply([stack(4)]);
       return reply([stack(2), if (targetInBoard) stack(3)]);
     }
     if (path.endsWith('/stacks/2')) return reply(stack(2));
     if (path.endsWith('/stacks/3')) return reply(stack(3));
-    if (path.endsWith('/cards/8')) return reply(cards[8]!);
+    if (path.endsWith('/stacks/4')) return reply(stack(4));
+    if (path.endsWith('/cards/8')) {
+      return cards[8] == null ? http.Response('', 404) : reply(cards[8]!);
+    }
     throw StateError('unexpected_request');
   }
 }
