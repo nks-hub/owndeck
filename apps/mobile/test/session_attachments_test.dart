@@ -180,7 +180,11 @@ void main() {
           MockClient((request) async {
             expect(request.method, 'GET');
             expect(request.url.path, endsWith('/boards/1'));
-            return http.Response('', status);
+            return http.Response(
+              '{}',
+              status,
+              headers: {'content-type': 'application/json'},
+            );
           }),
         );
         final oldEpoch = (await database.account(account.id))!.contentEpoch;

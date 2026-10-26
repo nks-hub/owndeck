@@ -265,7 +265,13 @@ final class TransferServer {
     }
     if (cardId != null) {
       final card = cards[cardId];
-      if (card == null || card['deletedAt'] != 0) return http.Response('', 404);
+      if (card == null || card['deletedAt'] != 0) {
+        return http.Response(
+          '{}',
+          404,
+          headers: {'content-type': 'application/json'},
+        );
+      }
       final actualBoard = stackBoards[card['stackId']];
       if (actualBoard == 1 ? !sourceRead : !targetRead) {
         return http.Response('', 403);

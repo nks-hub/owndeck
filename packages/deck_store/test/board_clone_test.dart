@@ -354,7 +354,11 @@ void main() {
             if (request.url.path.endsWith('/boards/1')) {
               return _json(source.raw);
             }
-            return http.Response('', status);
+            return http.Response(
+              '{}',
+              status,
+              headers: {'content-type': 'application/json'},
+            );
           },
         );
         await sync.run();

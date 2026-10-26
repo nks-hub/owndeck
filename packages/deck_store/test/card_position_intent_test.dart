@@ -262,7 +262,13 @@ class _Server {
     if (path.endsWith('/stacks/3')) return reply(stack(3));
     if (path.endsWith('/stacks/4')) return reply(stack(4));
     if (path.endsWith('/cards/8')) {
-      return cards[8] == null ? http.Response('', 404) : reply(cards[8]!);
+      return cards[8] == null
+          ? http.Response(
+              '{}',
+              404,
+              headers: {'content-type': 'application/json'},
+            )
+          : reply(cards[8]!);
     }
     throw StateError('unexpected_request');
   }

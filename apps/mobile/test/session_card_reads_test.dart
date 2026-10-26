@@ -130,7 +130,11 @@ void main() {
           MockClient((request) async {
             requests++;
             expect(request.url.path, endsWith('/boards/1'));
-            return http.Response('', status);
+            return http.Response(
+              '{}',
+              status,
+              headers: {'content-type': 'application/json'},
+            );
           }),
         );
         await expectLater(
@@ -161,7 +165,11 @@ void main() {
           }
           if (request.url.path.endsWith('/stacks/2')) return json(stack.raw);
           expect(request.url.path, endsWith('/cards/8'));
-          return http.Response('', status);
+          return http.Response(
+            '{}',
+            status,
+            headers: {'content-type': 'application/json'},
+          );
         }),
       );
       await expectLater(

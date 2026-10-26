@@ -198,7 +198,9 @@ void main() {
 
   test('draft merged during the board read is sent, not lost (B46)', () async {
     final original = DeckCard.fromJson(cardJson());
-    await db.saveCardDraft(account, 1, 2, {'description': 'A'}, original: original);
+    await db.saveCardDraft(account, 1, 2, {
+      'description': 'A',
+    }, original: original);
     var serverCard = cardJson();
     var boardReads = 0;
     final puts = <String>[];
@@ -236,6 +238,44 @@ void main() {
     expect(puts, isNotEmpty);
     expect(puts.last, contains('"B"'));
     expect(await db.writesFor(account.id), isEmpty);
+  });
+
+  test('HTML 404 keeps the write queued and the cache intact (B52)', () async {
+    await db.saveCardDraft(account, 1, 2, {
+      'description': 'Local',
+    }, original: DeckCard.fromJson(cardJson()));
+    final sync = engine(
+      (request) async => http.Response(
+        '<html>Not Found</html>',
+        404,
+        headers: {'content-type': 'text/html'},
+      ),
+    );
+    await expectLater(
+      sync.run(),
+      throwsA(
+        isA<DeckException>().having((e) => e.code, 'code', 'deck_unavailable'),
+      ),
+    );
+    expect((await db.writesFor(account.id)).single.state, 'queued');
+    expect(
+      (await db.watchStacks(account.id, 1).first).single.cards,
+      isNotEmpty,
+    );
+  });
+
+  test('JSON 404 from Deck still revokes the board', () async {
+    await db.saveCardDraft(account, 1, 2, {
+      'description': 'Local',
+    }, original: DeckCard.fromJson(cardJson()));
+    await engine(
+      (request) async => http.Response(
+        '{"message":"Not found"}',
+        404,
+        headers: {'content-type': 'application/json'},
+      ),
+    ).run();
+    expect((await db.writesFor(account.id)).single.state, isNot('queued'));
   });
 
   test('restart recovers a sending operation without replaying it', () async {

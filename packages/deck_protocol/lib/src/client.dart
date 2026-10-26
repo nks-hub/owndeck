@@ -237,6 +237,17 @@ final class DeckClient {
                     : null);
             deferUntil(until);
           }
+          // A non-JSON 404 comes from a proxy or a disabled app, not from Deck,
+          // so it must not look like a deleted resource.
+          if (response.statusCode == 404 &&
+              response.headers['content-type']
+                      ?.split(';')
+                      .first
+                      .trim()
+                      .toLowerCase() !=
+                  'application/json') {
+            throw DeckException('deck_unavailable', retryAt: _retryUntil);
+          }
           throw DeckException(
             switch (response.statusCode) {
               401 => 'authentication_required',

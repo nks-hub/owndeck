@@ -65,7 +65,11 @@ final class CardServer {
       final id = int.parse(path.last);
       if (id == 9) return reply(cardJson(id: 9));
       if (accepted && readbackStatus != 200) {
-        return http.Response('', readbackStatus);
+        return http.Response(
+          '{}',
+          readbackStatus,
+          headers: {'content-type': 'application/json'},
+        );
       }
       return reply({
         ...cardJson(id: wrongCardId ?? id),
@@ -120,7 +124,13 @@ final class CardServer {
       final id = int.parse(path.last);
       if (accepted && readbackStatus == 200) {
         await onContextRead?.call();
-        if (boardStatus != 200) return http.Response('', boardStatus);
+        if (boardStatus != 200) {
+          return http.Response(
+            '{}',
+            boardStatus,
+            headers: {'content-type': 'application/json'},
+          );
+        }
       }
       return reply({
         ...board(wrongBoardId ?? id, 'Board', edit: true).raw,

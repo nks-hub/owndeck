@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:deck_store/deck_store.dart';
-import 'package:drift/native.dart';import 'package:test/test.dart';
+import 'package:drift/native.dart';
+import 'package:test/test.dart';
 
 void main() {
   for (var version = 1; version < 9; version++) {
@@ -109,7 +110,9 @@ void main() {
             database.execute(statement);
           }
           // A later step (adding user_id) collides with this column.
-          database.execute('ALTER TABLE stored_accounts ADD COLUMN user_id TEXT');
+          database.execute(
+            'ALTER TABLE stored_accounts ADD COLUMN user_id TEXT',
+          );
           database.execute('PRAGMA user_version = 5');
         },
       ),

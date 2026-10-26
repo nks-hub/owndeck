@@ -219,32 +219,32 @@ extension DeckWrites on DeckDatabase {
     String id, {
     PendingWrite? expected,
   }) => transaction(() async {
-        if (!await ownsLease(account, owner)) return false;
-        return await (update(pendingWrites)..where(
-                  (w) =>
-                      w.accountId.equals(account.id) &
-                      w.id.equals(id) &
-                      w.state.equals('queued') &
-                      (expected == null
-                          ? const Constant(true)
-                          : w.proposal.equals(expected.proposal) &
-                                w.boardId.equals(expected.boardId) &
-                                w.stackId.equals(expected.stackId) &
-                                (expected.cardId == null
-                                    ? w.cardId.isNull()
-                                    : w.cardId.equals(expected.cardId!)) &
-                                (expected.base == null
-                                    ? w.base.isNull()
-                                    : w.base.equals(expected.base!))),
-                ))
-                .write(
-                  const PendingWritesCompanion(
-                    state: Value('sending'),
-                    error: Value(null),
-                  ),
-                ) ==
-            1;
-      });
+    if (!await ownsLease(account, owner)) return false;
+    return await (update(pendingWrites)..where(
+              (w) =>
+                  w.accountId.equals(account.id) &
+                  w.id.equals(id) &
+                  w.state.equals('queued') &
+                  (expected == null
+                      ? const Constant(true)
+                      : w.proposal.equals(expected.proposal) &
+                            w.boardId.equals(expected.boardId) &
+                            w.stackId.equals(expected.stackId) &
+                            (expected.cardId == null
+                                ? w.cardId.isNull()
+                                : w.cardId.equals(expected.cardId!)) &
+                            (expected.base == null
+                                ? w.base.isNull()
+                                : w.base.equals(expected.base!))),
+            ))
+            .write(
+              const PendingWritesCompanion(
+                state: Value('sending'),
+                error: Value(null),
+              ),
+            ) ==
+        1;
+  });
 
   Future<void> markWrite(
     StoredAccount account,

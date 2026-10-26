@@ -259,7 +259,11 @@ final class _Server {
     }
     if (path.endsWith('/cards/8')) {
       if (accepted && (mode.startsWith('card-') || mode.startsWith('read-'))) {
-        return http.Response('', int.parse(mode.split('-').last));
+        return http.Response(
+          '{}',
+          int.parse(mode.split('-').last),
+          headers: {'content-type': 'application/json'},
+        );
       }
       return json({
         ...cardJson(description: description),
@@ -270,7 +274,11 @@ final class _Server {
       attachmentPaths.add(path);
       if (mode == 'board-403') return http.Response('', 403);
       if (mode.startsWith('card-') || mode.startsWith('read-')) {
-        return http.Response('', int.parse(mode.split('-').last));
+        return http.Response(
+          '{}',
+          int.parse(mode.split('-').last),
+          headers: {'content-type': 'application/json'},
+        );
       }
       return json(mode == 'missing' ? [] : [attachment]);
     }
