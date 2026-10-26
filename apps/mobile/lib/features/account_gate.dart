@@ -50,6 +50,7 @@ class _DeckAccountGateState extends ConsumerState<DeckAccountGate> {
       unawaited(_native!.start());
     }
     _shares.addListener(_shareChanged);
+    unawaited(_shares.restore());
     if (widget.shares == null) {
       _nativeShares = NativeSharedText(_shares);
       unawaited(_nativeShares!.start());
@@ -67,8 +68,10 @@ class _DeckAccountGateState extends ConsumerState<DeckAccountGate> {
     super.dispose();
   }
 
+  /// A card link and a shared text can arrive together. Both stay in their inboxes;
+  /// the link is handled first and the text only after the link flow has finished.
   void _schedule() {
-    if (!mounted || _routing || _links.pending == null) return;
+    if (!mounted || _routing || _sharing || _links.pending == null) return;
     _routing = true;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
@@ -90,6 +93,8 @@ class _DeckAccountGateState extends ConsumerState<DeckAccountGate> {
   void _scheduleShare() {
     if (!mounted ||
         _sharing ||
+        _routing ||
+        _links.pending != null ||
         _shares.pending == null ||
         ref.read(accountsProvider).items.isEmpty) {
       return;
@@ -205,7 +210,10 @@ class _DeckAccountGateState extends ConsumerState<DeckAccountGate> {
     } finally {
       if (mounted && !deferred) _shares.complete(request);
       _sharing = false;
-      if (mounted && !deferred) _scheduleShare();
+      if (mounted && !deferred) {
+        _scheduleShare();
+        _schedule();
+      }
     }
   }
 
@@ -376,7 +384,10 @@ class _DeckAccountGateState extends ConsumerState<DeckAccountGate> {
       }
       _routing = false;
       if (mounted) setState(() {});
-      if (!deferred) _schedule();
+      if (!deferred) {
+        _schedule();
+        _scheduleShare();
+      }
     }
   }
 
