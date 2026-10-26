@@ -522,9 +522,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'This device has no camera that can read a login code.';
 
   @override
-  String get secureTitle => 'Credentials stay on this device';
-
-  @override
   String get serverAddressHint => 'cloud.example.com';
 
   @override
@@ -569,10 +566,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get browserUnavailable => 'The sign-in page could not be opened.';
 
   @override
-  String get multiServerBody =>
-      'Add personal and work accounts without rebuilding the app or sharing their data.';
-
-  @override
   String get serverNotInstalled =>
       'Nextcloud is not installed on this server yet.';
 
@@ -586,13 +579,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get serverUnavailable =>
       'The server could not be reached. Check the address and your connection.';
-
-  @override
-  String get secureBody =>
-      'App passwords are stored in the system Keychain or Keystore, never in the card database.';
-
-  @override
-  String get onboardingTitle => 'Your boards, one app';
 
   @override
   String certificateChangedBody(String host) {
@@ -610,9 +596,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reauthenticateAccountAction => 'Sign in again';
-
-  @override
-  String get multiServerTitle => 'Built for multiple servers';
 
   @override
   String get scanLoginCodeHint =>
@@ -643,10 +626,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get openAppSettings => 'Open settings';
-
-  @override
-  String get onboardingBody =>
-      'Connect any supported Nextcloud server. Accounts, their stored data and background work stay strictly separated.';
 
   @override
   String get serverAddressLabel => 'Server address';
@@ -1536,4 +1515,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get formatLink => 'Link';
+
+  @override
+  String get loginTagline => 'Tasks and boards from your Nextcloud';
+
+  @override
+  String get loginNote =>
+      'You sign in on your server in the browser. The app password stays on this device.';
 }

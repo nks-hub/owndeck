@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
+import '../core/deck_theme.dart';
 import '../core/onboarding_theme.dart';
 import '../data/accounts.dart';
 import '../l10n/app_localizations.dart';
@@ -41,8 +42,8 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Theme(
     data: Theme.of(context).brightness == Brightness.dark
-        ? OnboardingTheme.dark()
-        : OnboardingTheme.light(),
+        ? OnboardingTheme.dark(seedColor: DeckTheme.accent)
+        : OnboardingTheme.light(seedColor: DeckTheme.accent),
     child: _LoginContent(
       key: ValueKey((
         reauthenticateAccount?.id,

@@ -60,7 +60,16 @@
   "moreActions": "More actions",
   "deciding": "Working",
   "currentOnServer": "Now on server: {board} / {column}",
-  "@currentOnServer": {"placeholders": {"board": {"type": "String"}, "column": {"type": "String"}}},
+  "@currentOnServer": {
+    "placeholders": {
+      "board": {
+        "type": "String"
+      },
+      "column": {
+        "type": "String"
+      }
+    }
+  },
   "pendingNotCompleted": "Not completed",
   "pendingCompletion": "Completion",
   "confirmRetry": "Retrying may create a duplicate item. Send again?",
@@ -162,7 +171,6 @@
   "invalidDateRange": "The start date must not be after the due date.",
   "certificateFingerprintLabel": "SHA-256 fingerprint",
   "scanLoginCodeCameraUnavailable": "This device has no camera that can read a login code.",
-  "secureTitle": "Credentials stay on this device",
   "serverAddressHint": "cloud.example.com",
   "reauthenticateAccountMismatch": "Sign in with the same account. The stored account was not changed.",
   "scanLoginCodeCameraDenied": "Camera access is turned off. Allow it in system settings to scan a login code.",
@@ -176,13 +184,10 @@
   "certificateTrustAction": "Trust and continue",
   "scannedLoginRejected": "The scanned login code could not be used. Create a new one on the server.",
   "browserUnavailable": "The sign-in page could not be opened.",
-  "multiServerBody": "Add personal and work accounts without rebuilding the app or sharing their data.",
   "serverNotInstalled": "Nextcloud is not installed on this server yet.",
   "checkingServer": "Checking the server…",
   "waitingForLoginBody": "This screen will continue automatically after Nextcloud approves the app.",
   "serverUnavailable": "The server could not be reached. Check the address and your connection.",
-  "secureBody": "App passwords are stored in the system Keychain or Keystore, never in the card database.",
-  "onboardingTitle": "Your boards, one app",
   "certificateChangedBody": "{host} now presents a different certificate than the one this account trusts. If you replaced the certificate yourself, remove the account and add it again.",
   "@certificateChangedBody": {
     "placeholders": {
@@ -198,7 +203,6 @@
   "loginTimedOut": "The sign-in request expired. Start it again.",
   "scanLoginCodeUnreadable": "This is not a Nextcloud login code.",
   "reauthenticateAccountAction": "Sign in again",
-  "multiServerTitle": "Built for multiple servers",
   "scanLoginCodeHint": "Point the camera at the QR code your server shows under Settings, Security, Create new app password.",
   "invalidResponse": "The server returned a response this app cannot safely use.",
   "certificateUnverifiedTitle": "Unverified server certificate",
@@ -214,7 +218,6 @@
   "serverUpgrade": "The server must finish its database upgrade first.",
   "addServerTitle": "Add a Nextcloud server",
   "openAppSettings": "Open settings",
-  "onboardingBody": "Connect any supported Nextcloud server. Accounts, their stored data and background work stay strictly separated.",
   "serverAddressLabel": "Server address",
   "attachments": "Attachments",
   "uploadFile": "Upload file",
@@ -544,7 +547,7 @@
     }
   },
   "loadCards": "Load cards",
-  "calendarNothingOnDay":"Nothing on this day.",
+  "calendarNothingOnDay": "Nothing on this day.",
   "calendarDayLabel": "{date}: {summary}",
   "@calendarDayLabel": {
     "placeholders": {
@@ -639,5 +642,7 @@
   "formatBold": "Bold",
   "formatList": "List",
   "formatChecklist": "Checklist",
-  "formatLink": "Link"
+  "formatLink": "Link",
+  "loginTagline": "Tasks and boards from your Nextcloud",
+  "loginNote": "You sign in on your server in the browser. The app password stays on this device."
 }

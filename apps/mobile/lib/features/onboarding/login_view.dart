@@ -32,62 +32,44 @@ final class LoginEntry extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final desktop = constraints.maxWidth >= 900;
+        final form = _ServerCard(
+          key: const Key('onboarding-server-card'),
+          controller: serverController,
+          focusNode: serverFocus,
+          busy: busy,
+          phase: phase,
+          reauthentication: reauthentication,
+          errorMessage: errorMessage,
+          onConnect: onConnect,
+          onScan: onScan,
+          framed: desktop,
+        );
+        final header = _Header(
+          key: const Key('onboarding-introduction'),
+          strings: strings,
+          large: desktop,
+        );
         final content = desktop
             ? Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Expanded(
-                    child: _Introduction(
-                      key: const Key('onboarding-introduction'),
-                      strings: strings,
-                    ),
-                  ),
-                  const SizedBox(width: 48),
-                  SizedBox(
-                    width: 420,
-                    child: _ServerCard(
-                      key: const Key('onboarding-server-card'),
-                      controller: serverController,
-                      focusNode: serverFocus,
-                      busy: busy,
-                      phase: phase,
-                      reauthentication: reauthentication,
-                      errorMessage: errorMessage,
-                      onConnect: onConnect,
-                      onScan: onScan,
-                    ),
-                  ),
+                  Expanded(child: header),
+                  const SizedBox(width: 64),
+                  SizedBox(width: 400, child: form),
                 ],
               )
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _Introduction(
-                    key: const Key('onboarding-introduction'),
-                    strings: strings,
-                  ),
-                  const SizedBox(height: 24),
-                  _ServerCard(
-                    key: const Key('onboarding-server-card'),
-                    controller: serverController,
-                    focusNode: serverFocus,
-                    busy: busy,
-                    phase: phase,
-                    reauthentication: reauthentication,
-                    errorMessage: errorMessage,
-                    onConnect: onConnect,
-                    onScan: onScan,
-                  ),
-                ],
+                children: [header, const SizedBox(height: 32), form],
               );
         return SingleChildScrollView(
           padding: EdgeInsets.symmetric(
-            horizontal: desktop ? 48 : 20,
-            vertical: desktop ? 40 : 24,
+            horizontal: desktop ? 48 : 24,
+            vertical: desktop ? 40 : 32,
           ),
           child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1120),
+              constraints: BoxConstraints(maxWidth: desktop ? 1000 : 480),
               child: content,
             ),
           ),
@@ -97,87 +79,34 @@ final class LoginEntry extends StatelessWidget {
   }
 }
 
-final class _Introduction extends StatelessWidget {
-  const _Introduction({super.key, required this.strings});
+/// App mark, name and one line saying what the app is for.
+final class _Header extends StatelessWidget {
+  const _Header({super.key, required this.strings, required this.large});
 
   final AppLocalizations strings;
+  final bool large;
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const BrandMark(),
-        const SizedBox(height: 24),
-        Text(strings.onboardingTitle, style: textTheme.headlineLarge),
-        const SizedBox(height: 12),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 620),
-          child: Text(
-            strings.onboardingBody,
-            style: textTheme.bodyLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
+        BrandMark(size: large ? 72 : 56),
+        SizedBox(height: large ? 24 : 16),
+        Text(
+          'OwnDeck',
+          style:
+              (large
+                      ? theme.textTheme.displaySmall
+                      : theme.textTheme.headlineMedium)
+                  ?.copyWith(fontWeight: FontWeight.w700),
         ),
-        const SizedBox(height: 28),
-        _FeatureLine(
-          icon: Icons.hub_outlined,
-          title: strings.multiServerTitle,
-          body: strings.multiServerBody,
-        ),
-        const SizedBox(height: 18),
-        _FeatureLine(
-          icon: Icons.shield_outlined,
-          title: strings.secureTitle,
-          body: strings.secureBody,
-        ),
-      ],
-    );
-  }
-}
-
-final class _FeatureLine extends StatelessWidget {
-  const _FeatureLine({
-    required this.icon,
-    required this.title,
-    required this.body,
-  });
-
-  final IconData icon;
-  final String title;
-  final String body;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: scheme.primaryContainer,
-            borderRadius: BorderRadius.circular(15),
-          ),
-          child: Icon(icon, color: scheme.onPrimaryContainer),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 3),
-              Text(
-                body,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                ),
-              ),
-            ],
+        const SizedBox(height: 6),
+        Text(
+          strings.loginTagline,
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
       ],
@@ -196,8 +125,10 @@ final class _ServerCard extends StatelessWidget {
     required this.errorMessage,
     required this.onConnect,
     required this.onScan,
+    required this.framed,
   });
 
+  final bool framed;
   final TextEditingController controller;
   final FocusNode focusNode;
   final bool busy;
@@ -210,66 +141,86 @@ final class _ServerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final strings = AppLocalizations.of(context)!;
-    return Card(
-      semanticContainer: false,
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+    final theme = Theme.of(context);
+    final fields = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          reauthentication
+              ? strings.reauthenticateAccountTitle
+              : strings.addServerTitle,
+          style: theme.textTheme.titleMedium,
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: controller,
+          focusNode: focusNode,
+          enabled: !busy && !reauthentication,
+          keyboardType: TextInputType.url,
+          textInputAction: TextInputAction.done,
+          autofillHints: const [AutofillHints.url],
+          autocorrect: false,
+          enableSuggestions: false,
+          decoration: InputDecoration(
+            labelText: strings.serverAddressLabel,
+            hintText: strings.serverAddressHint,
+            prefixIcon: const Icon(Icons.language_rounded),
+          ),
+          onSubmitted: (_) => onConnect(),
+        ),
+        if (errorMessage != null) ...[
+          const SizedBox(height: 14),
+          Semantics(
+            liveRegion: true,
+            child: _InlineError(message: errorMessage!),
+          ),
+        ],
+        const SizedBox(height: 16),
+        FilledButton.icon(
+          onPressed: busy ? null : onConnect,
+          icon: busy
+              ? const SizedBox.square(
+                  dimension: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2.4),
+                )
+              : const Icon(Icons.arrow_forward_rounded),
+          label: Text(_buttonLabel(strings)),
+        ),
+        if (onScan != null) ...[
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            key: const Key('onboarding-scan-login-code'),
+            onPressed: busy ? null : onScan,
+            icon: const Icon(Icons.qr_code_scanner_rounded),
+            label: Text(strings.scanLoginCode),
+          ),
+        ],
+        const SizedBox(height: 16),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              reauthentication
-                  ? strings.reauthenticateAccountTitle
-                  : strings.addServerTitle,
-              style: Theme.of(context).textTheme.titleLarge,
+            Icon(
+              Icons.lock_outline_rounded,
+              size: 18,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: controller,
-              focusNode: focusNode,
-              enabled: !busy && !reauthentication,
-              keyboardType: TextInputType.url,
-              textInputAction: TextInputAction.done,
-              autofillHints: const [AutofillHints.url],
-              autocorrect: false,
-              enableSuggestions: false,
-              decoration: InputDecoration(
-                labelText: strings.serverAddressLabel,
-                hintText: strings.serverAddressHint,
-                prefixIcon: const Icon(Icons.language_rounded),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                strings.loginNote,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
-              onSubmitted: (_) => onConnect(),
             ),
-            if (errorMessage != null) ...[
-              const SizedBox(height: 14),
-              Semantics(
-                liveRegion: true,
-                child: _InlineError(message: errorMessage!),
-              ),
-            ],
-            const SizedBox(height: 20),
-            FilledButton.icon(
-              onPressed: busy ? null : onConnect,
-              icon: busy
-                  ? const SizedBox.square(
-                      dimension: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2.4),
-                    )
-                  : const Icon(Icons.arrow_forward_rounded),
-              label: Text(_buttonLabel(strings)),
-            ),
-            if (onScan != null) ...[
-              const SizedBox(height: 8),
-              OutlinedButton.icon(
-                key: const Key('onboarding-scan-login-code'),
-                onPressed: busy ? null : onScan,
-                icon: const Icon(Icons.qr_code_scanner_rounded),
-                label: Text(strings.scanLoginCode),
-              ),
-            ],
           ],
         ),
-      ),
+      ],
+    );
+    if (!framed) return fields;
+    return Card(
+      semanticContainer: false,
+      child: Padding(padding: const EdgeInsets.all(24), child: fields),
     );
   }
 

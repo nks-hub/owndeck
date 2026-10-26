@@ -523,9 +523,6 @@ class AppLocalizationsCs extends AppLocalizations {
       'Toto zařízení nemá fotoaparát, kterým by šlo kód načíst.';
 
   @override
-  String get secureTitle => 'Přihlašovací údaje zůstávají v zařízení';
-
-  @override
   String get serverAddressHint => 'cloud.example.com';
 
   @override
@@ -569,10 +566,6 @@ class AppLocalizationsCs extends AppLocalizations {
       'Přihlašovací stránku se nepodařilo otevřít.';
 
   @override
-  String get multiServerBody =>
-      'Přidejte osobní i pracovní účty bez nového sestavení aplikace a bez sdílení jejich dat.';
-
-  @override
   String get serverNotInstalled =>
       'Nextcloud na tomto serveru zatím není nainstalovaný.';
 
@@ -586,13 +579,6 @@ class AppLocalizationsCs extends AppLocalizations {
   @override
   String get serverUnavailable =>
       'Server se nepodařilo kontaktovat. Zkontrolujte adresu a připojení.';
-
-  @override
-  String get secureBody =>
-      'Hesla aplikace se ukládají do systémového Keychainu nebo Keystoru, nikdy do databáze karet.';
-
-  @override
-  String get onboardingTitle => 'Všechny nástěnky v jedné aplikaci';
 
   @override
   String certificateChangedBody(String host) {
@@ -612,9 +598,6 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get reauthenticateAccountAction => 'Přihlásit se znovu';
-
-  @override
-  String get multiServerTitle => 'Připraveno pro více serverů';
 
   @override
   String get scanLoginCodeHint =>
@@ -645,10 +628,6 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get openAppSettings => 'Otevřít nastavení';
-
-  @override
-  String get onboardingBody =>
-      'Připojte libovolný podporovaný Nextcloud server. Účty, jejich uložená data i práce na pozadí zůstávají přísně oddělené.';
 
   @override
   String get serverAddressLabel => 'Adresa serveru';
@@ -1546,4 +1525,11 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get formatLink => 'Odkaz';
+
+  @override
+  String get loginTagline => 'Úkoly a nástěnky z vašeho Nextcloudu';
+
+  @override
+  String get loginNote =>
+      'Přihlásíte se v prohlížeči na svém serveru. Heslo aplikace zůstane jen v tomto zařízení.';
 }

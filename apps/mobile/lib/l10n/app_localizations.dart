@@ -1064,12 +1064,6 @@ abstract class AppLocalizations {
   /// **'This device has no camera that can read a login code.'**
   String get scanLoginCodeCameraUnavailable;
 
-  /// No description provided for @secureTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Credentials stay on this device'**
-  String get secureTitle;
-
   /// No description provided for @serverAddressHint.
   ///
   /// In en, this message translates to:
@@ -1148,12 +1142,6 @@ abstract class AppLocalizations {
   /// **'The sign-in page could not be opened.'**
   String get browserUnavailable;
 
-  /// No description provided for @multiServerBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Add personal and work accounts without rebuilding the app or sharing their data.'**
-  String get multiServerBody;
-
   /// No description provided for @serverNotInstalled.
   ///
   /// In en, this message translates to:
@@ -1177,18 +1165,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The server could not be reached. Check the address and your connection.'**
   String get serverUnavailable;
-
-  /// No description provided for @secureBody.
-  ///
-  /// In en, this message translates to:
-  /// **'App passwords are stored in the system Keychain or Keystore, never in the card database.'**
-  String get secureBody;
-
-  /// No description provided for @onboardingTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Your boards, one app'**
-  String get onboardingTitle;
 
   /// No description provided for @certificateChangedBody.
   ///
@@ -1219,12 +1195,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign in again'**
   String get reauthenticateAccountAction;
-
-  /// No description provided for @multiServerTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Built for multiple servers'**
-  String get multiServerTitle;
 
   /// No description provided for @scanLoginCodeHint.
   ///
@@ -1273,12 +1243,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open settings'**
   String get openAppSettings;
-
-  /// No description provided for @onboardingBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Connect any supported Nextcloud server. Accounts, their stored data and background work stay strictly separated.'**
-  String get onboardingBody;
 
   /// No description provided for @serverAddressLabel.
   ///
@@ -2821,6 +2785,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Link'**
   String get formatLink;
+
+  /// No description provided for @loginTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasks and boards from your Nextcloud'**
+  String get loginTagline;
+
+  /// No description provided for @loginNote.
+  ///
+  /// In en, this message translates to:
+  /// **'You sign in on your server in the browser. The app password stays on this device.'**
+  String get loginNote;
 }
 
 class _AppLocalizationsDelegate
