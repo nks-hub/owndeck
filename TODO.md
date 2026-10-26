@@ -71,11 +71,12 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 ## Navazující funkce z konkurenční analýzy
 
 - [x] F02 Hromadný výběr z nabídky karty v obou pohledech, přesun společným dialogem se zachováním pořadí a archivace; každá karta jde samostatně trvalou frontou, výsledek po kartách (uloženo/selhalo/bez oprávnění), opakování jen selhaných se zachováním výběru (`00af4e9`). Sedm cílených testů včetně 200% textu prošlo; nativní ověření v R06.
-- [ ] F03 Návrh z Trella/Vikunji: kalendářní přehled existujících termínů bez kopírování dat; rozlišit začátek, termín a dokončení, přiznat neúplná místní data.
+- [x] F03 Moje úkoly mají přepínač Seznam/Kalendář: měsíční mřížka a agenda dne z místní cache bez kopírování, rozlišení začátku, termínu a dokončení ikonou i textem, upozornění na nástěnky bez uložených karet a otevření karty ve správném účtu (`b57bdc4`). Pět testů kalendáře a test zachování volby přes přepínání záložek prošly; karty bez termínu se nezobrazují.
 - [ ] F04 Příjem textu/odkazu ze systémového sdílení do nového úkolu s potvrzením účtu a cíle a konceptem při zrušení přihlášení. Android `ACTION_SEND` bez nových oprávnění a Dart tok hotové (`9fc6bd8`–`dd9bdba`), 11 cílených testů a debug APK prošly. Zbývá iOS share extension (nyní jen `ncdeck://share`).
 - [ ] B42 Sdílený text bez přihlášeného účtu zůstává jen v paměti a po ukončení aplikace se ztratí; nález z implementace F04.
 - [ ] B43 Současně doručený odkaz na kartu a sdílený text nemají ošetřené pořadí ani zachování obou; nález z implementace F04.
-- [ ] F08 Hromadný výběr nemá odarchivování v archivu ani výběr celého sloupce; nález z implementace F02.
+- [x] F08 Archivované karty lze vybrat a hromadně obnovit (bez přesunu), výběr všech zobrazených karet respektuje filtr (`d42f12b`); dva nové widget testy prošly.
+- [x] B44 Skrytý seznam Mých úkolů při přepnutí na kalendář znovu spouštěl stejný dotaz a do jeho dokončení animoval indikátor; StreamBuilder je nově klíčovaný dotazem (`50cd2fa`). Nález z testu F03, reprodukce selhala před opravou a 22 navazujících testů prošlo.
 - [x] F05 Vícerádkové přidání položek `- [ ] ` na konec popisu stejnou trvalou frontou jako F01 a přepínač Skrýt hotové jen v pohledu; ostatní text zůstává bajtově shodný včetně CRLF (`2a2c49c`). Parserové a widget testy prošly.
 - [x] F07 Přiřazení sdílené skupiny (typ 1, Deck 1.10+) a týmu (typ 7, 1.18+) podle verze serveru; bez známých capabilities se nenabízí. Skupiny a týmy mají v názvu typ, existující přiřazení lze odebrat bez záměny (`99b3acb`). Protokolové, store a widget testy prošly; živý server v R06.
 
