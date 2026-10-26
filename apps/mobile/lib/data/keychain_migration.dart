@@ -5,6 +5,12 @@ const deviceOnlyKeychain = IOSOptions(
   accessibility: KeychainAccessibility.first_unlock_this_device,
 );
 
+/// The login keychain works for sandboxed builds without a restricted access-group entitlement.
+const desktopMacKeychain = MacOsOptions(
+  usesDataProtectionKeychain: false,
+  synchronizable: false,
+);
+
 /// Minimal secret storage used by the keychain migration.
 abstract interface class SecretStore {
   Future<Map<String, String>> readAll();
