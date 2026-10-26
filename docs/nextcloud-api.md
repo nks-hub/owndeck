@@ -104,6 +104,8 @@ Oficiální zdroje: [katalog klientských API](https://docs.nextcloud.com/server
 
 ## Chyby, limity a kompatibilita
 
+Vytvoření karty přes REST nepřepočítává pořadí ostatních karet; výchozí `999` může při vyšších existujících hodnotách vložit kartu před konec. Totéž platí pro [OCS 1.18.5](https://github.com/nextcloud/deck/blob/v1.18.5/lib/Controller/CardOcsController.php). [OCS 1.19.1](https://github.com/nextcloud/deck/blob/28efc84c108807cf0821d83e52f45b43cac27412/lib/Controller/CardOcsController.php) při explicitním pořadí jiném než `999` zapíná vložení s přeřazením, REST tento argument nevystavuje. OwnDeck určuje konec z čerstvého sloupce jako nejvyšší pořadí plus jedna; místní projekce používá stejný výpočet. Nejde o atomickou rezervaci pozice proti jiným klientům.
+
 Oprava původní hranice rozšířených polí: `startdate` a `color` přijímají vytvoření i úpravy karet už v [Decku 1.18.0](https://github.com/nextcloud/deck/blob/v1.18.0/lib/Controller/CardApiController.php) a [1.18.5](https://github.com/nextcloud/deck/blob/v1.18.5/lib/Controller/CardApiController.php); [1.17.0](https://github.com/nextcloud/deck/blob/v1.17.0/lib/Controller/CardApiController.php) je ještě nemá. Klient je zpřístupňuje od 1.18. Vytvoření, změna a vymazání obou polí byly ověřené na skutečném Decku 1.18.5; revize a meze jsou v `docs/testing.md`.
 
 400: opravit vstup; 401: obnovit přihlášení; 403: načíst práva a zastavit zápisy; 404: ověřit objekt nebo podporu endpointu; 409/412: zpracovat konflikt pouze pokud jej dané rozhraní skutečně vrací; 413: nabídnout menší přílohu; 423: uzamčený soubor; 429: respektovat Retry-After; 5xx: dočasná chyba bez slepého opakování mutace; 507: kvóta nebo úložiště. HTML proxy odpověď nikdy nezobrazovat jako bezpečný text chyby.
