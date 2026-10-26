@@ -29,6 +29,7 @@ class CommentsScreen extends StatefulWidget {
 class _CommentsScreenState extends State<CommentsScreen> {
   StreamSubscription<DeckBoard?>? _boardChanges;
   bool _canRead = true;
+  bool _boardReadFailed = false;
   late final _comments = widget.session.database.watchComments(
     widget.session.account.id,
     widget.cardId,
@@ -43,14 +44,15 @@ class _CommentsScreenState extends State<CommentsScreen> {
         .listen(
           (board) {
             if (mounted) {
-              setState(
-                () => _canRead =
-                    board?.permissions.read == true && board?.deletedAt == 0,
-              );
+              setState(() {
+                _boardReadFailed = false;
+                _canRead =
+                    board?.permissions.read == true && board?.deletedAt == 0;
+              });
             }
           },
           onError: (Object _) {
-            if (mounted) setState(() => _canRead = false);
+            if (mounted) setState(() => _boardReadFailed = true);
           },
         );
     scheduleMicrotask(_refresh);
@@ -116,10 +118,14 @@ class _CommentsScreenState extends State<CommentsScreen> {
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context)!;
-    if (!_canRead) {
+    if (_boardReadFailed || !_canRead) {
       return Scaffold(
         appBar: AppBar(title: Text(text.comments)),
-        body: Center(child: Text(text.permissionError)),
+        body: Center(
+          child: Text(
+            _boardReadFailed ? text.localReadError : text.permissionError,
+          ),
+        ),
       );
     }
     final locale = MaterialLocalizations.of(context);

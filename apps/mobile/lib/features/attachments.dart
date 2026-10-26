@@ -47,6 +47,12 @@ class _AttachmentsScreenState extends State<AttachmentsScreen> {
       stream: _card,
       builder: (context, card) {
         final text = AppLocalizations.of(context)!;
+        if (board.hasError || card.hasError) {
+          return Scaffold(
+            appBar: AppBar(title: Text(text.attachments)),
+            body: Center(child: Text(text.localReadError)),
+          );
+        }
         if (board.connectionState == ConnectionState.waiting ||
             card.connectionState == ConnectionState.waiting) {
           return Scaffold(
@@ -54,9 +60,7 @@ class _AttachmentsScreenState extends State<AttachmentsScreen> {
             body: const Center(child: CircularProgressIndicator()),
           );
         }
-        if (board.hasError ||
-            card.hasError ||
-            board.data == null ||
+        if (board.data == null ||
             card.data == null ||
             !board.data!.permissions.read) {
           return Scaffold(
@@ -283,7 +287,7 @@ class _AttachmentListState extends State<_AttachmentList> {
             stream: _writes,
             builder: (context, writes) {
               if (snapshot.hasError || writes.hasError) {
-                return Center(child: Text(text.loadError));
+                return Center(child: Text(text.localReadError));
               }
               if ((snapshot.connectionState == ConnectionState.waiting &&
                       !snapshot.hasData) ||

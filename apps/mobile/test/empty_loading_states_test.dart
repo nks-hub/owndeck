@@ -216,6 +216,50 @@ Future<void> _mount(
 void main() {
   for (final attachments in [false, true]) {
     testWidgets(
+      'local board read failure in ${attachments ? 'attachments' : 'comments'} is not an access loss',
+      (tester) async {
+        final fixture = _Fixture(cachedBoard: true, cachedColumn: true);
+        await _using(tester, fixture, () async {
+          await tester.runAsync(
+            () => fixture.database.customStatement('DROP TABLE stored_boards'),
+          );
+          await tester.pumpWidget(
+            boardTestApp(
+              attachments
+                  ? AttachmentsScreen(
+                      session: fixture.session,
+                      boardId: 1,
+                      cardId: 8,
+                    )
+                  : CommentsScreen(
+                      session: fixture.session,
+                      boardId: 1,
+                      stackId: 2,
+                      cardId: 8,
+                    ),
+            ),
+          );
+          const storageError =
+              'Saved data could not be read on this device. Try opening this screen again.';
+          const accessError = 'You no longer have access to this content.';
+          const missingCard =
+              'This card is no longer available. Unsent changes remain in Pending changes.';
+          await _until(
+            tester,
+            () => [
+              storageError,
+              accessError,
+              missingCard,
+            ].any((value) => find.text(value).evaluate().isNotEmpty),
+          );
+          expect(find.text(storageError), findsOneWidget);
+          expect(find.text(accessError), findsNothing);
+          expect(find.text(missingCard), findsNothing);
+        });
+      },
+    );
+
+    testWidgets(
       'offline empty ${attachments ? 'attachments' : 'comments'} do not claim the server is empty',
       (tester) async {
         final fixture = _Fixture(
