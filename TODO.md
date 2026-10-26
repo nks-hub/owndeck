@@ -97,12 +97,12 @@ Rozpad z auditu desktopového režimu OwnTalku, souhrn a nálezy v `docs/desktop
 - [ ] DK08 Opravená chyba: přihlášení na desktopu čekalo až 5 minut na návrat do aplikace, nyní dotazuje hned po otevření prohlížeče; ověřeno proti testovacímu serveru Login Flow v2 (dotaz každé 2 s). Zbývá přihlášení proti skutečnému Nextcloudu na každém OS.
 - [ ] DK09 Okno na Windows drží minimum 600×400 a pamatuje si polohu a velikost (321,123, 900×640 po restartu); macOS má minimum a autosave rámce, Linux minimum. Zbývá ověřit macOS a Linux.
 - [x] DK10 Na desktopu je v celém motivu kompaktní hustota prvků; widget test výšek.
-- [ ] DK11 Široké okno: boční panel nástěnek a detail karty jako pravý panel, mobil beze změny; doklad widget testy při 720/1024/1440/1920 px bez přetečení a s funkčním Zpět.
-- [ ] DK12 Přetahování karet myší (Draggable místo LongPressDraggable na desktopu) se zachovaným automatickým posunem; doklad widget test přesunu myší mezi sloupci, dotyk beze změny.
-- [ ] DK13 Klávesové zkratky Ctrl/Cmd+N, Ctrl/Cmd+F, Esc, Enter a šipky; doklad widget test každé zkratky na Windows i macOS.
-- [ ] DK14 Pravé tlačítko na kartě a sloupci (přesun, archivace, štítky, smazání) a hover s kurzorem; doklad widget test sekundárního kliku.
-- [ ] DK15 Otevření přílohy na desktopu místo `UnsupportedError` (`attachments.dart:214`); doklad PDF a obrázek v systémové aplikaci na všech třech OS.
-- [ ] DK16 Ověřit uložení přílohy přes `FilePicker.saveFile(bytes:)` na desktopu, jinak zapisovat ručně; doklad shodné SHA-256.
+- [ ] DK11 Od 1024 px na desktopu je vlevo seznam nástěnek, uprostřed nástěnka a karta jako pravý panel se zavřením; odkazy, hledání, kalendář i deep linky otevírají do panelu, mobil beze změny (`04cff3d`). Testy 720/1024/1440/1920 px na Windows/macOS/Linuxu včetně Zpět a Esc. Zbývá: při zmenšení pod 1024 px panel zmizí místo přechodu na stránku; ověření na skutečném desktopu.
+- [x] DK12 Na desktopu myš táhne kartu hned, dotyk dál dlouhým stiskem; automatický posun a logika upuštění beze změny (`04cff3d`), widget testy.
+- [x] DK13 Ctrl/Cmd+N rychlé přidání, Ctrl/Cmd+F hledání, Esc zruší výběr nebo zavře detail, Enter otevře kartu, šipky přesouvají fokus (`04cff3d`); testy pro Windows i macOS.
+- [x] DK14 Pravé tlačítko na kartě (přesun, štítky, archivace, smazání, výběr, čekající změny) a na záhlaví sloupce (hotový sloupec, úprava, smazání podle práv) ze sdíleného `card_actions.dart`, kurzor ruky na kartě; lehké `CardMenuButton` zachované (`04cff3d`).
+- [ ] DK15 Na desktopu se příloha otevře přes `launchUrl(Uri.file(path))` s hláškou při selhání, mobil dál `OpenFilex` (`04cff3d`); test s falešným spouštěčem. Skutečné otevření v systému ověří desktopové E2E.
+- [ ] DK16 Zdroje `file_picker` pro Windows, Linux i macOS zapisují bajty v `saveFile` samy; test ověřuje shodné SHA-256 (`04cff3d`). Skutečný dialog ověří desktopové E2E.
 - [ ] DK17 Přetažení souboru ze správce souborů do detailu karty jako příloha (fork `desktop_drop` z OwnTalku); doklad reálné přetažení na Windows a macOS a příloha na serveru.
 - [ ] DK18 Jedna instance a odkazy `ncdeck:` na desktopu (HKCU, CFBundleURLTypes, `.desktop` s x-scheme-handler, předání běžící instanci podle OwnTalku); doklad odkaz otevře kartu v běžícím okně.
 - [ ] DK19 Telemetrie na desktopu: Sentry a Rybbit hlásí platformu, ladicí symboly se nahrávají (`--split-debug-info`, sentry-cli); doklad čitelný testovací pád z Windows buildu.
