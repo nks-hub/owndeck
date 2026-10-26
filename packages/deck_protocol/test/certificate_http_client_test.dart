@@ -43,7 +43,10 @@ void main() {
     }
     final pem = await File('${certificates.path}/first.pem').readAsString();
     final der = base64Decode(
-      pem.split('\n').where((line) => !line.startsWith('-----')).join(),
+      const LineSplitter()
+          .convert(pem)
+          .where((line) => !line.startsWith('-----'))
+          .join(),
     );
     firstFingerprint = certificateFingerprint(der);
   });
@@ -170,7 +173,10 @@ void main() {
       final uri = Uri.parse('https://127.0.0.1:${server.port}');
       final pem = await File('${certificates.path}/$name.pem').readAsString();
       final der = base64Decode(
-        pem.split('\n').where((line) => !line.startsWith('-----')).join(),
+        const LineSplitter()
+          .convert(pem)
+          .where((line) => !line.startsWith('-----'))
+          .join(),
       );
       final client = CertificateHttpClient(
         server: uri,
