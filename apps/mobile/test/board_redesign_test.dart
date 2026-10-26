@@ -97,7 +97,12 @@ void main() {
         tester,
         fixture.db.writesFor(fixture.account.id),
       );
-      expect(jsonDecode(writes.single.proposal), {'stackId': 10, 'order': 2});
+      expect(jsonDecode(writes.single.proposal), {
+        'stackId': 10,
+        'order': 2,
+        'anchorCardId': 102,
+        'before': false,
+      });
       final stacks = await boardModel(
         tester,
         fixture.db.stackView(fixture.account.id, 1),

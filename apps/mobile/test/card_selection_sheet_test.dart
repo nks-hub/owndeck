@@ -466,7 +466,10 @@ void main() {
       );
       expect(find.widgetWithText(CheckboxListTile, '33'), findsNothing);
       expect(find.textContaining('opaque-label'), findsNothing);
-      expect(fixture.requests, isEmpty);
+      expect(
+        fixture.requests.where((request) => request.method != 'GET'),
+        isEmpty,
+      );
     });
   });
 
@@ -565,7 +568,8 @@ void main() {
               ),
               unorderedEquals(['alice', 'bob']),
             );
-            expect(find.text('Alice +1'), findsOneWidget);
+            expect(find.text('Alice'), findsOneWidget);
+            expect(find.text('Bob'), findsOneWidget);
           }
         });
       },
@@ -631,7 +635,10 @@ void main() {
         ))!,
         isEmpty,
       );
-      expect(fixture.requests, isEmpty);
+      expect(
+        fixture.requests.where((request) => request.method != 'GET'),
+        isEmpty,
+      );
     });
   });
 

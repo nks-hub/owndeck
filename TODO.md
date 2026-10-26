@@ -32,7 +32,7 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] B25 Vnořená navigace nyní předává systémové Zpět aktivnímu účtu (`e9f06ac`) a respektuje ochranu konceptů; tři reprodukce před opravou selhaly, po opravě deset testů prošlo. Nové APK ověřit na S9/S21 v R06.
 - [ ] B26 Čekající přesun musí po potvrzení místního cíle stále ukazovat název nástěnky/sloupce přes aliasy a po opakování/zahození zbývající pozice obnovit zdroj i cíl; opravit Pending bez nového přenosu karty.
 - [x] B27 Sdílení ukazuje pouze dostupné textové jméno příjemce; chybný typ nezobrazí jako JSON a chybějící jméno nenahradí interním ID. Widget reprodukce před opravou selhala, po opravě prošla, analyzer čistý.
-- [ ] T05 Sjednotit starší testovací očekávání s viditelným obnovováním detailu, plným výpisem přiřazených a uloženou kotvou přesunu; zachovat důkaz nulových mutací při zrušení a opravit sedm selhání CI `40295912768`.
+- [x] T05 Sedm zastaralých očekávání CI `40295912768` sladěno s obnovováním viditelného detailu, plným seznamem přiřazených a kotvou přesunu; nulové mutace při zrušení zůstávají ověřené. Všech 21 souvisejících testů a analyzer prošly; společné CI zopakovat v T01.
 - [x] T04 E2E používá oddělené testovací identity a evidenci vlastních záznamů; úklid odstraňuje pouze testem vytvořená data a přístupy, ověřuje jejich stav a zachovává ostatní účty.
 - [x] U01 Společný souhrn karty zobrazuje štítky, termíny, dokončení, známé počty a přiřazení (`5514cc7`, `3b82d66`, `ea667cd`); widget testy metadat prošly. E2E všech cest zůstává v R06.
 - [x] U02 Rychlé přidání z přehledu a sloupce uchová cíl podle účtu i koncept (`1a58735`, `b5ba90b`); osm cílených testů prošlo. Opravený bezpečný okraj ověřit v R06.

@@ -51,6 +51,7 @@ void main() {
   late DeckCard card;
   late DeckStack stack;
   var requests = 0;
+  final requestPaths = <String>[];
 
   setUp(() async {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -101,6 +102,7 @@ void main() {
     ], null);
     await db.saveStacks(account.id, account.generation, 1, [stack], null);
     requests = 0;
+    requestPaths.clear();
     session = DeckSession(
       db,
       account,
@@ -110,6 +112,7 @@ void main() {
         appPassword: 'test-password',
         transport: MockClient((request) async {
           requests++;
+          requestPaths.add('${request.method} ${request.url.path}');
           if (request.url.path.endsWith('/capabilities')) {
             return reply({
               'capabilities': {
@@ -183,7 +186,7 @@ void main() {
       find.descendant(of: destinations, matching: find.text('Read only')),
       findsNothing,
     );
-    expect(requests, 0);
+    expect(requestPaths, ['GET /index.php/apps/deck/api/v1.1/boards/1']);
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();
   });
@@ -284,7 +287,7 @@ void main() {
         find.textContaining('Dates, comments and attachments are not copied.'),
         findsOneWidget,
       );
-      expect(requests, 0);
+      expect(requestPaths, ['GET /index.php/apps/deck/api/v1.1/boards/1']);
       expect(find.byType(LinearProgressIndicator), findsNothing);
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();

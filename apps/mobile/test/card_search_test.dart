@@ -35,6 +35,7 @@ void main() {
   late StoredAccount account;
   late DeckSession session;
   var requests = 0;
+  final requestPaths = <String>[];
 
   setUp(() async {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -90,6 +91,7 @@ void main() {
       }),
     ], null);
     requests = 0;
+    requestPaths.clear();
     session = DeckSession(
       database,
       account,
@@ -97,8 +99,9 @@ void main() {
         base: ServerBase.parse(account.server),
         loginName: account.loginName,
         appPassword: 'test-password',
-        transport: MockClient((_) async {
+        transport: MockClient((request) async {
           requests++;
+          requestPaths.add('${request.method} ${request.url.path}');
           throw StateError('local_search_must_not_request_network');
         }),
       ),
@@ -170,7 +173,7 @@ void main() {
       await tester.tap(find.text('Beta card'));
       await tester.pumpAndSettle();
       expect(find.byType(CardScreen), findsOneWidget);
-      expect(requests, 0);
+      expect(requestPaths, ['GET /index.php/apps/deck/api/v1.1/boards/1']);
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpAndSettle();
     },
@@ -190,10 +193,12 @@ void main() {
       await tester.scrollUntilVisible(
         find.text('Include archived'),
         120,
-        scrollable: find.descendant(
-          of: find.byType(DraggableScrollableSheet),
-          matching: find.byType(Scrollable),
-        ).first,
+        scrollable: find
+            .descendant(
+              of: find.byType(DraggableScrollableSheet),
+              matching: find.byType(Scrollable),
+            )
+            .first,
       );
       await tester.tap(find.text('Include archived'));
       await tester.pumpAndSettle();
