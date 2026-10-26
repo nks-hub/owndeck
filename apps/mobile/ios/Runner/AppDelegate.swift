@@ -24,7 +24,18 @@ final class CardLinkDelivery {
 final class ShareDelivery {
   private var pending: [String: String]?
   private var ready = false
+  private let inbox: IncomingShareInbox?
   var emit: (([String: String]) -> Void)?
+
+  init(inbox: IncomingShareInbox? = try? IncomingShareInbox()) {
+    self.inbox = inbox
+  }
+
+  /// Moves a share left by the share extension to Flutter, or holds it until Flutter asks.
+  func drain() {
+    guard let value = inbox?.take()?.channelValue, !value.isEmpty else { return }
+    if ready, let emit { emit(value) } else { pending = value }
+  }
 
   func receive(_ url: URL) -> Bool {
     guard url.scheme == "ncdeck", url.host == "share",
@@ -42,6 +53,7 @@ final class ShareDelivery {
   }
 
   func take() -> [String: String]? {
+    if !ready { drain() }
     ready = true
     let value = pending
     pending = nil

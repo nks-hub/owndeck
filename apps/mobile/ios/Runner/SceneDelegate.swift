@@ -9,6 +9,11 @@ class SceneDelegate: FlutterSceneDelegate {
     super.scene(scene, willConnectTo: session, options: connectionOptions)
   }
 
+  override func sceneDidBecomeActive(_ scene: UIScene) {
+    super.sceneDidBecomeActive(scene)
+    (UIApplication.shared.delegate as? AppDelegate)?.shares.drain()
+  }
+
   override func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
     for context in URLContexts { _ = cardLinks?.receive(context.url) }
     super.scene(scene, openURLContexts: URLContexts)
