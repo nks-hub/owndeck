@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.1.2 (5) - 2026-10-27
+
+Google Play closed testing (alpha).
+
+- Redesign the sign-in screen: the server field and actions come first, in the app's colors.
+- Redesign card tiles: label pills, color band, assignee avatars and one metadata row.
+- Pick any custom color for cards, boards and labels, with presets as quick picks.
+- Select several cards to move, archive or restore them, with a per-card result.
+- Show My tasks grouped by due date and as a month calendar.
+- Add quick due dates (today, tomorrow, next week, none) to the card editor.
+- Add checklist items in bulk and hide completed ones; continue lists on Enter with a formatting bar.
+- Mention people in comments, show card activity and linked projects, copy comment text.
+- Share text and links from other apps into a new card, on Android and iOS.
+- Share a card as text and a board link through the system share sheet.
+- Send queued changes in the background and remind about due dates (both optional).
+- Show the last sync time with a Sync now button, and copyable technical details on sync errors.
+- Remember board filters and the last opened board per account.
+- Fix lost edits when a change was merged while sending, interrupted comments, and migration failures.
+- Keep app passwords out of iOS backups.
+
 ## 0.1.0 (2) - 2026-10-25
 
 Submitted to Google Play closed testing (alpha); awaiting Google review.
