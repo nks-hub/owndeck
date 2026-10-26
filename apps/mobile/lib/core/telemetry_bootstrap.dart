@@ -173,6 +173,7 @@ final class TelemetryRuntime extends ChangeNotifier {
   bool _crashProbed = false;
   bool _analyticsProbed = false;
   bool _analyticsOptOutHandled = false;
+  int _analyticsIntent = 0;
 
   Future<void> initialize() => _initializing ??= _initialize();
   Future<void> _initialize() async {
@@ -189,19 +190,26 @@ final class TelemetryRuntime extends ChangeNotifier {
 
   Future<void> setCrashReporting(bool value) =>
       preferences.setCrashReporting(value);
-  Future<void> setAnalytics(bool value) async {
-    if (value && config.analyticsAvailable && !preferences.analytics) {
-      await _tail;
-      if (!_analyticsOptOutHandled) {
+  Future<void> setAnalytics(bool value) {
+    final intent = ++_analyticsIntent;
+    if (!value) return preferences.setAnalytics(false);
+    return _enqueue(() async {
+      if (_closed || intent != _analyticsIntent) return;
+      if (config.analyticsAvailable &&
+          !preferences.analytics &&
+          !_analyticsOptOutHandled) {
         await _backend.stopAnalytics(clearPendingEvents: true);
         _analyticsOptOutHandled = true;
       }
-    }
-    await preferences.setAnalytics(value);
+      if (_closed || intent != _analyticsIntent) return;
+      await preferences.setAnalytics(true);
+    });
   }
 
-  Future<void> synchronize() {
-    final next = _tail.then((_) => _synchronize());
+  Future<void> synchronize() => _enqueue(_synchronize);
+
+  Future<void> _enqueue(Future<void> Function() action) {
+    final next = _tail.then((_) => action());
     _tail = next.then<void>((_) {}, onError: (Object _, StackTrace _) {});
     return next;
   }

@@ -37,6 +37,10 @@ class FakeBackend implements TelemetryBackend {
   int crashStarts = 0, crashStops = 0, analyticsStarts = 0, analyticsStops = 0;
   bool crashFailure = false, analyticsFailure = false;
   Completer<void>? analyticsGate;
+  Completer<void>? analyticsStopGate;
+  Completer<void>? analyticsStopping;
+  bool analyticsStopFailure = false;
+  int activeStops = 0, maximumActiveStops = 0;
   final screens = <String>[];
   final events = <TelemetryEvent>[];
   @override
@@ -66,6 +70,19 @@ class FakeBackend implements TelemetryBackend {
   @override
   Future<void> stopAnalytics({bool clearPendingEvents = false}) async {
     analyticsStops++;
+    activeStops++;
+    if (activeStops > maximumActiveStops) {
+      maximumActiveStops = activeStops;
+    }
+    try {
+      if (analyticsStopping case final signal? when !signal.isCompleted) {
+        signal.complete();
+      }
+      await analyticsStopGate?.future;
+      if (analyticsStopFailure) throw StateError('queue_unavailable');
+    } finally {
+      activeStops--;
+    }
   }
 
   @override
@@ -263,6 +280,62 @@ void main() {
       runtime.screen('/card');
       runtime.screen('/boards');
       expect(backend.screens, ['/card', '/boards']);
+      await runtime.close();
+    },
+  );
+
+  test(
+    'a later opt-out wins over an enable waiting for queue cleanup',
+    () async {
+      final store = MemoryPreferences()
+        ..values[TelemetryPreferences.analyticsKey] = false;
+      final backend = FakeBackend()..analyticsStopFailure = true;
+      final runtime = TelemetryRuntime(
+        config: configured,
+        preferences: TelemetryPreferences(store: store),
+        backend: backend,
+      );
+      await runtime.initialize();
+      backend.analyticsStopFailure = false;
+      backend.analyticsStopGate = Completer<void>();
+      backend.analyticsStopping = Completer<void>();
+      final enabling = runtime.setAnalytics(true);
+      await backend.analyticsStopping!.future;
+      await runtime.setAnalytics(false);
+      backend.analyticsStopGate!.complete();
+      await enabling;
+      await runtime.synchronize();
+      expect(runtime.preferences.analytics, isFalse);
+      expect(store.values[TelemetryPreferences.analyticsKey], isFalse);
+      expect(runtime.analyticsReady, isFalse);
+      expect(backend.analyticsStarts, 0);
+      await runtime.close();
+    },
+  );
+
+  test(
+    'enable cleanup and synchronization never stop the SDK concurrently',
+    () async {
+      final store = MemoryPreferences()
+        ..values[TelemetryPreferences.analyticsKey] = false;
+      final backend = FakeBackend()..analyticsStopFailure = true;
+      final runtime = TelemetryRuntime(
+        config: configured,
+        preferences: TelemetryPreferences(store: store),
+        backend: backend,
+      );
+      await runtime.initialize();
+      backend.analyticsStopFailure = false;
+      backend.analyticsStopGate = Completer<void>();
+      backend.analyticsStopping = Completer<void>();
+      final enabling = runtime.setAnalytics(true);
+      await backend.analyticsStopping!.future;
+      final sync = runtime.synchronize();
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      backend.analyticsStopGate!.complete();
+      await enabling;
+      await sync;
+      expect(backend.maximumActiveStops, 1);
       await runtime.close();
     },
   );
