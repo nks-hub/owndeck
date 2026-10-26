@@ -35,7 +35,7 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] T05 Sedm zastaralých očekávání CI `40295912768` sladěno s obnovováním viditelného detailu, plným seznamem přiřazených a kotvou přesunu; nulové mutace při zrušení zůstávají ověřené. Všech 21 souvisejících testů a analyzer prošly; společné CI zopakovat v T01.
 - [x] B28 Fronta zobrazuje známý důvod odmítnutí (cíl, archivace, soubor, odpověď) bez syrových chyb; význam nejistého a přijatého zápisu zůstává zachován. Čtyři původní reprodukce a dvě navazující kontroly významu přílohy/nejistého zápisu před opravou selhaly; po opravě všech 14 testů prošlo, analyzer čistý.
 - [x] B29 Přehled i nástěnka rozlišují načítání, chybu bez uložených dat, filtrovaný výsledek a potvrzeně prázdný obsah; existující data zachována. Pět reprodukcí před opravou selhalo; po opravě 16 UI/SQLite testů prošlo, analyzer čistý.
-- [ ] B30 iOS kandidát po schválení v Safari při rozděleném testovacím průchodu vrátil chybu spojení místo přihlášení; aplikace se nerestartovala. Ověřit souvislý tok a příčinu případného timeoutu před změnou přihlašovací logiky.
+- [x] B30 Příčina: čekací cyklus přihlášení ukončil celý tok po jediném ztraceném dotazu na mrtvém socketu po návratu ze Safari; souvislý XCUITest na `535d167` prošel za 42 s, rozdělený 613s běh selhal. Oprava `3a28e8d` opakuje `transport_failed`/`timeout` nejvýše pětkrát po sobě; reprodukce selhala před opravou, celá mobilní sada prošla. Nativní ověření opraveného buildu patří do R06.
 - [x] B31 Čtení místní databáze a uložení konceptu mají vlastní hlášky; výzva k odemknutí zůstává u úložiště přihlašovacích údajů. Dvě reprodukce před opravou selhaly; 18 navazujících testů včetně zachování textu po chybě prošlo, analyzer čistý.
 - [x] B32 Potvrzení odebrání účtu uvádí smazání neodeslané práce i odvolání hesla sdíleného s dalšími klienty; dialog se posouvá i při 200% textu na šířku. Reprodukce před opravou selhala, čtyři testy včetně zachování konceptu po Zrušit a analyzer prošly; chování revokace se nemění.
 - [x] B33 Dialog přesunu má stabilní výšku a posuvný obsah (`9b55562`); deset testů prošlo včetně 200% textu a orientace na šířku. Nativní iOS na `bd3b039` potvrdil stejné přístupnostní souřadnice i skutečný přesun před zvolenou kartu; server potvrdil obsah, metadata, komentář, přílohu a štítky.
@@ -54,14 +54,14 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] U04 Přesun používá společný dialog nástěnky/sloupce a volby začátek/konec/před/za (`cdb05f0`); backend zachovává kotvu do čerstvého čtení (`e68650c`). 26 navazujících UI/SQLite testů prošlo; skutečný server v R06.
 - [x] U05 Detail ukazuje úplný název, metadata, všechny štítky/lidi, začátek a popis před vedlejšími sekcemi (`ba77d62`, `ce0b476`); cílené testy prošly.
 - [x] U06 Moje úkoly mají rychlé termínové volby a panel podrobných filtrů, nástěnky kombinované filtry se zrušením (`5514cc7`); widget scénáře prošly.
-- [ ] U07 Sjednotit význam a zobrazení místního uložení, odesílání, potvrzení a problému; počet čekajících změn a srozumitelné konkrétní chyby místo obecné hlášky.
+- [x] U07 Společný `sync_state.dart` dává jeden název, vysvětlení a ikonu stavu změny na kartě, v detailu, přílohách, komentářích, nástěnkách, sloupcích, štítcích, sdílení, vazbách i ve frontě; fronta a detail ukazují počet změn, `invalid_attachment` a `identity_mismatch` mají vlastní hlášku (`6276c24`). Dvanáct reprodukcí U07/U14 selhalo před opravou, 312 mobilních testů a analyzer prošly.
 - [x] U08 Uložit/Odeslat je v horním pruhu, autosave a chybové kategorie zachované (`ba77d62`, `36352f9`); scénáře dlouhého textu, klávesnice a chyb místního uložení prošly.
 - [x] U09 Karty, nástěnky, štítky i konflikty používají pojmenované barvy a zachovávají vlastní odstín; metadata a umístění mají textové názvy místo ID, nulových indexů či JSON. Formulářové a stavové testy v CI `943a7b9` prošly včetně nezobrazení hexu a zachování vlastní barvy; úplné nativní ověření zůstává v R06.
 - [x] U10 Vícečetný výběr drží panel až do Hotovo a předá změny atomicky; při ukládání nejde zahodit tažením (`ba77d62`, `43a16e2`); šest widget/SQLite scénářů prošlo.
 - [x] U11 Hlavní záložky uchovají stav podle účtu, skryté neobnovují data (`ba77d62`, `ed41e58`); testy navigace a viditelnosti prošly.
 - [x] U12 Čekající změny rozlišují čekání, konflikt, nejistý výsledek a koncepty (`3c56742`); přijatý přenos ukáže zbývající umístění bez opakování celé operace (`d9d7644`), šest nových regresí prošlo.
 - [x] U13 Koncepty mají typ, kontext a čas (`3c56742`); zaniklý přístup odstraní kontext. Náhled komentáře ponechán správně v description, testy prošly.
-- [ ] U14 Prázdné/chybové stavy rozlišují prázdný obsah, filtr, neúplnou cache a chybějící oprávnění; nabídnout jednu odpovídající následující akci.
+- [x] U14 Společný `StateMessage` s nejvýše jednou akcí: hledání a Moje úkoly rozlišují filtr, neúplnou cache, potvrzeně prázdný obsah a neověřenou identitu; štítky, sdílení a vazby po chybě čtení netvrdí prázdný seznam a po ztrátě přístupu nabídnou zavření; archiv má vlastní text (`6276c24`).
 - [ ] U15 Sjednotit vzhled a význam komponent napříč všemi obrazovkami při zachování rodiny OwnTalk/Notes; ověřit světlý/tmavý režim, 200% text, klávesnici a čtečku.
 - [x] U16 Náhled Markdownu je čitelný a omezený délkou, checkboxy v kódu nezvyšují průběh (`e91c96f`); cílené parser/widget testy prošly.
 - [x] U17 Konflikty nástěnek, štítků a sdílení ukazují známá metadata a práva bez JSON/ID/bitů (`8ef69fc`); testy porovnání prošly.
@@ -70,11 +70,11 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 
 ## Navazující funkce z konkurenční analýzy
 
-- [ ] F02 Návrh z Trella: hromadný výběr karet a přesun/archivace; před realizací vyřešit částečný úspěch, oprávnění každé karty a srozumitelné obnovení.
+- [x] F02 Hromadný výběr z nabídky karty v obou pohledech, přesun společným dialogem se zachováním pořadí a archivace; každá karta jde samostatně trvalou frontou, výsledek po kartách (uloženo/selhalo/bez oprávnění), opakování jen selhaných se zachováním výběru (`00af4e9`). Sedm cílených testů včetně 200% textu prošlo; nativní ověření v R06.
 - [ ] F03 Návrh z Trella/Vikunji: kalendářní přehled existujících termínů bez kopírování dat; rozlišit začátek, termín a dokončení, přiznat neúplná místní data.
 - [ ] F04 Návrh z rychlého zachycení Trella: příjem textu/odkazu ze systémového sdílení do nového úkolu; vždy potvrdit účet a cíl, zachovat koncept při zrušení přihlášení.
-- [ ] F05 Návrh z Trello checklistů: vložení více položek najednou a skrytí hotových; nejprve zachovat bezeztrátový převod do podporovaného Markdownu Decku.
-- [ ] F07 Návrh z API auditu: nabídnout nové přiřazení skupiny/týmu na kartu podle skutečně podporovaného typu; stávající přiřazení nyní zachovat a umožnit odebrat bez záměny za stejně pojmenovaného uživatele.
+- [x] F05 Vícerádkové přidání položek `- [ ] ` na konec popisu stejnou trvalou frontou jako F01 a přepínač Skrýt hotové jen v pohledu; ostatní text zůstává bajtově shodný včetně CRLF (`2a2c49c`). Parserové a widget testy prošly.
+- [x] F07 Přiřazení sdílené skupiny (typ 1, Deck 1.10+) a týmu (typ 7, 1.18+) podle verze serveru; bez známých capabilities se nenabízí. Skupiny a týmy mají v názvu typ, existující přiřazení lze odebrat bez záměny (`99b3acb`). Protokolové, store a widget testy prošly; živý server v R06.
 
 ## Původní plán a průběžné důkazy
 
