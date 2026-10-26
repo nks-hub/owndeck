@@ -117,11 +117,15 @@ class _SharingScreenState extends State<SharingScreen> {
         original: acl,
       );
       unawaited(widget.session.refreshStacks(board.id));
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(text.permissionError)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              errorMessage(e, text, fallback: text.permissionError),
+            ),
+          ),
+        );
       }
     }
   }
@@ -270,6 +274,8 @@ class _SharingScreenState extends State<SharingScreen> {
                                     intField(entry, 'id') > 0)
                         ? null
                         : PopupMenuButton<String>(
+                            tooltip:
+                                '${text.moreActions}: ${shareParticipantName(entry['participant'], text.pendingValueUnavailable)}',
                             onSelected: (action) {
                               if (action == 'edit') {
                                 unawaited(

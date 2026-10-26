@@ -5,6 +5,7 @@ import 'package:deck_store/deck_store.dart';
 import 'package:flutter/material.dart';
 
 import '../data/session.dart';
+import '../core/errors.dart';
 import '../l10n/app_localizations.dart';
 
 Future<void> editSharePermissions(
@@ -61,7 +62,8 @@ Future<void> editSharePermissions(
                     ? (v) => setState(() => manage = v!)
                     : null,
               ),
-              if (error != null) Text(error!),
+              if (error != null)
+                Semantics(liveRegion: true, child: Text(error!)),
               if (saving) const LinearProgressIndicator(),
             ],
           ),
@@ -107,11 +109,15 @@ Future<void> editSharePermissions(
                       }
                       if (dialogContext.mounted) Navigator.pop(dialogContext);
                       unawaited(session.refreshStacks(board.id));
-                    } catch (_) {
+                    } catch (e) {
                       if (dialogContext.mounted) {
                         setState(() {
                           saving = false;
-                          error = text.permissionError;
+                          error = errorMessage(
+                            e,
+                            text,
+                            fallback: text.permissionError,
+                          );
                         });
                       }
                     }

@@ -24,6 +24,7 @@ Future<void> _using(
   Future<void> Function(BoardFixture fixture, PendingWrite write) run, {
   bool accepted = true,
   bool awaitingTransferReadback = false,
+  Map<String, Object?>? remoteState,
   Future<http.Response> Function(http.Request)? handle,
 }) async {
   var fixture = (await tester.runAsync(
@@ -120,7 +121,9 @@ Future<void> _using(
             }),
             base: Value(jsonEncode(accepted ? transferred.raw : card.raw)),
             remote: Value(
-              accepted
+              remoteState != null
+                  ? jsonEncode(remoteState)
+                  : accepted
                   ? jsonEncode(
                       awaitingTransferReadback ? receipt : transferred.raw,
                     )
@@ -274,7 +277,7 @@ void main() {
         await _using(tester, state, (fixture, write) async {
           expect(find.text('Move card'), findsOneWidget);
           expect(find.text(_moved), findsOneWidget);
-          expect(find.textContaining('Ready'), findsOneWidget);
+          expect(find.text('Destination column: Ready'), findsOneWidget);
           _noInternalData();
           await tester.ensureVisible(
             find.widgetWithText(FilledButton, 'Retry'),
@@ -308,6 +311,19 @@ void main() {
       }, awaitingTransferReadback: true);
     },
   );
+
+  testWidgets('conflicting transfer shows where the card is on the server', (
+    tester,
+  ) async {
+    await _using(tester, 'conflict', (fixture, write) async {
+      expect(find.text('Now on server: Board / Column 1'), findsOneWidget);
+      expect(find.textContaining('Destination board'), findsOneWidget);
+      final handle = tester.ensureSemantics();
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(textContrastGuideline));
+      handle.dispose();
+    }, accepted: false, remoteState: {'stackId': 10, 'title': 'Card'});
+  });
 
   testWidgets(
     'discarding remaining positioning keeps the card in its destination',

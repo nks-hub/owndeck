@@ -189,6 +189,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pendingValueUnavailable => 'Value unavailable';
 
   @override
+  String get moreActions => 'More actions';
+
+  @override
+  String get deciding => 'Working';
+
+  @override
+  String currentOnServer(String board, String column) {
+    return 'Now on server: $board / $column';
+  }
+
+  @override
   String get pendingNotCompleted => 'Not completed';
 
   @override

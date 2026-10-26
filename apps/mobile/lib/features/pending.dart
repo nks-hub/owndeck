@@ -83,6 +83,7 @@ class _PendingScreenState extends State<PendingScreen> {
 
   String _filter = 'all';
   final _deciding = <String>{};
+  final _applying = <String>{};
   late final _writes = widget.session.database.watchWrites(
     widget.session.account.id,
   );
@@ -191,6 +192,7 @@ class _PendingScreenState extends State<PendingScreen> {
         ),
       );
       if (confirmed != true || !mounted) return;
+      setState(() => _applying.add(write.id));
       await widget.session.database.decideWrite(
         widget.session.account.id,
         write.id,
@@ -214,6 +216,7 @@ class _PendingScreenState extends State<PendingScreen> {
       }
     } finally {
       _deciding.remove(write.id);
+      _applying.remove(write.id);
       if (mounted) setState(() {});
     }
   }
@@ -519,6 +522,30 @@ class _PendingScreenState extends State<PendingScreen> {
     );
   }
 
+  Widget _transferCurrent(
+    int boardId,
+    int stackId,
+    Map<int, String> boardNames,
+  ) {
+    final text = AppLocalizations.of(context)!;
+    return StreamBuilder<List<DeckStack>>(
+      stream: widget.session.watchStacks(boardId),
+      builder: (context, snapshot) => Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Text(
+          text.currentOnServer(
+            boardNames[boardId] ?? text.pendingValueUnavailable,
+            snapshot.data
+                    ?.where((stack) => stack.id == stackId)
+                    .firstOrNull
+                    ?.title ??
+                text.pendingValueUnavailable,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _writeCard(PendingWrite write, Map<int, String> boardNames) {
     final text = AppLocalizations.of(context)!;
     final changes = object(jsonDecode(write.proposal));
@@ -594,15 +621,30 @@ class _PendingScreenState extends State<PendingScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(_stateIcon(write)),
+                if (_applying.contains(write.id))
+                  SizedBox.square(
+                    dimension: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      semanticsLabel: text.deciding,
+                    ),
+                  )
+                else
+                  Icon(_stateIcon(write)),
                 const SizedBox(width: 8),
                 Expanded(child: Text(_stateMessage(write))),
               ],
             ),
             const SizedBox(height: 16),
-            if (write.kind == 'cardTransfer')
-              _transferDestination(changes, boardNames)
-            else if (card && write.state == 'conflict')
+            if (write.kind == 'cardTransfer') ...[
+              _transferDestination(changes, boardNames),
+              if (write.state == 'conflict' && remote?['stackId'] is int)
+                _transferCurrent(
+                  write.boardId,
+                  remote!['stackId'] as int,
+                  boardNames,
+                ),
+            ] else if (card && write.state == 'conflict')
               _cardComparison({...base, ...changes}, remoteCard)
             else if (card)
               ExpansionTile(

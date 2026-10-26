@@ -190,6 +190,17 @@ class AppLocalizationsCs extends AppLocalizations {
   String get pendingValueUnavailable => 'Hodnota není dostupná';
 
   @override
+  String get moreActions => 'Další akce';
+
+  @override
+  String get deciding => 'Probíhá';
+
+  @override
+  String currentOnServer(String board, String column) {
+    return 'Teď na serveru: $board / $column';
+  }
+
+  @override
   String get pendingNotCompleted => 'Nedokončeno';
 
   @override

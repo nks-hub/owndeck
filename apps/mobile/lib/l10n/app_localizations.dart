@@ -440,6 +440,24 @@ abstract class AppLocalizations {
   /// **'Value unavailable'**
   String get pendingValueUnavailable;
 
+  /// No description provided for @moreActions.
+  ///
+  /// In en, this message translates to:
+  /// **'More actions'**
+  String get moreActions;
+
+  /// No description provided for @deciding.
+  ///
+  /// In en, this message translates to:
+  /// **'Working'**
+  String get deciding;
+
+  /// No description provided for @currentOnServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Now on server: {board} / {column}'**
+  String currentOnServer(String board, String column);
+
   /// No description provided for @pendingNotCompleted.
   ///
   /// In en, this message translates to:

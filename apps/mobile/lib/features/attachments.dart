@@ -386,6 +386,8 @@ class _AttachmentListState extends State<_AttachmentList> {
                                   (!_canEdit || !attachment.canRestore)
                           ? null
                           : PopupMenuButton<String>(
+                              tooltip:
+                                  '${text.moreActions}: ${attachment.name}',
                               enabled: !_busy,
                               onSelected: (action) => switch (action) {
                                 'save' => _download(attachment, save: true),
