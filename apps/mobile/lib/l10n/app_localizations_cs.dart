@@ -1280,7 +1280,7 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String bulkSummary(int queued, int failed, int blocked) {
-    return 'Uloženo: $queued, selhalo: $failed, bez oprávnění: $blocked.';
+    return 'Uloženo v telefonu: $queued, selhalo: $failed, bez oprávnění: $blocked.';
   }
 
   @override
@@ -1381,6 +1381,24 @@ class AppLocalizationsCs extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String searchIncomplete(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Karty $count nástěnek zatím nejsou uložené v zařízení, seznam proto může být neúplný.',
+      few:
+          'Karty $count nástěnek zatím nejsou uložené v zařízení, seznam proto může být neúplný.',
+      one:
+          'Karty 1 nástěnky zatím nejsou uložené v zařízení, seznam proto může být neúplný.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get loadCards => 'Načíst karty';
 
   @override
   String get calendarNothingOnDay => 'V tento den nic není.';

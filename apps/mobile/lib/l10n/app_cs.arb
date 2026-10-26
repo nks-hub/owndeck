@@ -458,7 +458,7 @@
     }
   },
   "bulkResultTitle": "Výsledek u každé karty",
-  "bulkSummary": "Uloženo: {queued}, selhalo: {failed}, bez oprávnění: {blocked}.",
+  "bulkSummary": "Uloženo v telefonu: {queued}, selhalo: {failed}, bez oprávnění: {blocked}.",
   "@bulkSummary": {
     "placeholders": {
       "queued": {
@@ -523,7 +523,16 @@
       }
     }
   },
-  "calendarNothingOnDay": "V tento den nic není.",
+  "searchIncomplete": "{count, plural, =1{Karty 1 nástěnky zatím nejsou uložené v zařízení, seznam proto může být neúplný.} few{Karty {count} nástěnek zatím nejsou uložené v zařízení, seznam proto může být neúplný.} other{Karty {count} nástěnek zatím nejsou uložené v zařízení, seznam proto může být neúplný.}}",
+  "@searchIncomplete": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loadCards": "Načíst karty",
+  "calendarNothingOnDay":"V tento den nic není.",
   "calendarDayLabel": "{date}: {summary}",
   "@calendarDayLabel": {
     "placeholders": {

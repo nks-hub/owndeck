@@ -4,8 +4,12 @@ import 'package:deck_store/deck_store.dart';
 import 'package:flutter/material.dart';
 
 import '../data/session.dart';
+import '../data/card_reads.dart';
 import '../l10n/app_localizations.dart';
+import 'card_completion.dart';
 import 'card_detail.dart';
+import 'card_summary.dart';
+import 'state_message.dart';
 
 enum CalendarKind { start, due, done }
 
@@ -35,7 +39,12 @@ Map<DateTime, List<CalendarEntry>> calendarEntries(
       hit,
       DateTime.tryParse(hit.card.raw['startdate']?.toString() ?? '')?.toLocal(),
     );
-    add(hit.completed ? CalendarKind.done : CalendarKind.due, hit, hit.due);
+    if (hit.completed) {
+      final done = DateTime.tryParse(hit.card.raw['done'].toString());
+      add(CalendarKind.done, hit, done?.toLocal() ?? hit.due);
+    } else {
+      add(CalendarKind.due, hit, hit.due);
+    }
   }
   for (final list in days.values) {
     list.sort((a, b) => a.at.compareTo(b.at));
@@ -63,6 +72,11 @@ class _CalendarViewState extends State<CalendarView> {
   @override
   void initState() {
     super.initState();
+    _subscribe();
+  }
+
+  void _subscribe() {
+    unawaited(_subscription?.cancel());
     _subscription = widget.session.database
         .watchCardSearch(
           widget.session.account.id,
@@ -125,30 +139,45 @@ class _CalendarViewState extends State<CalendarView> {
     final text = AppLocalizations.of(context)!;
     final result = _result;
     if (_error != null) {
-      return Center(child: Text(text.loadError));
+      return Center(
+        child: StateMessage(
+          message: text.localReadError,
+          actionLabel: text.retry,
+          onAction: () => setState(() {
+            _error = null;
+            _result = null;
+            _subscribe();
+          }),
+        ),
+      );
     }
     if (result == null) return const LinearProgressIndicator();
     if (!result.accountAvailable) {
-      return Center(child: Text(text.accountSearchUnavailable));
+      return Center(child: StateMessage(message: text.accountSearchUnavailable));
     }
     if (!result.identityKnown) {
-      return Center(child: Text(text.myTasksIdentityRequired));
+      return Center(
+        child: StateMessage(
+          message: text.myTasksIdentityRequired,
+          actionLabel: text.retry,
+          onAction: widget.session.refreshBoards,
+        ),
+      );
     }
     final days = calendarEntries(result.hits);
     final local = MaterialLocalizations.of(context);
     final agenda = days[_selected] ?? const <CalendarEntry>[];
     return ListView(
       key: const Key('calendar-view'),
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
+      // 8 dp gutters keep a day cell at 360 dp wide at least 48 dp.
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 88),
       children: [
         if (result.uncachedBoards > 0)
-          Card(
+          IncompleteDataNotice(
             key: const Key('calendar-incomplete'),
-            color: Theme.of(context).colorScheme.tertiaryContainer,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Text(text.calendarIncomplete(result.uncachedBoards)),
-            ),
+            message: text.calendarIncomplete(result.uncachedBoards),
+            actionLabel: text.loadCards,
+            onAction: () => unawaited(widget.session.loadUncachedBoards()),
           ),
         Row(
           children: [
@@ -193,16 +222,28 @@ class _CalendarViewState extends State<CalendarView> {
             key: ValueKey(
               'calendar:${entry.kind.name}:${entry.hit.board.id}:${entry.hit.card.id}',
             ),
-            child: ListTile(
-              leading: Icon(_icon(entry.kind)),
-              title: Text(entry.hit.card.title),
-              subtitle: Text(
-                '${_kindLabel(text, entry.kind)} · '
-                '${local.formatTimeOfDay(TimeOfDay.fromDateTime(entry.at), alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context))}'
-                '\n${entry.hit.board.title} · ${entry.hit.stack.title}',
+            child: CardCompletion(
+              session: widget.session,
+              board: entry.hit.board,
+              card: entry.hit.card,
+              builder: (context, onChanged, saving) => ListTile(
+                leading: Icon(_icon(entry.kind)),
+                title: Text(entry.hit.card.title),
+                subtitle: Text(
+                  '${_kindLabel(text, entry.kind)} · '
+                  '${local.formatTimeOfDay(TimeOfDay.fromDateTime(entry.at), alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context))}'
+                  '\n${entry.hit.board.title} · ${entry.hit.stack.title}',
+                ),
+                isThreeLine: true,
+                trailing: onChanged == null && !saving
+                    ? null
+                    : CompletionBox(
+                        card: entry.hit.card,
+                        saving: saving,
+                        onChanged: onChanged,
+                      ),
+                onTap: () => _open(entry.hit),
               ),
-              isThreeLine: true,
-              onTap: () => _open(entry.hit),
             ),
           ),
       ],

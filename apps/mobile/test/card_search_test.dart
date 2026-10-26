@@ -114,7 +114,11 @@ void main() {
         .setMockMethodCallHandler(connectivity, null);
   });
 
-  Widget app({bool mineOnly = false, double textScale = 1}) => MaterialApp(
+  Widget app({
+    bool mineOnly = false,
+    bool myTasksTab = false,
+    double textScale = 1,
+  }) => MaterialApp(
     locale: const Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
@@ -124,7 +128,11 @@ void main() {
       ).copyWith(textScaler: TextScaler.linear(textScale)),
       child: child!,
     ),
-    home: CardSearchScreen(session: session, mineOnly: mineOnly),
+    home: myTasksTab
+        ? Scaffold(
+            body: CardSearchView(session: session, fixedMineOnly: true),
+          )
+        : CardSearchScreen(session: session, mineOnly: mineOnly),
   );
 
   testWidgets(
@@ -207,4 +215,83 @@ void main() {
       await tester.pumpAndSettle();
     },
   );
+
+  DeckBoard board(int id) => DeckBoard.fromJson({
+    'id': id,
+    'title': 'Board $id',
+    'color': '008080',
+    'archived': false,
+    'deletedAt': 0,
+    'permissions': {'PERMISSION_READ': true, 'PERMISSION_EDIT': true},
+  });
+
+  testWidgets('My tasks never claims an empty list over unsaved boards', (
+    tester,
+  ) async {
+    await tester.runAsync(
+      () => database.saveStacks(account.id, account.generation, 1, [
+        DeckStack.fromJson({
+          'id': 2,
+          'boardId': 1,
+          'title': 'Planning',
+          'order': 0,
+          'cards': [],
+        }),
+      ], null),
+    );
+    await tester.pumpWidget(app(myTasksTab: true));
+    await tester.pumpAndSettle();
+    expect(find.text('No open cards are assigned to you.'), findsOneWidget);
+    expect(find.byKey(const Key('search-incomplete')), findsNothing);
+
+    await tester.runAsync(
+      () => database.saveBoards(account.id, account.generation, [
+        board(1),
+        board(5),
+      ], null),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('search-incomplete')), findsOneWidget);
+    expect(find.textContaining('Cards of 1 board'), findsOneWidget);
+    expect(find.text('Load cards'), findsOneWidget);
+    expect(find.text('No open cards are assigned to you.'), findsNothing);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('the unsaved boards notice stays above existing results', (
+    tester,
+  ) async {
+    await tester.runAsync(
+      () => database.saveBoards(account.id, account.generation, [
+        board(1),
+        board(5),
+      ], null),
+    );
+    await tester.pumpWidget(app(myTasksTab: true));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('search-incomplete')), findsOneWidget);
+    expect(find.text('Beta card'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('a card can be completed from the search results', (tester) async {
+    await tester.pumpWidget(app(myTasksTab: true));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(Checkbox));
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 30));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+    }
+    final writes = (await tester.runAsync(
+      () => database.writesFor(account.id),
+    ))!;
+    expect(writes.length, 1);
+    expect(find.byType(CardScreen), findsNothing);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
 }

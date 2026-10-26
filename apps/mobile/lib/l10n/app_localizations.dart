@@ -2417,7 +2417,7 @@ abstract class AppLocalizations {
   /// No description provided for @bulkSummary.
   ///
   /// In en, this message translates to:
-  /// **'Saved: {queued}, failed: {failed}, no permission: {blocked}.'**
+  /// **'Saved on this device: {queued}, failed: {failed}, no permission: {blocked}.'**
   String bulkSummary(int queued, int failed, int blocked);
 
   /// No description provided for @bulkStatusQueued.
@@ -2557,6 +2557,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{Cards of 1 board are not saved on this device yet, so the calendar may be incomplete. Open the board to load them.} other{Cards of {count} boards are not saved on this device yet, so the calendar may be incomplete. Open the boards to load them.}}'**
   String calendarIncomplete(int count);
+
+  /// No description provided for @searchIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Cards of 1 board are not saved on this device yet, so this list may be incomplete.} other{Cards of {count} boards are not saved on this device yet, so this list may be incomplete.}}'**
+  String searchIncomplete(int count);
+
+  /// No description provided for @loadCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Load cards'**
+  String get loadCards;
 
   /// No description provided for @calendarNothingOnDay.
   ///

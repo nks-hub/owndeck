@@ -8,6 +8,7 @@ import '../data/session.dart';
 import '../data/card_reads.dart';
 import '../core/errors.dart';
 import '../l10n/app_localizations.dart';
+import 'card_completion.dart';
 import 'card_detail.dart';
 import 'card_link_dialog.dart';
 import 'card_summary.dart';
@@ -266,16 +267,10 @@ class _CardSearchViewState extends State<CardSearchView> {
       if (_remoteBusy || _queryPending || _opening != null)
         const SliverToBoxAdapter(child: LinearProgressIndicator()),
       if (_remoteError != null)
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                Text(errorMessage(_remoteError!, text)),
-                TextButton(onPressed: _refresh, child: Text(text.retry)),
-              ],
-            ),
-          ),
+        _empty(
+          errorMessage(_remoteError!, text),
+          actionLabel: text.retry,
+          onAction: _refresh,
         ),
       if (_limited) _empty(text.serverSearchLimited),
       if (entries.isEmpty &&
@@ -632,35 +627,63 @@ class _CardSearchViewState extends State<CardSearchView> {
                         )
                         .toList()
                   : result.hits;
-              if (hits.isEmpty) return _emptyLocal(text);
-              return SliverList.builder(
-                itemCount: hits.length,
-                itemBuilder: (context, index) {
-                  final hit = hits[index];
-                  return Card(
-                    semanticContainer: false,
-                    key: ValueKey('search:${hit.board.id}:${hit.card.id}'),
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: CardSummary(
-                      card: hit.card,
-                      contextLabel: '${hit.board.title} · ${hit.stack.title}',
-                      onOpen: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          settings: const RouteSettings(name: '/card'),
-                          builder: (_) => CardScreen(
-                            session: widget.session,
-                            board: hit.board,
-                            card: hit.card,
-                          ),
+              final incomplete = result.uncachedBoards > 0;
+              return SliverMainAxisGroup(
+                slivers: [
+                  if (incomplete)
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      sliver: SliverToBoxAdapter(
+                        child: IncompleteDataNotice(
+                          key: const Key('search-incomplete'),
+                          message: text.searchIncomplete(result.uncachedBoards),
+                          actionLabel: text.loadCards,
+                          onAction: () =>
+                              unawaited(widget.session.loadUncachedBoards()),
                         ),
                       ),
                     ),
-                  );
-                },
+                  if (hits.isEmpty)
+                    // Never claim a confirmed-empty account over unloaded boards.
+                    if (!incomplete || _filtered) _emptyLocal(text),
+                  SliverList.builder(
+                    itemCount: hits.length,
+                    itemBuilder: (context, index) {
+                      final hit = hits[index];
+                      return Card(
+                        semanticContainer: false,
+                        key: ValueKey('search:${hit.board.id}:${hit.card.id}'),
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 4,
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: CardCompletion(
+                          session: widget.session,
+                          board: hit.board,
+                          card: hit.card,
+                          builder: (context, onChanged, saving) => CardSummary(
+                            card: hit.card,
+                            contextLabel:
+                                '${hit.board.title} · ${hit.stack.title}',
+                            onCompletedChanged: onChanged,
+                            changingCompletion: saving,
+                            onOpen: () => Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                settings: const RouteSettings(name: '/card'),
+                                builder: (_) => CardScreen(
+                                  session: widget.session,
+                                  board: hit.board,
+                                  card: hit.card,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               );
             },
           ),

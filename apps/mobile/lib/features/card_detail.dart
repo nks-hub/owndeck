@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../data/session.dart';
 import '../data/card_edits.dart';
+import '../data/card_reads.dart';
 import '../l10n/app_localizations.dart';
 import 'card_editor.dart';
 import 'board_moves.dart';
@@ -120,7 +121,9 @@ class _CardScreenState extends State<_CardContent> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(errorMessage(error, AppLocalizations.of(context)!)),
+            content: Text(
+              localWriteErrorMessage(error, AppLocalizations.of(context)!),
+            ),
           ),
         );
       }
@@ -139,6 +142,34 @@ class _CardScreenState extends State<_CardContent> {
       return;
     }
     final text = AppLocalizations.of(context)!;
+    final cardLink = parseDeckCardLink(uri.toString());
+    if (cardLink != null &&
+        cardLink.server.uri == widget.session.client.base.uri) {
+      try {
+        final result = await widget.session.openRemoteCard(
+          cardLink.boardId,
+          cardLink.cardId,
+        );
+        if (!mounted) return;
+        await Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            settings: const RouteSettings(name: '/card'),
+            builder: (_) => CardScreen(
+              session: widget.session,
+              board: result.board,
+              card: result.card,
+            ),
+          ),
+        );
+      } catch (error) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(errorMessage(error, text))));
+        }
+      }
+      return;
+    }
     try {
       if (!await launchUrl(uri, mode: LaunchMode.externalApplication) &&
           mounted) {

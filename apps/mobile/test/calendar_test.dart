@@ -79,6 +79,7 @@ void main() {
           card(1, 'Starts card', {'startdate': at(10)}),
           card(2, 'Due card', {'duedate': at(12)}),
           card(3, 'Done card', {'duedate': at(14), 'done': at(13)}),
+          card(4, 'Quick done', {'done': at(16)}),
         ],
       }),
     ], null);
@@ -148,13 +149,20 @@ void main() {
     expect(find.text('Due card'), findsOneWidget);
     expect(find.textContaining('Due date · '), findsOneWidget);
 
-    await pickDay(tester, 14);
+    await pickDay(tester, 13);
     expect(find.text('Done card'), findsOneWidget);
     expect(find.textContaining('Completed · '), findsOneWidget);
     expect(
       find.bySemanticsLabel(RegExp(r'0 start, 0 due, 1 completed')),
-      findsOneWidget,
+      findsWidgets,
     );
+
+    await pickDay(tester, 14);
+    expect(find.text('Done card'), findsNothing);
+
+    await pickDay(tester, 16);
+    expect(find.text('Quick done'), findsOneWidget);
+    expect(find.textContaining('Completed · '), findsOneWidget);
     expect(
       find.bySemanticsLabel(RegExp(r'1 start, 0 due, 0 completed')),
       findsOneWidget,
@@ -216,6 +224,68 @@ void main() {
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('day cells keep 48 dp touch targets at 360 dp width', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    final size = tester.getSize(find.byKey(const ValueKey('calendar-day:10')));
+    expect(size.width, greaterThanOrEqualTo(48));
+    expect(size.height, greaterThanOrEqualTo(48));
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('a card can be completed from the agenda', (tester) async {
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    await pickDay(tester, 12);
+    await tester.tap(find.byType(Checkbox));
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 30));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+    }
+    final writes = (await tester.runAsync(
+      () => database.writesFor(account.id),
+    ))!;
+    expect(writes.length, 1);
+    expect(find.byType(CardScreen), findsNothing);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+
+  test('a completed card sits on its completion day, not its due day', () {
+    final hit = CardSearchHit(
+      board: DeckBoard.fromJson({'id': 1, 'title': 'B', 'color': '008080', 'archived': false, 'deletedAt': 0, 'permissions': {'PERMISSION_READ': true}}),
+      stack: DeckStack.fromJson({'id': 2, 'boardId': 1, 'title': 'S', 'order': 0, 'cards': []}),
+      card: DeckCard.fromJson({
+        'id': 3,
+        'stackId': 2,
+        'title': 'C',
+        'description': '',
+        'type': 'plain',
+        'owner': 'u',
+        'order': 1,
+        'archived': false,
+        'done': '2030-05-04T10:00:00+00:00',
+        'duedate': '2030-05-09T10:00:00+00:00',
+      }),
+    );
+    final done = DateTime.parse('2030-05-04T10:00:00+00:00').toLocal();
+    final days = calendarEntries([hit]);
+    expect(days.length, 1);
+    expect(
+      days[DateTime(done.year, done.month, done.day)]!.single.kind,
+      CalendarKind.done,
+    );
   });
 
   test('entries are grouped by local day', () {

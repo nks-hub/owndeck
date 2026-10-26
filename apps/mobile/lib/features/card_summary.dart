@@ -74,6 +74,45 @@ DateTime? _cardDate(Object? value) {
 
 DateTime? cardDueDate(DeckCard card) => _cardDate(card.raw['duedate']);
 
+/// The 48 dp completion checkbox of a card, or a spinner while it saves.
+class CompletionBox extends StatelessWidget {
+  const CompletionBox({
+    super.key,
+    required this.card,
+    required this.saving,
+    required this.onChanged,
+  });
+  final DeckCard card;
+  final bool saving;
+  final ValueChanged<bool>? onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = AppLocalizations.of(context)!;
+    return SizedBox(
+      width: 48,
+      height: 48,
+      child: saving
+          ? Center(
+              child: SizedBox.square(
+                dimension: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  semanticsLabel: text.savingDraft,
+                ),
+              ),
+            )
+          : Checkbox(
+              value: card.raw['done'] != null,
+              semanticLabel: '${text.completed}: ${card.title}',
+              onChanged: (value) {
+                if (value != null) onChanged?.call(value);
+              },
+            ),
+    );
+  }
+}
+
 class CardSummary extends StatelessWidget {
   const CardSummary({
     super.key,
@@ -119,29 +158,10 @@ class CardSummary extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (onCompletedChanged != null || changingCompletion)
-                SizedBox(
-                  width: 48,
-                  height: 48,
-                  child: changingCompletion
-                      ? Center(
-                          child: SizedBox.square(
-                            dimension: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              semanticsLabel: AppLocalizations.of(
-                                context,
-                              )!.savingDraft,
-                            ),
-                          ),
-                        )
-                      : Checkbox(
-                          value: card.raw['done'] != null,
-                          semanticLabel:
-                              '${AppLocalizations.of(context)!.completed}: ${card.title}',
-                          onChanged: (value) {
-                            if (value != null) onCompletedChanged?.call(value);
-                          },
-                        ),
+                CompletionBox(
+                  card: card,
+                  saving: changingCompletion,
+                  onChanged: onCompletedChanged,
                 ),
               Expanded(
                 child: Padding(

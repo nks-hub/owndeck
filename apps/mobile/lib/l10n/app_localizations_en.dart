@@ -1277,7 +1277,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String bulkSummary(int queued, int failed, int blocked) {
-    return 'Saved: $queued, failed: $failed, no permission: $blocked.';
+    return 'Saved on this device: $queued, failed: $failed, no permission: $blocked.';
   }
 
   @override
@@ -1372,6 +1372,22 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String searchIncomplete(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Cards of $count boards are not saved on this device yet, so this list may be incomplete.',
+      one:
+          'Cards of 1 board are not saved on this device yet, so this list may be incomplete.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get loadCards => 'Load cards';
 
   @override
   String get calendarNothingOnDay => 'Nothing on this day.';

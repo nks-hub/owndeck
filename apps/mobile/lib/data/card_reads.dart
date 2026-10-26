@@ -17,4 +17,17 @@ extension SessionCardReads on DeckSession {
     }
     return result;
   }
+
+  /// Loads cards of readable boards that were never saved on this device.
+  Future<void> loadUncachedBoards() async {
+    final boards = await database.boardView(account.id);
+    for (final board in boards) {
+      if (!board.permissions.read || board.deletedAt != 0 || board.archived) {
+        continue;
+      }
+      if (await database.checkpoint(account.id, 'board:${board.id}') == null) {
+        await refreshStacks(board.id);
+      }
+    }
+  }
 }

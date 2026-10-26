@@ -458,7 +458,7 @@
     }
   },
   "bulkResultTitle": "Result per card",
-  "bulkSummary": "Saved: {queued}, failed: {failed}, no permission: {blocked}.",
+  "bulkSummary": "Saved on this device: {queued}, failed: {failed}, no permission: {blocked}.",
   "@bulkSummary": {
     "placeholders": {
       "queued": {
@@ -523,7 +523,16 @@
       }
     }
   },
-  "calendarNothingOnDay": "Nothing on this day.",
+  "searchIncomplete": "{count, plural, =1{Cards of 1 board are not saved on this device yet, so this list may be incomplete.} other{Cards of {count} boards are not saved on this device yet, so this list may be incomplete.}}",
+  "@searchIncomplete": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loadCards": "Load cards",
+  "calendarNothingOnDay":"Nothing on this day.",
   "calendarDayLabel": "{date}: {summary}",
   "@calendarDayLabel": {
     "placeholders": {
