@@ -17,13 +17,15 @@ String shareParticipantId(Object? participant) => participant is JsonObject
               '')
           .toString()
     : participant?.toString() ?? '';
-String shareParticipantName(Object? participant) => participant is JsonObject
-    ? (participant['displayname'] ??
-              participant['displayName'] ??
-              participant['name'] ??
-              shareParticipantId(participant))
-          .toString()
-    : shareParticipantId(participant);
+String shareParticipantName(Object? participant, String unavailable) {
+  if (participant is JsonObject) {
+    for (final key in ['displayname', 'displayName', 'name']) {
+      final value = participant[key];
+      if (value is String && value.trim().isNotEmpty) return value;
+    }
+  }
+  return unavailable;
+}
 
 class SharingScreen extends StatefulWidget {
   const SharingScreen({
@@ -232,7 +234,12 @@ class _SharingScreenState extends State<SharingScreen> {
                   ),
                 for (final entry in acl)
                   ListTile(
-                    title: Text(shareParticipantName(entry['participant'])),
+                    title: Text(
+                      shareParticipantName(
+                        entry['participant'],
+                        text.pendingValueUnavailable,
+                      ),
+                    ),
                     subtitle: Text(
                       [
                         text.permissionRead,
