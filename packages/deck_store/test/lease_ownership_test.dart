@@ -76,4 +76,17 @@ void main() {
     final account = (await db.accounts()).single;
     expect(await db.acquireLease(account, _background), isFalse);
   });
+
+  test('the last successful sync is stored per account', () async {
+    final db = DeckDatabase(NativeDatabase(file));
+    addTearDown(db.close);
+    expect((await db.watchSyncStatus().first).single.lastSyncedAt, isNull);
+    await db.markSynced(accountId);
+    final status = (await db.watchSyncStatus().first).single;
+    expect(status.account.id, accountId);
+    expect(
+      DateTime.now().toUtc().difference(status.lastSyncedAt!.toUtc()).inSeconds,
+      lessThan(5),
+    );
+  });
 }

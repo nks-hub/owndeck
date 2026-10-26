@@ -677,5 +677,17 @@
         "type": "String"
       }
     }
-  }
+  },
+  "syncTitle": "Synchronizace",
+  "syncLastTime": "Poslední synchronizace: {time}",
+  "@syncLastTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNever": "Zatím nesynchronizováno",
+  "syncNow": "Synchronizovat teď",
+  "syncRunning": "Synchronizuji..."
 }

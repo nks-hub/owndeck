@@ -2935,6 +2935,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Due {when} · {board}'**
   String reminderBody(String when, String board);
+
+  /// No description provided for @syncTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronization'**
+  String get syncTitle;
+
+  /// No description provided for @syncLastTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Last sync: {time}'**
+  String syncLastTime(String time);
+
+  /// No description provided for @syncNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Not synced yet'**
+  String get syncNever;
+
+  /// No description provided for @syncNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync now'**
+  String get syncNow;
+
+  /// No description provided for @syncRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronizing...'**
+  String get syncRunning;
 }
 
 class _AppLocalizationsDelegate

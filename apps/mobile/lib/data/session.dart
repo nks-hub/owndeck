@@ -429,6 +429,8 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
       if (_files != null && !_disposed && !background) {
         await _cleanAttachmentFiles();
       }
+      if (scope == 'boards' && !_disposed)
+        await database.markSynced(account.id);
     } catch (error) {
       // The view displays the error beside cached content, never raw exception text.
       _errors[scope] = error;

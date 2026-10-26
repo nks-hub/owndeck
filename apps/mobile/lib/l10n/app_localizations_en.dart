@@ -1600,4 +1600,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String reminderBody(String when, String board) {
     return 'Due $when · $board';
   }
+
+  @override
+  String get syncTitle => 'Synchronization';
+
+  @override
+  String syncLastTime(String time) {
+    return 'Last sync: $time';
+  }
+
+  @override
+  String get syncNever => 'Not synced yet';
+
+  @override
+  String get syncNow => 'Sync now';
+
+  @override
+  String get syncRunning => 'Synchronizing...';
 }

@@ -1610,4 +1610,21 @@ class AppLocalizationsCs extends AppLocalizations {
   String reminderBody(String when, String board) {
     return 'Termín $when · $board';
   }
+
+  @override
+  String get syncTitle => 'Synchronizace';
+
+  @override
+  String syncLastTime(String time) {
+    return 'Poslední synchronizace: $time';
+  }
+
+  @override
+  String get syncNever => 'Zatím nesynchronizováno';
+
+  @override
+  String get syncNow => 'Synchronizovat teď';
+
+  @override
+  String get syncRunning => 'Synchronizuji...';
 }

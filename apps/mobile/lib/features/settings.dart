@@ -12,6 +12,7 @@ import 'background_sync_settings.dart';
 import 'reminder_settings.dart';
 import 'telemetry_settings.dart';
 import 'server_tools.dart';
+import 'sync_settings.dart';
 
 final packageInfoProvider = FutureProvider<PackageInfo>(
   (ref) => PackageInfo.fromPlatform(),
@@ -154,6 +155,7 @@ class SettingsView extends ConsumerWidget {
             ),
           ),
         ),
+        if (activeSession != null) SyncSettingsTile(session: activeSession),
         const BackgroundSyncSettingsTile(),
         const ReminderSettingsTile(),
         ListTile(

@@ -164,6 +164,13 @@ class StoredAttachments extends Table {
   Set<Column<Object>> get primaryKey => {accountId, cardId, type, remoteId};
 }
 
+/// An account and when it last refreshed from the server without error.
+final class AccountSyncStatus {
+  const AccountSyncStatus(this.account, this.lastSyncedAt);
+  final StoredAccount account;
+  final DateTime? lastSyncedAt;
+}
+
 @DriftDatabase(
   tables: [
     StoredAccounts,
@@ -415,6 +422,31 @@ class DeckDatabase extends _$DeckDatabase {
     await _checkpoint(accountId, 'board:$boardId', etag);
     return true;
   });
+
+  static const _syncedScope = 'synced';
+
+  /// Records a refresh that finished without error; shown in settings.
+  Future<void> markSynced(String accountId) =>
+      _checkpoint(accountId, _syncedScope, null);
+
+  /// Every account with the time of its last successful refresh (null if none).
+  Stream<List<AccountSyncStatus>> watchSyncStatus() =>
+      customSelect(
+        'SELECT id FROM stored_accounts',
+        readsFrom: {storedAccounts, syncCheckpoints},
+      ).watch().asyncMap((_) async {
+        final marks = {
+          for (final c in await (select(
+            syncCheckpoints,
+          )..where((c) => c.scope.equals(_syncedScope))).get())
+            c.accountId: c.fetchedAt,
+        };
+        return [
+          for (final account in await accounts())
+            if (account.state != 'deleting')
+              AccountSyncStatus(account, marks[account.id]),
+        ];
+      });
 
   Future<void> _checkpoint(String accountId, String scope, String? etag) =>
       into(syncCheckpoints).insertOnConflictUpdate(

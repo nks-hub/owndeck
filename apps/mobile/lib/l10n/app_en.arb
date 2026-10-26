@@ -677,5 +677,17 @@
         "type": "String"
       }
     }
-  }
+  },
+  "syncTitle": "Synchronization",
+  "syncLastTime": "Last sync: {time}",
+  "@syncLastTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNever": "Not synced yet",
+  "syncNow": "Sync now",
+  "syncRunning": "Synchronizing..."
 }
