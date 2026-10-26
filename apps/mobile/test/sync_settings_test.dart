@@ -116,6 +116,8 @@ void main() {
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 50)),
     );
+    // Lets request timeouts and database stream cleanup timers run out.
+    await tester.pump(const Duration(minutes: 2));
   }
 
   Widget app() => localizedTestApp(
