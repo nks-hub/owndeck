@@ -68,6 +68,7 @@ abstract final class OnboardingTheme {
       useMaterial3: true,
       brightness: brightness,
       colorScheme: scheme,
+      visualDensity: pointer ? VisualDensity.compact : VisualDensity.standard,
       scaffoldBackgroundColor: scheme.surface,
       disabledColor: scheme.onSurfaceVariant,
     );
