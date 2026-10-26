@@ -38,6 +38,7 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [ ] B30 iOS kandidát po schválení v Safari při rozděleném testovacím průchodu vrátil chybu spojení místo přihlášení; aplikace se nerestartovala. Ověřit souvislý tok a příčinu případného timeoutu před změnou přihlašovací logiky.
 - [x] B31 Čtení místní databáze a uložení konceptu mají vlastní hlášky; výzva k odemknutí zůstává u úložiště přihlašovacích údajů. Dvě reprodukce před opravou selhaly; 18 navazujících testů včetně zachování textu po chybě prošlo, analyzer čistý.
 - [x] B32 Potvrzení odebrání účtu uvádí smazání neodeslané práce i odvolání hesla sdíleného s dalšími klienty; dialog se posouvá i při 200% textu na šířku. Reprodukce před opravou selhala, čtyři testy včetně zachování konceptu po Zrušit a analyzer prošly; chování revokace se nemění.
+- [ ] B33 Na iOS se po výběru jiné nástěnky v dialogu přesunu rozcházejí přístupnostní souřadnice s obrazem asi o 62 bodů; opravit změnu rozložení a ověřit skutečné ovládání, velký text i orientaci na šířku.
 - [x] T04 E2E používá oddělené testovací identity a evidenci vlastních záznamů; úklid odstraňuje pouze testem vytvořená data a přístupy, ověřuje jejich stav a zachovává ostatní účty.
 - [x] U01 Společný souhrn karty zobrazuje štítky, termíny, dokončení, známé počty a přiřazení (`5514cc7`, `3b82d66`, `ea667cd`); widget testy metadat prošly. E2E všech cest zůstává v R06.
 - [x] U02 Rychlé přidání z přehledu a sloupce uchová cíl podle účtu i koncept (`1a58735`, `b5ba90b`); osm cílených testů prošlo. Opravený bezpečný okraj ověřit v R06.
@@ -127,4 +128,4 @@ Aktuální rozsah zahrnuje analýzu, review, redesign, refaktor a E2E všech fun
 
 - [x] R01 OwnTalk `c994a07b`: kontrola názvu serveru čte SAN certifikátu místo CN a přihlašovací karta neslučuje ovládací prvky pro čtečku. Převzato stejné řešení jako v Decku; nové testy a vydání OwnTalku se neprováděly.
 - [x] R02 Google Play alpha 0.1.0+2 schváleno a publikováno; API potvrzuje PUBLISHED, ověřené podklady a tři skupiny jako OwnNotes; testovací odkaz: https://play.google.com/apps/testing/com.nkshub.nextclouddeck.
-- [ ] P02 Na finální revizi ověřit p95 celého snímku do 16,7 ms a podle měření odstranit příčinu zpomalení; staré měření S9 bylo 24,388 ms, S21 10,268 ms. Úspory D12 samy splnění cíle nedokládají.
+- [ ] P02 Na finální revizi ověřit p95 celého snímku do 16,7 ms a odstranit naměřenou příčinu zpomalení; S9 na `69d3a0c` s 1000 kartami při 60 Hz dosáhl p95 26,448 ms (build 13,258 ms, raster 12,350 ms), studený start 2,477–2,554 s. Profil používá místní datovou fixture; není důkazem skutečného serveru. Starší S21 10,268 ms nepokrývá současného kandidáta.
