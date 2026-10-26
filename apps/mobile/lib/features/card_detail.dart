@@ -175,7 +175,7 @@ class _CardScreenState extends State<_CardContent> {
           if (boardSnapshot.hasError || cardSnapshot.hasError) {
             return Scaffold(
               appBar: AppBar(),
-              body: Center(child: Text(text.storageError)),
+              body: Center(child: Text(text.localReadError)),
             );
           }
           final board = boardSnapshot.data;

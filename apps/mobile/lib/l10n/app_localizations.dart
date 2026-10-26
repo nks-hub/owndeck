@@ -2317,6 +2317,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No content is saved on this device yet.'**
   String get noSavedContent;
+
+  /// No description provided for @localReadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved data could not be read on this device. Try opening this screen again.'**
+  String get localReadError;
 }
 
 class _AppLocalizationsDelegate

@@ -725,7 +725,7 @@ class _PendingScreenState extends State<PendingScreen> {
           stream: _writes,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              return Center(child: Text(text.storageError));
+              return Center(child: Text(text.localReadError));
             }
             if (!snapshot.hasData) {
               return const Center(child: CircularProgressIndicator());
@@ -757,7 +757,7 @@ class _PendingScreenState extends State<PendingScreen> {
                         leading: const Icon(Icons.drafts_outlined),
                         title: Text(text.drafts),
                         subtitle: drafts.hasError
-                            ? Text(text.storageError)
+                            ? Text(text.localReadError)
                             : null,
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,

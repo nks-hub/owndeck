@@ -417,5 +417,6 @@
   "attachmentMissingError": "This attachment is no longer available. Refresh the attachments.",
   "unsupportedOperation": "This action is not available here.",
   "attachmentStorageError": "The attachment could not be read or saved on this device. Try again.",
-  "noSavedContent": "No content is saved on this device yet."
+  "noSavedContent": "No content is saved on this device yet.",
+  "localReadError": "Saved data could not be read on this device. Try opening this screen again."
 }

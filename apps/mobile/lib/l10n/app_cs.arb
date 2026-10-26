@@ -417,5 +417,6 @@
   "attachmentMissingError": "Příloha už není dostupná. Obnovte seznam příloh.",
   "unsupportedOperation": "Tuto akci zde nelze provést.",
   "attachmentStorageError": "Přílohu nelze v tomto zařízení přečíst nebo uložit. Zkuste akci znovu.",
-  "noSavedContent": "Na tomto zařízení zatím nejsou uložená data."
+  "noSavedContent": "Na tomto zařízení zatím nejsou uložená data.",
+  "localReadError": "Uložená data nelze v tomto zařízení načíst. Zkuste obrazovku otevřít znovu."
 }

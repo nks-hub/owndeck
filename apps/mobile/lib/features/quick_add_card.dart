@@ -232,7 +232,7 @@ class _QuickAddCardState extends ConsumerState<_QuickAddCard> {
       final leave = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text(text.storageError),
+          title: Text(text.localSaveError),
           content: Text(text.unsavedChanges),
           actions: [
             TextButton(
@@ -471,7 +471,7 @@ class _QuickAddCardState extends ConsumerState<_QuickAddCard> {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Text(
                       _draftFailed
-                          ? text.storageError
+                          ? text.localSaveError
                           : _pendingDrafts > 0
                           ? text.savingDraft
                           : text.quickAddSavedDraft,

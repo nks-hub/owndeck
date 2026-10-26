@@ -73,7 +73,7 @@ class _BoardLabelsScreenState extends State<BoardLabelsScreen> {
           stream: _board,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              return Center(child: Text(text.storageError));
+              return Center(child: Text(text.localReadError));
             }
             if (snapshot.connectionState == ConnectionState.waiting &&
                 !snapshot.hasData) {

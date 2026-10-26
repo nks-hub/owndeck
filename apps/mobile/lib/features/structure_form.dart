@@ -73,7 +73,7 @@ class _StructureFormState extends State<_StructureForm> {
       }
     } catch (_) {
       if (mounted) {
-        setState(() => _error = AppLocalizations.of(context)!.storageError);
+        setState(() => _error = AppLocalizations.of(context)!.localReadError);
       }
     } finally {
       if (mounted) setState(() => _loadingColumns = false);

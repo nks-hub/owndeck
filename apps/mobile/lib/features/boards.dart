@@ -146,7 +146,7 @@ class _BoardsScreenState extends State<BoardsScreen> {
               final count = snapshot.data?.length ?? 0;
               return IconButton(
                 tooltip: snapshot.hasError
-                    ? text.storageError
+                    ? text.localReadError
                     : !snapshot.hasData
                     ? text.syncing
                     : count == 0
@@ -276,7 +276,7 @@ class _BoardsScreenState extends State<BoardsScreen> {
         stream: _boards,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return Center(child: Text(text.storageError));
+            return Center(child: Text(text.localReadError));
           }
           final savedBoards = snapshot.data ?? <DeckBoard>[];
           final filtering = _query.text.trim().isNotEmpty || _filter != 0;

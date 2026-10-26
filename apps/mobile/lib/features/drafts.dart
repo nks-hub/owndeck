@@ -107,7 +107,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(text.storageError)));
+        ).showSnackBar(SnackBar(content: Text(text.localSaveError)));
       }
     }
   }
@@ -123,7 +123,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
           stream: _drafts,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              return Center(child: Text(text.storageError));
+              return Center(child: Text(text.localReadError));
             }
             if (!snapshot.hasData) {
               return const Center(child: CircularProgressIndicator());
@@ -187,7 +187,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
                           style: Theme.of(context).textTheme.labelSmall,
                         ),
                         if (boardSnapshot.hasError)
-                          Text(text.storageError)
+                          Text(text.localReadError)
                         else if (boardSnapshot.hasData)
                           FutureBuilder<
                             ({int boardId, String? stack, String? card})
@@ -215,7 +215,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
                                 location.connectionState != ConnectionState.done
                                     ? text.syncing
                                     : location.hasError
-                                    ? text.storageError
+                                    ? text.localReadError
                                     : parts.isEmpty
                                     ? text.draftLocationUnavailable
                                     : parts.join(' › '),

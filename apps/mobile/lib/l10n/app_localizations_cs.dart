@@ -1220,4 +1220,8 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get noSavedContent => 'Na tomto zařízení zatím nejsou uložená data.';
+
+  @override
+  String get localReadError =>
+      'Uložená data nelze v tomto zařízení načíst. Zkuste obrazovku otevřít znovu.';
 }

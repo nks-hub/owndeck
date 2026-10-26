@@ -1217,4 +1217,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noSavedContent => 'No content is saved on this device yet.';
+
+  @override
+  String get localReadError =>
+      'Saved data could not be read on this device. Try opening this screen again.';
 }

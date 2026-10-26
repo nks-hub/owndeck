@@ -145,7 +145,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
           stream: _comments,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              return Center(child: Text(text.storageError));
+              return Center(child: Text(text.localReadError));
             }
             final comments = snapshot.data ?? [];
             return Column(

@@ -246,7 +246,7 @@ class _CommentEditorState extends State<CommentEditor> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(text.storageError),
+                    Text(text.localReadError),
                     TextButton(onPressed: _load, child: Text(text.retry)),
                   ],
                 ),

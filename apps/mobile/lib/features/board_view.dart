@@ -233,7 +233,7 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
           stream: _stacks,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              return Center(child: Text(text.storageError));
+              return Center(child: Text(text.localReadError));
             }
             final columns = _visible(snapshot.data);
             final scope = 'board:${widget.board.id}';
