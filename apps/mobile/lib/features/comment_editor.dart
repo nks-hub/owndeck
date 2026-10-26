@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import '../data/session.dart';
 import '../core/errors.dart';
 import '../l10n/app_localizations.dart';
+import 'sharing.dart' show shareParticipantId, shareParticipantName;
 import 'state_message.dart';
 
 Future<void> openCommentEditor(
@@ -73,6 +74,7 @@ class _CommentEditorState extends State<CommentEditor> {
   int _revision = 0;
   int _savedRevision = 0;
   String? _error;
+  List<({String id, String name})> _people = const [];
 
   @override
   void initState() {
@@ -105,6 +107,17 @@ class _CommentEditorState extends State<CommentEditor> {
           ? _original?.message ?? ''
           : stringField(payload, 'description');
       _dirty = draft != null;
+      final board = await widget.session.database
+          .watchBoard(widget.session.account.id, widget.boardId)
+          .first;
+      _people = [
+        for (final user in board?.raw['users'] as List? ?? const [])
+          if (shareParticipantId(user).isNotEmpty)
+            (
+              id: shareParticipantId(user),
+              name: shareParticipantName(user, shareParticipantId(user)),
+            ),
+      ];
     } catch (_) {
       _loadFailed = true;
     } finally {
@@ -140,6 +153,39 @@ class _CommentEditorState extends State<CommentEditor> {
         if (mounted) setState(() => _persistFailed = true);
       }
     });
+  }
+
+  /// Board participants matching the `@term` typed right before the cursor.
+  ({int start, List<({String id, String name})> people})? _mentionQuery() {
+    final cursor = _message.selection.baseOffset;
+    if (cursor < 0 || cursor > _message.text.length) return null;
+    final match = RegExp(
+      r'(?:^|\s)@([^\s@"]*)$',
+    ).firstMatch(_message.text.substring(0, cursor));
+    if (match == null) return null;
+    final term = match[1]!.toLowerCase();
+    final people = _people
+        .where(
+          (p) =>
+              p.id.toLowerCase().contains(term) ||
+              p.name.toLowerCase().contains(term),
+        )
+        .take(5)
+        .toList();
+    return people.isEmpty
+        ? null
+        : (start: cursor - term.length - 1, people: people);
+  }
+
+  void _mention(int start, String id) {
+    final cursor = _message.selection.baseOffset;
+    final inserted = '${mentionToken(id)} ';
+    final value = _message.text.replaceRange(start, cursor, inserted);
+    _message.value = TextEditingValue(
+      text: value,
+      selection: TextSelection.collapsed(offset: start + inserted.length),
+    );
+    _changed(value);
   }
 
   void _close() {
@@ -269,6 +315,28 @@ class _CommentEditorState extends State<CommentEditor> {
                       counterText:
                           '${_message.text.runes.length}/$deckCommentMaxLength',
                     ),
+                  ),
+                  ListenableBuilder(
+                    listenable: _message,
+                    builder: (context, _) {
+                      final query = _saving ? null : _mentionQuery();
+                      return Column(
+                        children: [
+                          if (query != null)
+                            for (final person in query.people)
+                              ListTile(
+                                key: ValueKey('mention:${person.id}'),
+                                dense: true,
+                                leading: const Icon(Icons.alternate_email),
+                                title: Text(person.name),
+                                subtitle: person.name == person.id
+                                    ? null
+                                    : Text(person.id),
+                                onTap: () => _mention(query.start, person.id),
+                              ),
+                        ],
+                      );
+                    },
                   ),
                   if (_dirty)
                     Padding(

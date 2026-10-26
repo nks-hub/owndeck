@@ -254,7 +254,9 @@ class _CommentsScreenState extends State<CommentsScreen> {
                                     ),
                                   ),
                                 const SizedBox(height: 8),
-                                SelectableText(comment.message),
+                                SelectableText.rich(
+                                  mentionSpan(context, comment),
+                                ),
                                 Wrap(
                                   spacing: 8,
                                   children: [
@@ -305,4 +307,28 @@ class _CommentsScreenState extends State<CommentsScreen> {
       ),
     );
   }
+}
+
+/// Comment text with mentions highlighted, using the display names the server resolved.
+TextSpan mentionSpan(BuildContext context, DeckComment comment) {
+  final names = comment.mentionNames;
+  final highlight = TextStyle(
+    color: Theme.of(context).colorScheme.primary,
+    fontWeight: FontWeight.w600,
+  );
+  final message = comment.message;
+  var position = 0;
+  final spans = <InlineSpan>[];
+  for (final mention in findMentions(message)) {
+    spans.add(TextSpan(text: message.substring(position, mention.start)));
+    spans.add(
+      TextSpan(
+        text: '@${names[mention.userId] ?? mention.userId}',
+        style: highlight,
+      ),
+    );
+    position = mention.end;
+  }
+  spans.add(TextSpan(text: message.substring(position)));
+  return TextSpan(children: spans);
 }

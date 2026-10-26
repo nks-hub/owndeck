@@ -4,6 +4,31 @@ import 'models.dart';
 // Nextcloud IComment::MAX_MESSAGE_LENGTH, stable35.
 const deckCommentMaxLength = 1000;
 
+// Nextcloud Comment::getMentions: @uid, or @"uid" when the uid contains a space.
+final _mentionPattern = RegExp(
+  r"""\B(?<![^a-z0-9_\-@.'\s])@("[a-z0-9_\-@.' ]+"|[a-z0-9_\-@.']+)""",
+  caseSensitive: false,
+);
+
+/// A user mention inside a comment message, `start` to `end` includes the `@`.
+final class DeckMention {
+  const DeckMention(this.userId, this.start, this.end);
+  final String userId;
+  final int start;
+  final int end;
+}
+
+List<DeckMention> findMentions(String message) => [
+  for (final match in _mentionPattern.allMatches(message))
+    DeckMention(match[1]!.replaceAll('"', ''), match.start, match.end),
+];
+
+/// Text to insert for mentioning [userId], quoted when it contains a space.
+String mentionToken(String userId) =>
+    RegExp(r"^[a-z0-9_\-@.']+$", caseSensitive: false).hasMatch(userId)
+    ? '@$userId'
+    : '@"$userId"';
+
 final class DeckShareTarget {
   const DeckShareTarget({
     required this.id,
@@ -27,6 +52,19 @@ final class DeckComment {
           : stringField(json, 'actorId'),
       created = DateTime.parse(stringField(json, 'creationDateTime')),
       raw = Map.unmodifiable(json);
+
+  /// Display names the server resolved for mentioned users, by user id.
+  Map<String, String> get mentionNames => {
+    if (raw['mentions'] case final List mentions)
+      for (final m in mentions)
+        if (m is Map &&
+            m['mentionType'] == 'user' &&
+            m['mentionId'] is String &&
+            m['mentionDisplayName'] is String &&
+            (m['mentionDisplayName'] as String).isNotEmpty)
+          m['mentionId'] as String: m['mentionDisplayName'] as String,
+  };
+
   final int id;
   final int cardId;
   final String message;
