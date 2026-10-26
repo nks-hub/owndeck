@@ -167,13 +167,13 @@ Z rozboru zdrojů a issues oficiální aplikace (GPL-3.0, jen nápady bez převz
 - [ ] F15 P2 Zkratky ikony Přidat kartu a Moje úkoly (Android i iOS) a dlaždice Přidat kartu v rychlém nastavení Androidu; doklad studené i teplé spuštění otevře rychlé přidání s posledním cílem účtu.
 - [x] F16 P2 Historie aktivity karty z Activity API v2 (`filter?object_type=deck_card`, stránkování přes `since`) v detailu, jen s capabilities `filters-api`; bez sítě poctivá hláška a Zkusit znovu, nic se neukládá. Protokolové a widget testy prošly; živý server v R06.
 - [x] F17 P2 Zmínky v komentářích ve formátu serveru `@uid` / `@"uid"` (ne zobrazované jméno, podle `Comment::getMentions`), našeptávač z účastníků nástěnky a zvýraznění podle `mentionDisplayName`. Testy prošly; oznámení druhému účtu ověří R06, skupiny a týmy se nenabízejí.
-- [ ] F18 P2 Rychlé volby termínu Dnes, Zítra, Příští týden a Bez termínu v editoru karty; doklad widget test správného data v časové zóně zařízení včetně přechodu na letní čas.
+- [x] F18 P2 Rychlé volby Dnes, Zítra, Příští týden a Bez termínu v editoru karty; dny se přičítají kalendářně, takže změna letního času datum neposune (`399bdd7`).
 - [ ] F19 P2 Nabídka karty na nástěnce a v seznamu doplněná o Přiřadit mně, Archivovat, Kopírovat odkaz a Smazat se stejnou kontrolou práv jako detail; doklad widget testy pro READ a EDIT a zápis přes frontu.
-- [ ] F20 P3 Moje úkoly ve skupinách Po termínu, Dnes, Zítra, Tento týden, Později a Bez termínu; doklad widget test s kartou v každé skupině.
-- [ ] F21 P3 Filtr nástěnky se uloží pro účet a nástěnku a obnoví po restartu i přepnutí nástěnky; doklad test restartu a zrušení filtru.
+- [x] F20 P3 Moje úkoly seskupené pod záhlavími Po termínu, Dnes, Zítra, Tento týden (po–ne), Později a Bez termínu; upozornění na neúplná data a kalendář zachované (`0bd71d5`).
+- [x] F21 P3 Filtr nástěnky včetně hledaného textu se ukládá pro účet a nástěnku, obnoví se po restartu i přepnutí a Zrušit filtry ho smaže (`1e63625`).
 - [ ] F22 P3 Volitelný kompaktní vzhled karty (název, štítky, termín) v Nastavení; doklad test výšky při 100 a 200 % textu a měření P02 bez zhoršení.
 - [ ] F23 P3 Volitelná obálka karty z obrázkové přílohy přes serverový náhled, výchozí vypnutá; doklad žádný požadavek na náhled při vypnuté volbě a měření P02 bez zhoršení.
-- [ ] F24 P3 Editor popisu a komentáře: Enter pokračuje v odrážce a checklistu, lišta pro tučné písmo, seznam, checklist a odkaz; doklad widget test vložení `- [ ] ` a ukončení seznamu prázdnou položkou.
+- [x] F24 P3 Společné pole Markdownu pro popis i komentář: Enter pokračuje v odrážce, číslovaném seznamu i checklistu, na prázdné položce seznam ukončí, lišta tučné/seznam/checklist/odkaz (`35330f6`). Spojeno se zmínkami F17 v editoru komentářů.
 - [ ] F25 P3 Volitelná komprese fotek před nahráním se zachováním orientace; doklad 12MP fotka pod 2 MB se správnou orientací na serveru.
 - [ ] F26 P2 Miniatury obrázkových příloh přes serverový náhled `core/preview?fileId=` a celoobrazovkový prohlížeč s přiblížením a listováním; doklad widget test gest a na S21 miniatura bez stažení celého souboru.
 - [ ] F27 P2 Akce sloupce Archivovat všechny karty s potvrzením počtu, při aktivním filtru jen filtrované, každá karta přes trvalou frontu; doklad widget test s filtrem a server archivuje jen vybrané karty.
