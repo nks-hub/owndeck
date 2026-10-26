@@ -71,6 +71,18 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] F01 Checklist mění položku přes stejnou trvalou frontu a zachová ostatní popis (`e485272`, `6465b8e`); devět parser/widget testů a zapnutí/vypnutí ve skutečném UI kandidátu `96b8662` prošly. Finální společná revize v R06.
 - [ ] F06 Přesun mezi nástěnkami implementován (`e68650c`, `cdb05f0`); skutečné API 1.18.5 ověřilo identitu, obsah, metadata, komentáře, štítky podle práv a kotvu. API 1.18.5 ověřilo i zachování obsahu přílohy; API 1.19.1 prošlo v CI `40318645367` na `996ef07` pro vlastníka i EDIT bez MANAGE včetně stažení přílohy přes účet přesouvajícího a úplného úklidu; úplné nativní UI ověření zůstává v R06.
 
+## Sdílené přihlášení mezi aplikacemi
+
+Přání majitele: když je v OwnTalku, OwnNotes nebo OwnDecku přihlášený účet, ostatní aplikace ho nabídnou k použití, na desktopu i mobilu.
+
+- [ ] SL01 Návrh společného přihlášení OwnTalk/OwnNotes/OwnDeck v `docs/shared-login.md`: co se sdílí (vždy jen identita účtu: server, přihlašovací jméno, UID, zobrazované jméno; tajemství jen se souhlasem), varianta A předvyplněný Login Flow v2 s jedním potvrzením v prohlížeči vs. varianta B sdílený app password (odhlášení v jedné aplikaci ho zruší i ve zbylých, protože Nextcloud z app password nové nevytvoří); rozhodnutí majitele zapsat.
+- [ ] SL02 Android: zjistit v Play Console, zda tři aplikace mají stejný podpisový klíč aplikace (Play App Signing dává každé aplikaci vlastní klíč); podle toho provider chráněný oprávněním `signature`, nebo exportovaná aktivita, která po potvrzení ve zdrojové aplikaci vrátí jen identitu účtu; doklad `<queries>` a test na S21 se dvěma aplikacemi.
+- [ ] SL03 iOS: sdílená skupina Keychain a App Group pro všechny tři aplikace pod stejným týmem. BLOKOVÁNO: změna identifikátorů a profilů v Apple účtu majitele. Doklad účet z OwnTalku nabídnutý v OwnDecku na simulátoru i podepsaném buildu.
+- [ ] SL04 Desktop: společné úložiště účtů pro aktuálního uživatele (Windows Credential Manager se společným prefixem, macOS sdílená skupina Keychain, Linux libsecret se společným schématem); doklad nabídka účtu mezi aplikacemi na Windows a macOS.
+- [ ] SL05 Přihlašovací obrazovka nabídne „Pokračovat jako {jméno} na {server} (z OwnTalku)“ i Jiný účet; nikdy automaticky, vždy se souhlasem, a nesmí nabídnout účet, který už v aplikaci je; doklad widget testy a čtečka.
+- [ ] SL06 Odhlášení a odvolání: při variantě B počítat, které aplikace token používají, a odvolat ho na serveru až s poslední; varianta A odvolává jen vlastní token; doklad test, že odebrání účtu v OwnDecku neodhlásí OwnTalk.
+- [ ] SL07 Implementace v OwnDecku (nabídnutí i převzetí účtu) a E2E na S21, iOS simulátoru a Windows s nainstalovaným OwnTalkem nebo OwnNotes; doklad převzetí účtu bez zadávání adresy a hesla a odhlášení bez vlivu na druhou aplikaci.
+
 ## Desktopová verze (Windows, macOS, Linux)
 
 Rozpad z auditu desktopového režimu OwnTalku, souhrn a nálezy v `docs/desktop.md`. Pořadí podle závislostí.
