@@ -23,11 +23,13 @@ final class IncomingShareInboxTests: XCTestCase {
     XCTAssertNil(reopened.take())
   }
 
-  func testNewerShareReplacesOlderOne() throws {
+  func testSharesAreTakenOldestFirstAndNoneIsLost() throws {
     let inbox = try IncomingShareInbox(directory: root)
     try inbox.store(text: "one", subject: nil)
     try inbox.store(text: "two", subject: nil)
-    XCTAssertEqual(inbox.take()?.text, "two")
+    try inbox.store(text: "three", subject: nil)
+    XCTAssertEqual(inbox.take()?.text, "one")
+    XCTAssertEqual(inbox.takeAll().map(\.text), ["two", "three"])
     XCTAssertNil(inbox.take())
   }
 
@@ -51,11 +53,27 @@ final class IncomingShareInboxTests: XCTestCase {
     var emitted: [[String: String]] = []
     delivery.emit = { emitted.append($0) }
     try inbox.store(text: "cold", subject: nil)
-    XCTAssertEqual(delivery.take(), ["text": "cold"])
+    try inbox.store(text: "cold two", subject: nil)
+    XCTAssertEqual(delivery.take(), [["text": "cold"], ["text": "cold two"]])
+    XCTAssertTrue(delivery.take().isEmpty)
     try inbox.store(text: "warm", subject: nil)
+    try inbox.store(text: "warm two", subject: nil)
     delivery.drain()
-    XCTAssertEqual(emitted, [["text": "warm"]])
+    XCTAssertEqual(emitted, [["text": "warm"], ["text": "warm two"]])
     delivery.drain()
-    XCTAssertEqual(emitted.count, 1)
+    XCTAssertEqual(emitted.count, 2)
+  }
+
+  func testShareUrlsReachSharingAndAreNotCardLinks() throws {
+    let delivery = ShareDelivery(inbox: try IncomingShareInbox(directory: root))
+    let links = CardLinkDelivery()
+    let share = try XCTUnwrap(URL(string: "ncdeck://share?text=Ahoj&subject=Tema"))
+    XCTAssertFalse(links.receive(share))
+    XCTAssertTrue(delivery.receive(share))
+    XCTAssertEqual(delivery.take(), [["text": "Ahoj", "subject": "Tema"]])
+    let card = try XCTUnwrap(URL(string: "ncdeck://open?uri=https%3A%2F%2Fcloud.example.com"))
+    XCTAssertTrue(links.receive(card))
+    XCTAssertFalse(delivery.receive(card))
+    XCTAssertEqual(links.take(), card.absoluteString)
   }
 }

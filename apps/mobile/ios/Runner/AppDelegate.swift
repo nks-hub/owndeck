@@ -7,7 +7,7 @@ final class CardLinkDelivery {
   var emit: ((String) -> Void)?
 
   func receive(_ url: URL) -> Bool {
-    guard url.scheme == "ncdeck", url.absoluteString.utf8.count <= 4096 else { return false }
+    guard url.scheme == "ncdeck", url.host == "open", url.absoluteString.utf8.count <= 4096 else { return false }
     if ready, let emit { emit(url.absoluteString) } else { pending = url.absoluteString }
     return true
   }
@@ -22,7 +22,7 @@ final class CardLinkDelivery {
 
 /// Receives text from `ncdeck://share?text=...&subject=...` URLs, for example from Shortcuts.
 final class ShareDelivery {
-  private var pending: [String: String]?
+  private var pending: [[String: String]] = []
   private var ready = false
   private let inbox: IncomingShareInbox?
   var emit: (([String: String]) -> Void)?
@@ -31,10 +31,13 @@ final class ShareDelivery {
     self.inbox = inbox
   }
 
-  /// Moves a share left by the share extension to Flutter, or holds it until Flutter asks.
+  /// Moves the shares left by the share extension to Flutter in arrival order, or holds them until Flutter asks.
   func drain() {
-    guard let value = inbox?.take()?.channelValue, !value.isEmpty else { return }
-    if ready, let emit { emit(value) } else { pending = value }
+    deliver((inbox?.takeAll() ?? []).map(\.channelValue).filter { !$0.isEmpty })
+  }
+
+  private func deliver(_ values: [[String: String]]) {
+    if ready, let emit { values.forEach(emit) } else { pending.append(contentsOf: values) }
   }
 
   func receive(_ url: URL) -> Bool {
@@ -48,16 +51,16 @@ final class ShareDelivery {
       }
     }
     guard !value.isEmpty else { return false }
-    if ready, let emit { emit(value) } else { pending = value }
+    deliver([value])
     return true
   }
 
-  func take() -> [String: String]? {
+  func take() -> [[String: String]] {
     if !ready { drain() }
     ready = true
-    let value = pending
-    pending = nil
-    return value
+    let values = pending
+    pending = []
+    return values
   }
 }
 
