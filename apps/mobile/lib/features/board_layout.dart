@@ -1,3 +1,4 @@
+import 'board_memory.dart';
 import 'dart:async';
 
 import 'package:deck_protocol/deck_protocol.dart';
@@ -48,7 +49,11 @@ class BoardLayout extends StatefulWidget {
     required this.columns,
     required this.archivedView,
     required this.mode,
+    this.initialStackId,
+    this.onColumnChanged,
   });
+  final int? initialStackId;
+  final ValueChanged<int>? onColumnChanged;
   final DeckSession session;
   final DeckBoard board;
   final List<BoardColumnView> columns;
@@ -229,8 +234,15 @@ class _BoardLayoutState extends State<BoardLayout> {
   Widget _mobileColumns() => DefaultTabController(
     key: ValueKey(widget.columns.map((c) => c.stack.id).join(',')),
     length: widget.columns.length,
+    initialIndex: widget.columns
+        .indexWhere((c) => c.stack.id == widget.initialStackId)
+        .clamp(0, widget.columns.length - 1),
     child: Builder(
-      builder: (context) => Column(
+      builder: (context) => ColumnTabMemory(
+        controller: DefaultTabController.of(context),
+        stackIds: [for (final c in widget.columns) c.stack.id],
+        onChanged: (id) => widget.onColumnChanged?.call(id),
+        child: Column(
         children: [
           TabBar(
             isScrollable: true,
@@ -255,6 +267,7 @@ class _BoardLayoutState extends State<BoardLayout> {
             ),
           ),
         ],
+        ),
       ),
     ),
   );

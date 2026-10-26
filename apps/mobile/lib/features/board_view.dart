@@ -22,9 +22,17 @@ import 'structure_editor.dart';
 import 'sync_notice.dart';
 
 class BoardScreen extends ConsumerStatefulWidget {
-  const BoardScreen({super.key, required this.session, required this.board});
+  const BoardScreen({
+    super.key,
+    required this.session,
+    required this.board,
+    this.initialStackId,
+  });
   final DeckSession session;
   final DeckBoard board;
+
+  /// Column to show first on narrow screens, restored from the last visit.
+  final int? initialStackId;
   @override
   ConsumerState<BoardScreen> createState() => _BoardScreenState();
 }
@@ -38,6 +46,7 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
   StreamSubscription<DeckBoard?>? _boardChanges;
   late Stream<List<DeckStack>> _stacks;
   List<DeckStack>? _input;
+  late int? _stackId = widget.initialStackId;
   List<BoardColumnView> _columns = [];
   bool? _filteredArchive;
   int _binding = 0;
@@ -72,6 +81,9 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
     _stacks = session.watchStacks(widget.board.id);
     final preferences = ref.read(appPreferencesProvider);
     unawaited(preferences.loadBoardViewMode(session.account.id, _board.id));
+    if (_board.id > 0) {
+      unawaited(preferences.rememberLastBoard(session.account.id, _board.id));
+    }
     unawaited(_restoreFilter(binding));
     _boardChanges = session.database
         .watchBoard(session.account.id, widget.board.id)
@@ -113,6 +125,7 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
         oldWidget.board.id != widget.board.id) {
       unawaited(_boardChanges?.cancel());
       _showArchived = false;
+      _stackId = widget.initialStackId;
       _selection.clear();
       _filter = const BoardCardFilter();
       _query.clear();
@@ -600,6 +613,21 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
                               columns: columns,
                               archivedView: _showArchived,
                               mode: mode,
+                              initialStackId: _stackId,
+                              onColumnChanged: (id) {
+                                _stackId = id;
+                                if (_board.id > 0) {
+                                  unawaited(
+                                    ref
+                                        .read(appPreferencesProvider)
+                                        .rememberLastBoard(
+                                          session.account.id,
+                                          _board.id,
+                                          stackId: id,
+                                        ),
+                                  );
+                                }
+                              },
                             ),
                     ),
                   ],

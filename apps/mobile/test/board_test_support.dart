@@ -142,14 +142,14 @@ Widget boardTestApp(
     ),
     home: home,
   );
-  return preferences == null
-      ? content
-      : ProviderScope(
-          overrides: [
-            appPreferencesProvider.overrideWith((ref) => preferences),
-          ],
-          child: content,
-        );
+  return ProviderScope(
+    overrides: [
+      appPreferencesProvider.overrideWith(
+        (ref) => preferences ?? AppPreferences(store: MemoryBoardPreferences()),
+      ),
+    ],
+    child: content,
+  );
 }
 
 Future<void> settleBoard(WidgetTester tester) async {

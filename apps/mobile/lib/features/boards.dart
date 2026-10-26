@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:deck_protocol/deck_protocol.dart';
 import 'package:deck_store/deck_store.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/app_preferences.dart';
 import '../data/session.dart';
 import '../core/telemetry_bootstrap.dart';
 import '../l10n/app_localizations.dart';
@@ -27,14 +29,14 @@ import 'state_message.dart';
 
 export 'board_view.dart' show BoardScreen;
 
-class BoardsScreen extends StatefulWidget {
+class BoardsScreen extends ConsumerStatefulWidget {
   const BoardsScreen({super.key, required this.session});
   final DeckSession session;
   @override
-  State<BoardsScreen> createState() => _BoardsScreenState();
+  ConsumerState<BoardsScreen> createState() => _BoardsScreenState();
 }
 
-class _BoardsScreenState extends State<BoardsScreen> {
+class _BoardsScreenState extends ConsumerState<BoardsScreen> {
   int _filter = 0;
   int _destination = 0;
   bool _calendar = false;
@@ -51,6 +53,32 @@ class _BoardsScreenState extends State<BoardsScreen> {
     _boards = widget.session.watchBoards();
     _writes = widget.session.database.watchWrites(widget.session.account.id);
     scheduleMicrotask(widget.session.refreshBoards);
+    unawaited(_reopenLastBoard(widget.session));
+  }
+
+  /// Reopens the board this account viewed last, once per account binding.
+  Future<void> _reopenLastBoard(DeckSession session) async {
+    final preferences = ref.read(appPreferencesProvider);
+    final last = await preferences.lastBoard(session.account.id);
+    if (last == null) return;
+    final boards = await session.database.boardView(session.account.id);
+    final board = boards.where((b) => b.id == last.boardId).firstOrNull;
+    if (!mounted || widget.session != session) return;
+    if (board == null || board.deletedAt != 0 || !board.permissions.read) {
+      if (board == null && boards.isNotEmpty) {
+        unawaited(preferences.forgetLastBoard(session.account.id));
+      }
+      return;
+    }
+    if (ModalRoute.of(context)?.isCurrent != true) return;
+    _open(
+      '/board',
+      BoardScreen(
+        session: session,
+        board: board,
+        initialStackId: last.stackId,
+      ),
+    );
   }
 
   @override

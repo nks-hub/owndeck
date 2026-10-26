@@ -11,6 +11,9 @@ enum BoardViewMode { columns, list }
 
 typedef CardDestination = ({int boardId, int stackId});
 
+/// The board last opened in an account and, when known, its visible column.
+typedef LastBoard = ({int boardId, int? stackId});
+
 abstract interface class AppPreferenceStore {
   Future<String?> read(String key);
   Future<void> write(String key, String value);
@@ -45,6 +48,8 @@ final class AppPreferences extends ChangeNotifier {
   final _boardModes = <String, BoardViewMode>{};
   final _boardFilters = <String, String>{};
   final _cardDestinations =<String, CardDestination>{};
+  final _lastBoards = <String, LastBoard>{};
+  final _lastBoardLoads = <String, Future<void>>{};
   final _destinationLoads = <String, Future<void>>{};
   final _boardLoads = <String, Future<void>>{};
   Future<void>? _loading;
@@ -102,6 +107,21 @@ final class AppPreferences extends ChangeNotifier {
         }
       } on FormatException {
         // A damaged preference must not select an unrelated destination.
+      }
+    } else if (key.startsWith('app.last-board.')) {
+      if (value == null) return;
+      try {
+        final decoded = jsonDecode(value);
+        if (decoded is Map && decoded['boardId'] is int && decoded['boardId'] > 0) {
+          _lastBoards[key] = (
+            boardId: decoded['boardId'] as int,
+            stackId: decoded['stackId'] is int && decoded['stackId'] > 0
+                ? decoded['stackId'] as int
+                : null,
+          );
+        }
+      } on FormatException {
+        // A damaged preference must not select an unrelated board.
       }
     } else if (key.startsWith('app.board-filter.')) {
       _boardFilters[key] = value ?? '';
@@ -204,6 +224,50 @@ final class AppPreferences extends ChangeNotifier {
     return _persist(key, _destinationValue(key));
   }
 
+  static String _lastBoardKey(String accountId) =>
+      'app.last-board.${base64Url.encode(utf8.encode(accountId))}';
+
+  Future<LastBoard?> lastBoard(String accountId) async {
+    final key = _lastBoardKey(accountId);
+    await _lastBoardLoads.putIfAbsent(key, () async {
+      _applyLoaded(key, await _read(key));
+    });
+    return _lastBoards[key];
+  }
+
+  /// Remembers the board an account viewed last; a null [stackId] keeps the
+  /// stored column when the board is unchanged.
+  Future<bool> rememberLastBoard(
+    String accountId,
+    int boardId, {
+    int? stackId,
+  }) {
+    if (boardId <= 0) throw ArgumentError('invalid_board');
+    final key = _lastBoardKey(accountId);
+    final previous = _lastBoards[key];
+    _lastBoards[key] = (
+      boardId: boardId,
+      stackId: stackId ?? (previous?.boardId == boardId ? previous?.stackId : null),
+    );
+    _changed.add(key);
+    return _persist(key, _lastBoardValue(key));
+  }
+
+  Future<bool> forgetLastBoard(String accountId) {
+    final key = _lastBoardKey(accountId);
+    _lastBoards.remove(key);
+    _lastBoardLoads[key] = Future.value();
+    _changed.add(key);
+    return _persist(key, '');
+  }
+
+  String _lastBoardValue(String key) {
+    final value = _lastBoards[key];
+    return value == null
+        ? ''
+        : jsonEncode({'boardId': value.boardId, 'stackId': value.stackId});
+  }
+
   String _destinationValue(String key) {
     final value = _cardDestinations[key]!;
     return jsonEncode({'boardId': value.boardId, 'stackId': value.stackId});
@@ -219,6 +283,7 @@ final class AppPreferences extends ChangeNotifier {
                 _ when key.startsWith('app.last-card.') => _destinationValue(
                   key,
                 ),
+                _ when key.startsWith('app.last-board.') => _lastBoardValue(key),
                 _ when key.startsWith('app.board-filter.') =>
                   _boardFilters[key]!,
                 _ => _boardModes[key]!.name,
