@@ -1231,4 +1231,54 @@ class AppLocalizationsCs extends AppLocalizations {
   @override
   String get removeAccountAccessWarning =>
       'Použité heslo pro aplikaci se zneplatní. Pokud stejné heslo používáte v dalších aplikacích či zařízeních, ztratí přístup také.';
+
+  @override
+  String get selectCard => 'Vybrat kartu';
+
+  @override
+  String get cancelSelection => 'Zrušit výběr';
+
+  @override
+  String selectedCardsCount(int count) {
+    return 'Vybráno: $count';
+  }
+
+  @override
+  String get moveSelectedCards => 'Přesunout vybrané karty';
+
+  @override
+  String get archiveSelectedCards => 'Archivovat vybrané karty';
+
+  @override
+  String bulkAllQueued(int count) {
+    return 'Změny uložené v telefonu: $count. Čekají na potvrzení serverem.';
+  }
+
+  @override
+  String get bulkResultTitle => 'Výsledek u každé karty';
+
+  @override
+  String bulkSummary(int queued, int failed, int blocked) {
+    return 'Uloženo: $queued, selhalo: $failed, bez oprávnění: $blocked.';
+  }
+
+  @override
+  String get bulkStatusQueued => 'Uloženo v telefonu, čeká na server';
+
+  @override
+  String bulkStatusFailed(String error) {
+    return 'Neuloženo: $error';
+  }
+
+  @override
+  String get bulkStatusBlocked => 'Chybí oprávnění, nic se nezměnilo';
+
+  @override
+  String bulkRetryFailed(int count) {
+    return 'Zkusit znovu neúspěšné ($count)';
+  }
+
+  @override
+  String get bulkSelectionKept =>
+      'Karty, které se neuložily, zůstávají vybrané.';
 }

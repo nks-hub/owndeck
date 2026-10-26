@@ -28,12 +28,16 @@ class CardMoveDialog extends StatefulWidget {
     required this.session,
     required this.source,
     required this.card,
+    this.moreCards = const [],
     required this.boards,
     required this.stacks,
   });
   final DeckSession session;
   final DeckBoard source;
   final DeckCard card;
+
+  /// Further cards moved together with [card] by a bulk move.
+  final List<DeckCard> moreCards;
   final List<DeckBoard> boards;
   final List<DeckStack> stacks;
   @override
@@ -213,7 +217,10 @@ class _CardMoveDialogState extends State<CardMoveDialog> {
       _board.raw['labels'],
     ).map((label) => label['title']).whereType<String>().toSet();
     return [
-      for (final label in cardObjects(widget.card.raw['labels']))
+      for (final label in [
+        widget.card,
+        ...widget.moreCards,
+      ].expand((card) => cardObjects(card.raw['labels'])))
         if (!targetNames.contains(label['title']))
           label['title'] is String && (label['title'] as String).isNotEmpty
               ? label['title'] as String
@@ -237,6 +244,7 @@ class _CardMoveDialogState extends State<CardMoveDialog> {
             .where(
               (card) =>
                   card.id != _movingCardId &&
+                  !widget.moreCards.any((other) => other.id == card.id) &&
                   !card.archived &&
                   (card.raw['deletedAt'] ?? 0) == 0,
             )
@@ -281,7 +289,13 @@ class _CardMoveDialogState extends State<CardMoveDialog> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      _sourceAllowed ? widget.card.title : text.permissionError,
+                      !_sourceAllowed
+                          ? text.permissionError
+                          : widget.moreCards.isEmpty
+                          ? widget.card.title
+                          : text.selectedCardsCount(
+                              widget.moreCards.length + 1,
+                            ),
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                     ),

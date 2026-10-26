@@ -5,6 +5,7 @@ import '../data/session.dart';
 import '../data/card_edits.dart';
 import '../core/errors.dart';
 import '../l10n/app_localizations.dart';
+import 'board_bulk.dart';
 import 'board_drag.dart';
 import 'board_moves.dart';
 import 'card_detail.dart';
@@ -70,7 +71,11 @@ class _BoardCardTileState extends State<BoardCardTile> {
       cardId: card.id,
     );
     final hasPending = card.raw['syncState'] != null;
+    final selection = editable ? BoardSelectionScope.maybeOf(context) : null;
+    final selecting = selection != null && selection.active;
+    final selected = selecting && selection.contains(card);
     final content = Card(
+      color: selected ? Theme.of(context).colorScheme.secondaryContainer : null,
       semanticContainer: false,
       clipBehavior: Clip.antiAlias,
       child: DecoratedBox(
@@ -91,19 +96,29 @@ class _BoardCardTileState extends State<BoardCardTile> {
               ? _setDone
               : null,
           changingCompletion: _savingDone,
-          onOpen: () => Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              settings: const RouteSettings(name: '/card'),
-              builder: (_) =>
-                  CardScreen(session: session, board: board, card: card),
-            ),
-          ),
-          trailing: editable || hasPending
+          onOpen: selecting
+              ? () => selection.toggle(card)
+              : () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    settings: const RouteSettings(name: '/card'),
+                    builder: (_) =>
+                        CardScreen(session: session, board: board, card: card),
+                  ),
+                ),
+          trailing: selecting
+              ? Checkbox(
+                  value: selected,
+                  semanticLabel: text.selectCard,
+                  onChanged: (_) => selection.toggle(card),
+                )
+              : editable || hasPending
               ? PopupMenuButton<String>(
                   tooltip: text.cardActions,
                   onSelected: (action) {
                     if (action == 'move') {
                       showBoardCardMove(context, session, board, card);
+                    } else if (action == 'select') {
+                      selection?.toggle(card);
                     } else {
                       Navigator.of(context).push(
                         MaterialPageRoute<void>(
@@ -116,6 +131,12 @@ class _BoardCardTileState extends State<BoardCardTile> {
                   itemBuilder: (_) => [
                     if (editable)
                       PopupMenuItem(value: 'move', child: Text(text.moveCard)),
+                    if (editable &&
+                        BoardSelectionScope.maybeOf(context) != null)
+                      PopupMenuItem(
+                        value: 'select',
+                        child: Text(text.selectCard),
+                      ),
                     if (hasPending)
                       PopupMenuItem(
                         value: 'pending',
@@ -127,7 +148,7 @@ class _BoardCardTileState extends State<BoardCardTile> {
         ),
       ),
     );
-    if (!editable) return content;
+    if (!editable || selecting) return content;
     return LongPressDraggable<BoardCardDrag>(
       key: ValueKey(('drag-card', card.id)),
       data: drag,

@@ -6,9 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/app_preferences.dart';
+import '../core/errors.dart';
 import '../data/session.dart';
 import '../l10n/app_localizations.dart';
+import 'board_bulk.dart';
 import 'board_layout.dart';
+import 'board_moves.dart';
 import 'board_presence.dart';
 import 'board_filters.dart';
 import 'quick_add_card.dart';
@@ -25,6 +28,7 @@ class BoardScreen extends ConsumerStatefulWidget {
 
 class _BoardScreenState extends ConsumerState<BoardScreen> {
   late DeckBoard _board;
+  final _selection = BoardSelection();
   bool _unavailable = false;
   bool _showArchived = false;
   StreamSubscription<DeckBoard?>? _boardChanges;
@@ -103,6 +107,7 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
         oldWidget.board.id != widget.board.id) {
       unawaited(_boardChanges?.cancel());
       _showArchived = false;
+      _selection.clear();
       _filter = const BoardCardFilter();
       _query.clear();
       _bind();
@@ -114,6 +119,7 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
     _binding++;
     _filterClock?.cancel();
     _query.dispose();
+    _selection.dispose();
     unawaited(_boardChanges?.cancel());
     super.dispose();
   }
@@ -150,11 +156,59 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
     if (value != null && mounted) _setFilter(value);
   }
 
+  Future<void> _bulkMove() async {
+    final text = AppLocalizations.of(context)!;
+    try {
+      _selection.refresh(_input?.expand((stack) => stack.cards) ?? const []);
+      if (!_selection.active) return;
+      final move = await chooseBoardCardMove(
+        context,
+        widget.session,
+        _board,
+        _selection.cards,
+      );
+      if (move == null || !mounted) return;
+      await runBulkAction(
+        context,
+        _selection,
+        (cards) => moveEach(widget.session, _board, cards, move),
+      );
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(errorMessage(error, text))));
+      }
+    }
+  }
+
+  Future<void> _bulkArchive() async {
+    _selection.refresh(_input?.expand((stack) => stack.cards) ?? const []);
+    if (!_selection.active) return;
+    await runBulkAction(
+      context,
+      _selection,
+      (cards) => archiveEach(widget.session, _board, cards),
+    );
+  }
+
   @override
-  Widget build(BuildContext context) => BoardPresence(
-    session: widget.session,
-    boardId: _board.id,
-    child: _content(context),
+  Widget build(BuildContext context) => BoardSelectionScope(
+    selection: _selection,
+    child: ListenableBuilder(
+      listenable: _selection,
+      builder: (context, _) => PopScope(
+        canPop: !_selection.active,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) _selection.clear();
+        },
+        child: BoardPresence(
+          session: widget.session,
+          boardId: _board.id,
+          child: _content(context),
+        ),
+      ),
+    ),
   );
 
   Widget _content(BuildContext context) {
@@ -172,41 +226,73 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
         _board.permissions.edit && !_board.archived && !_showArchived;
     return Scaffold(
       appBar: AppBar(
-        title: Text(_board.title, maxLines: 2, overflow: TextOverflow.ellipsis),
+        leading: _selection.active
+            ? IconButton(
+                tooltip: text.cancelSelection,
+                icon: const Icon(Icons.close),
+                onPressed: _selection.clear,
+              )
+            : null,
+        title: Text(
+          _selection.active
+              ? text.selectedCardsCount(_selection.length)
+              : _board.title,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
         actions: [
-          BoardActions(
-            session: session,
-            board: _board,
-            extraItems: [
-              PopupMenuItem(
-                value: 'toggle-archived-cards',
-                child: Text(
-                  _showArchived ? text.activeCards : text.archivedCards,
+          if (_selection.active) ...[
+            IconButton(
+              tooltip: text.moveSelectedCards,
+              icon: const Icon(Icons.drive_file_move_outlined),
+              onPressed: _bulkMove,
+            ),
+            IconButton(
+              tooltip: text.archiveSelectedCards,
+              icon: const Icon(Icons.archive_outlined),
+              onPressed: _bulkArchive,
+            ),
+          ] else
+            BoardActions(
+              session: session,
+              board: _board,
+              extraItems: [
+                PopupMenuItem(
+                  value: 'toggle-archived-cards',
+                  child: Text(
+                    _showArchived ? text.activeCards : text.archivedCards,
+                  ),
                 ),
-              ),
-              if (_board.permissions.manage && !_board.archived)
-                PopupMenuItem(value: 'add-column', child: Text(text.addStack)),
-              PopupMenuItem(value: 'refresh-board', child: Text(text.refresh)),
-              const PopupMenuDivider(),
-            ],
-            onExtraAction: (action) {
-              switch (action) {
-                case 'toggle-archived-cards':
-                  setState(() => _showArchived = !_showArchived);
-                case 'add-column':
-                  unawaited(
-                    editStructure(
-                      context,
-                      session,
-                      board: _board,
-                      column: true,
-                    ),
-                  );
-                case 'refresh-board':
-                  unawaited(_refresh());
-              }
-            },
-          ),
+                if (_board.permissions.manage && !_board.archived)
+                  PopupMenuItem(
+                    value: 'add-column',
+                    child: Text(text.addStack),
+                  ),
+                PopupMenuItem(
+                  value: 'refresh-board',
+                  child: Text(text.refresh),
+                ),
+                const PopupMenuDivider(),
+              ],
+              onExtraAction: (action) {
+                switch (action) {
+                  case 'toggle-archived-cards':
+                    _selection.clear();
+                    setState(() => _showArchived = !_showArchived);
+                  case 'add-column':
+                    unawaited(
+                      editStructure(
+                        context,
+                        session,
+                        board: _board,
+                        column: true,
+                      ),
+                    );
+                  case 'refresh-board':
+                    unawaited(_refresh());
+                }
+              },
+            ),
         ],
       ),
       bottomNavigationBar: canCreate

@@ -2335,6 +2335,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The app password used for this account will be revoked. Other apps or devices using the same password will lose access too.'**
   String get removeAccountAccessWarning;
+
+  /// No description provided for @selectCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Select card'**
+  String get selectCard;
+
+  /// No description provided for @cancelSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel selection'**
+  String get cancelSelection;
+
+  /// No description provided for @selectedCardsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected: {count}'**
+  String selectedCardsCount(int count);
+
+  /// No description provided for @moveSelectedCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Move selected cards'**
+  String get moveSelectedCards;
+
+  /// No description provided for @archiveSelectedCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive selected cards'**
+  String get archiveSelectedCards;
+
+  /// No description provided for @bulkAllQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} changes saved on this device. They await server confirmation.'**
+  String bulkAllQueued(int count);
+
+  /// No description provided for @bulkResultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Result per card'**
+  String get bulkResultTitle;
+
+  /// No description provided for @bulkSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved: {queued}, failed: {failed}, no permission: {blocked}.'**
+  String bulkSummary(int queued, int failed, int blocked);
+
+  /// No description provided for @bulkStatusQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved on this device, awaiting server'**
+  String get bulkStatusQueued;
+
+  /// No description provided for @bulkStatusFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Not saved: {error}'**
+  String bulkStatusFailed(String error);
+
+  /// No description provided for @bulkStatusBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'No permission, nothing changed'**
+  String get bulkStatusBlocked;
+
+  /// No description provided for @bulkRetryFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry failed ({count})'**
+  String bulkRetryFailed(int count);
+
+  /// No description provided for @bulkSelectionKept.
+  ///
+  /// In en, this message translates to:
+  /// **'Cards that were not saved stay selected.'**
+  String get bulkSelectionKept;
 }
 
 class _AppLocalizationsDelegate

@@ -156,6 +156,134 @@ Future<void> moveBoardCard(
   }
 }
 
+Future<DeckBoard> _editableSource(DeckSession session, DeckBoard board) async {
+  final database = session.database;
+  final accountId = session.account.id;
+  final sourceId =
+      await database.resolveId(accountId, board.id, 'createBoard') ?? board.id;
+  final source = (await database.boardView(accountId))
+      .where(
+        (value) =>
+            value.id == sourceId &&
+            value.permissions.read &&
+            value.permissions.edit &&
+            !value.archived &&
+            value.deletedAt == 0 &&
+            value.raw['externalId'] == null,
+      )
+      .firstOrNull;
+  if (source == null) throw StateError('permission_denied');
+  return source;
+}
+
+Future<DeckCard> _currentCard(
+  DeckSession session,
+  int boardId,
+  DeckCard card,
+) async {
+  final database = session.database;
+  final cardId =
+      await database.resolveId(session.account.id, card.id, 'createCard') ??
+      card.id;
+  final current = (await database.stackView(session.account.id, boardId))
+      .where((stack) => (stack.raw['deletedAt'] ?? 0) == 0)
+      .expand((stack) => stack.cards)
+      .where((value) => value.id == cardId && activeBoardCard(value))
+      .firstOrNull;
+  if (current == null) throw StateError('card_unavailable');
+  return current;
+}
+
+/// Lets the user pick a destination for [cards]; returns null when cancelled.
+Future<CardMoveDestination?> chooseBoardCardMove(
+  BuildContext context,
+  DeckSession session,
+  DeckBoard board,
+  List<DeckCard> cards,
+) async {
+  final database = session.database;
+  final account = session.account;
+  final source = await _editableSource(session, board);
+  final boards = (await database.boardView(account.id))
+      .where(
+        (value) =>
+            value.permissions.read &&
+            value.permissions.edit &&
+            !value.archived &&
+            value.deletedAt == 0 &&
+            value.raw['externalId'] == null,
+      )
+      .toList();
+  final stacks = (await database.stackView(
+    account.id,
+    source.id,
+  )).where((stack) => (stack.raw['deletedAt'] ?? 0) == 0).toList();
+  final current = <DeckCard>[
+    for (final card in cards) await _currentCard(session, source.id, card),
+  ];
+  if (!context.mounted) return null;
+  return showDialog<CardMoveDestination>(
+    context: context,
+    builder: (_) => CardMoveDialog(
+      session: session,
+      source: source,
+      card: current.first,
+      moreCards: current.skip(1).toList(),
+      boards: boards,
+      stacks: stacks,
+    ),
+  );
+}
+
+/// Queues one card into [move] through the same outbox path as a single move.
+Future<void> queueCardMoveTo(
+  DeckSession session,
+  DeckBoard board,
+  DeckCard card,
+  CardMoveDestination move, {
+  VoidCallback? onTransferred,
+}) async {
+  final database = session.database;
+  final account = session.account;
+  final source = await _editableSource(session, board);
+  final current = await _currentCard(session, source.id, card);
+  final targetId =
+      await database.resolveId(account.id, move.board.id, 'createBoard') ??
+      move.board.id;
+  if (source.id == targetId) {
+    await queueBoardCardMove(
+      session,
+      source,
+      BoardCardDrag(
+        accountId: account.id,
+        generation: account.generation,
+        boardId: source.id,
+        stackId: current.stackId,
+        cardId: current.id,
+      ),
+      BoardDropPosition(
+        move.stack.id,
+        anchorId: move.anchorCardId,
+        after: !move.before,
+        index: move.anchorCardId == null && move.before ? 0 : null,
+      ),
+    );
+  } else {
+    await database.queueCardTransfer(
+      account,
+      source.id,
+      current,
+      destinationBoardId: targetId,
+      destinationStackId: move.stack.id,
+      anchorCardId: move.anchorCardId,
+      before: move.before,
+    );
+    onTransferred?.call();
+    unawaited(session.refreshStacks(source.id));
+    unawaited(session.refreshStacks(targetId));
+  }
+}
+
 Future<void> showBoardCardMove(
   BuildContext context,
   DeckSession session,
@@ -164,85 +292,16 @@ Future<void> showBoardCardMove(
   VoidCallback? onTransferred,
 }) async {
   final text = AppLocalizations.of(context)!;
-  final database = session.database;
-  final account = session.account;
   try {
-    final sourceId =
-        await database.resolveId(account.id, board.id, 'createBoard') ??
-        board.id;
-    final boards = (await database.boardView(account.id))
-        .where(
-          (value) =>
-              value.permissions.read &&
-              value.permissions.edit &&
-              !value.archived &&
-              value.deletedAt == 0 &&
-              value.raw['externalId'] == null,
-        )
-        .toList();
-    final source = boards.where((value) => value.id == sourceId).firstOrNull;
-    if (source == null) throw StateError('permission_denied');
-    final stacks = (await database.stackView(
-      account.id,
-      sourceId,
-    )).where((stack) => (stack.raw['deletedAt'] ?? 0) == 0).toList();
-    final cardId =
-        await database.resolveId(account.id, card.id, 'createCard') ?? card.id;
-    final current = stacks
-        .expand((stack) => stack.cards)
-        .where((value) => value.id == cardId && activeBoardCard(value))
-        .firstOrNull;
-    if (current == null) throw StateError('card_unavailable');
-    if (!context.mounted) return;
-    final move = await showDialog<CardMoveDestination>(
-      context: context,
-      builder: (_) => CardMoveDialog(
-        session: session,
-        source: source,
-        card: current,
-        boards: boards,
-        stacks: stacks,
-      ),
-    );
+    final move = await chooseBoardCardMove(context, session, board, [card]);
     if (move == null || !context.mounted) return;
-    final resolvedSource =
-        await database.resolveId(account.id, sourceId, 'createBoard') ??
-        sourceId;
-    final targetId =
-        await database.resolveId(account.id, move.board.id, 'createBoard') ??
-        move.board.id;
-    if (resolvedSource == targetId) {
-      await queueBoardCardMove(
-        session,
-        source,
-        BoardCardDrag(
-          accountId: account.id,
-          generation: account.generation,
-          boardId: source.id,
-          stackId: current.stackId,
-          cardId: current.id,
-        ),
-        BoardDropPosition(
-          move.stack.id,
-          anchorId: move.anchorCardId,
-          after: !move.before,
-          index: move.anchorCardId == null && move.before ? 0 : null,
-        ),
-      );
-    } else {
-      await database.queueCardTransfer(
-        account,
-        sourceId,
-        current,
-        destinationBoardId: targetId,
-        destinationStackId: move.stack.id,
-        anchorCardId: move.anchorCardId,
-        before: move.before,
-      );
-      if (context.mounted) onTransferred?.call();
-      unawaited(session.refreshStacks(resolvedSource));
-      unawaited(session.refreshStacks(targetId));
-    }
+    await queueCardMoveTo(
+      session,
+      board,
+      card,
+      move,
+      onTransferred: onTransferred,
+    );
     if (context.mounted) {
       ScaffoldMessenger.of(
         context,

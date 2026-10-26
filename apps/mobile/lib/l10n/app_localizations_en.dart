@@ -1228,4 +1228,53 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get removeAccountAccessWarning =>
       'The app password used for this account will be revoked. Other apps or devices using the same password will lose access too.';
+
+  @override
+  String get selectCard => 'Select card';
+
+  @override
+  String get cancelSelection => 'Cancel selection';
+
+  @override
+  String selectedCardsCount(int count) {
+    return 'Selected: $count';
+  }
+
+  @override
+  String get moveSelectedCards => 'Move selected cards';
+
+  @override
+  String get archiveSelectedCards => 'Archive selected cards';
+
+  @override
+  String bulkAllQueued(int count) {
+    return '$count changes saved on this device. They await server confirmation.';
+  }
+
+  @override
+  String get bulkResultTitle => 'Result per card';
+
+  @override
+  String bulkSummary(int queued, int failed, int blocked) {
+    return 'Saved: $queued, failed: $failed, no permission: $blocked.';
+  }
+
+  @override
+  String get bulkStatusQueued => 'Saved on this device, awaiting server';
+
+  @override
+  String bulkStatusFailed(String error) {
+    return 'Not saved: $error';
+  }
+
+  @override
+  String get bulkStatusBlocked => 'No permission, nothing changed';
+
+  @override
+  String bulkRetryFailed(int count) {
+    return 'Retry failed ($count)';
+  }
+
+  @override
+  String get bulkSelectionKept => 'Cards that were not saved stay selected.';
 }
