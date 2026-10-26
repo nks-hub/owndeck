@@ -64,6 +64,8 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 
 ## Původní plán a průběžné důkazy
 
+- [x] P03 Repozitář `nks-hub/owndeck` je veřejný; anonymní přístup ověřen, README, licence a štítky zkontrolované, aplikace doplněna do profilu organizace.
+
 - [x] P01 Repozitář `nks-hub/owndeck` založen a ověřen přes GitHub API; vydávaná verze je `0.1.0+2`, tag `v0.1.0+2`, pravidla v `docs/versioning.md`.
 
 - [x] P00 Ověřit výchozí stav a vytvořit plán před zahájením vývoje.
