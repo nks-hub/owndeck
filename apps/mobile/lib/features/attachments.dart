@@ -16,6 +16,7 @@ import 'cloud_files.dart';
 import 'pending.dart';
 import 'sync_notice.dart';
 import 'sync_state.dart';
+import 'state_message.dart';
 
 class AttachmentsScreen extends StatefulWidget {
   const AttachmentsScreen({
@@ -51,7 +52,7 @@ class _AttachmentsScreenState extends State<AttachmentsScreen> {
         if (board.hasError || card.hasError) {
           return Scaffold(
             appBar: AppBar(title: Text(text.attachments)),
-            body: Center(child: Text(text.localReadError)),
+            body: Center(child: StateMessage(message: text.localReadError)),
           );
         }
         if (board.connectionState == ConnectionState.waiting ||
@@ -66,7 +67,7 @@ class _AttachmentsScreenState extends State<AttachmentsScreen> {
             !board.data!.permissions.read) {
           return Scaffold(
             appBar: AppBar(title: Text(text.attachments)),
-            body: Center(child: Text(text.cardUnavailable)),
+            body: Center(child: StateMessage(message: text.cardUnavailable)),
           );
         }
         return _AttachmentList(
@@ -288,7 +289,7 @@ class _AttachmentListState extends State<_AttachmentList> {
             stream: _writes,
             builder: (context, writes) {
               if (snapshot.hasError || writes.hasError) {
-                return Center(child: Text(text.localReadError));
+                return Center(child: StateMessage(message: text.localReadError));
               }
               if ((snapshot.connectionState == ConnectionState.waiting &&
                       !snapshot.hasData) ||

@@ -9,6 +9,7 @@ import '../data/session.dart';
 import '../core/errors.dart';
 import '../l10n/app_localizations.dart';
 import 'color_choices.dart';
+import 'state_message.dart';
 
 Future<void> editCard(
   BuildContext context,
@@ -375,12 +376,10 @@ class _CardEditorState extends State<CardEditor> {
             ? const Center(child: CircularProgressIndicator())
             : _readFailed
             ? Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(text.localReadError),
-                    TextButton(onPressed: _load, child: Text(text.retry)),
-                  ],
+                child: StateMessage(
+                  message: text.localReadError,
+                  actionLabel: text.retry,
+                  onAction: _load,
                 ),
               )
             : SafeArea(

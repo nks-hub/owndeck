@@ -20,6 +20,7 @@ import 'search.dart';
 import 'notifications.dart';
 import 'settings.dart';
 import 'quick_add_card.dart';
+import 'state_message.dart';
 
 export 'board_view.dart' show BoardScreen;
 
@@ -337,7 +338,7 @@ class _BoardsScreenState extends State<BoardsScreen> {
         stream: _boards,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return Center(child: Text(text.localReadError));
+            return Center(child: StateMessage(message: text.localReadError));
           }
           final savedBoards = snapshot.data ?? <DeckBoard>[];
           final filtering = _query.text.trim().isNotEmpty || _filter != 0;

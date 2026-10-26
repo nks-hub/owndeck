@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import '../data/session.dart';
 import '../core/errors.dart';
 import '../l10n/app_localizations.dart';
+import 'state_message.dart';
 
 Future<void> openCommentEditor(
   BuildContext context,
@@ -243,12 +244,10 @@ class _CommentEditorState extends State<CommentEditor> {
             ? const Center(child: CircularProgressIndicator())
             : _loadFailed
             ? Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(text.localReadError),
-                    TextButton(onPressed: _load, child: Text(text.retry)),
-                  ],
+                child: StateMessage(
+                  message: text.localReadError,
+                  actionLabel: text.retry,
+                  onAction: _load,
                 ),
               )
             : ListView(

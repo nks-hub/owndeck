@@ -105,7 +105,7 @@ class _CardLinksScreenState extends State<CardLinksScreen> {
             stream: _candidates,
             builder: (context, candidates) {
               if (board.hasError || card.hasError || candidates.hasError) {
-                return Center(child: Text(text.localReadError));
+                return Center(child: StateMessage(message: text.localReadError));
               }
               if (!board.hasData || !card.hasData || !candidates.hasData) {
                 final waiting = [

@@ -25,6 +25,7 @@ import 'comments.dart';
 import 'attachments.dart';
 import 'card_links.dart';
 import 'sharing.dart' show shareParticipantId;
+import 'state_message.dart';
 
 part 'card_actions_ui.dart';
 
@@ -211,7 +212,7 @@ class _CardScreenState extends State<_CardContent> {
           if (boardSnapshot.hasError || cardSnapshot.hasError) {
             return Scaffold(
               appBar: AppBar(),
-              body: Center(child: Text(text.localReadError)),
+              body: Center(child: StateMessage(message: text.localReadError)),
             );
           }
           final board = boardSnapshot.data;
@@ -219,7 +220,7 @@ class _CardScreenState extends State<_CardContent> {
           if (board == null || !board.permissions.read || card == null) {
             return Scaffold(
               appBar: AppBar(),
-              body: Center(child: Text(text.cardUnavailable)),
+              body: Center(child: StateMessage(message: text.cardUnavailable)),
             );
           }
           final canEdit =

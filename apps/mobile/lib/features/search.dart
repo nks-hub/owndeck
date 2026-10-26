@@ -494,7 +494,7 @@ class _CardSearchViewState extends State<CardSearchView> {
                     ? null
                     : IconButton(
                         tooltip: text.clearSearch,
-                        icon: const Icon(Icons.clear),
+                        icon: const Icon(Icons.close),
                         onPressed: () {
                           _query.clear();
                           _refresh();

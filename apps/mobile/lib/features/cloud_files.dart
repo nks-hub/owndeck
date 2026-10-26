@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../core/errors.dart';
 import '../data/session.dart';
 import '../l10n/app_localizations.dart';
+import 'state_message.dart';
 
 class CloudFilesScreen extends StatefulWidget {
   const CloudFilesScreen({super.key, required this.session});
@@ -56,24 +57,16 @@ class _CloudFilesScreenState extends State<CloudFilesScreen> {
                 }
                 if (snapshot.hasError) {
                   return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(errorMessage(snapshot.error!, text)),
-                          TextButton(
-                            onPressed: () => _open(_path),
-                            child: Text(text.retry),
-                          ),
-                        ],
-                      ),
+                    child: StateMessage(
+                      message: errorMessage(snapshot.error!, text),
+                      actionLabel: text.retry,
+                      onAction: () => _open(_path),
                     ),
                   );
                 }
                 final files = snapshot.data ?? [];
                 if (files.isEmpty) {
-                  return Center(child: Text(text.noCloudFiles));
+                  return Center(child: StateMessage(message: text.noCloudFiles));
                 }
                 return ListView.builder(
                   itemCount: files.length,

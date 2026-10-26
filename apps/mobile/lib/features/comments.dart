@@ -10,6 +10,7 @@ import 'comment_editor.dart';
 import 'pending.dart';
 import 'sync_notice.dart';
 import 'sync_state.dart';
+import 'state_message.dart';
 
 class CommentsScreen extends StatefulWidget {
   const CommentsScreen({
@@ -152,7 +153,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
           stream: _comments,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              return Center(child: Text(text.localReadError));
+              return Center(child: StateMessage(message: text.localReadError));
             }
             if (snapshot.connectionState == ConnectionState.waiting &&
                 !snapshot.hasData) {
