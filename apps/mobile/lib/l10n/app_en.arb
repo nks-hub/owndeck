@@ -510,5 +510,44 @@
   "noArchivedCards": "There are no archived cards in this column.",
   "noServerMatches": "The server found no cards for this search.",
   "noCardsYet": "There are no cards on your boards yet.",
-  "myTasksEmpty": "No open cards are assigned to you."
+  "myTasksEmpty": "No open cards are assigned to you.",
+  "taskListView": "List",
+  "taskCalendarView": "Calendar",
+  "calendarPreviousMonth": "Previous month",
+  "calendarNextMonth": "Next month",
+  "calendarIncomplete": "{count, plural, =1{Cards of 1 board are not saved on this device yet, so the calendar may be incomplete. Open the board to load them.} other{Cards of {count} boards are not saved on this device yet, so the calendar may be incomplete. Open the boards to load them.}}",
+  "@calendarIncomplete": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarNothingOnDay": "Nothing on this day.",
+  "calendarDayLabel": "{date}: {summary}",
+  "@calendarDayLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "summary": {
+        "type": "String"
+      }
+    }
+  },
+  "calendarDaySummary": "{start} start, {due} due, {done} completed",
+  "@calendarDaySummary": {
+    "placeholders": {
+      "start": {
+        "type": "int"
+      },
+      "due": {
+        "type": "int"
+      },
+      "done": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarDayEmpty": "no dates"
 }

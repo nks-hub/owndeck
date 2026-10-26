@@ -10,6 +10,7 @@ import '../l10n/app_localizations.dart';
 import 'accounts.dart';
 import 'board_view.dart';
 import 'board_presence.dart';
+import 'calendar.dart';
 import 'drafts.dart';
 import 'pending.dart';
 import 'sync_notice.dart';
@@ -32,6 +33,8 @@ class BoardsScreen extends StatefulWidget {
 class _BoardsScreenState extends State<BoardsScreen> {
   int _filter = 0;
   int _destination = 0;
+  bool _calendar = false;
+  bool _calendarVisited = false;
   final _visited = <int>{0};
   final _query = TextEditingController();
   late Stream<List<DeckBoard>> _boards;
@@ -56,6 +59,7 @@ class _BoardsScreenState extends State<BoardsScreen> {
       _query.clear();
       _filter = 0;
       _destination = 0;
+      _calendar = _calendarVisited = false;
       _visited
         ..clear()
         ..add(0);
@@ -257,15 +261,61 @@ class _BoardsScreenState extends State<BoardsScreen> {
             child: _boardList(context),
           ),
           if (_visited.contains(1))
-            CardSearchView(
-              key: ValueKey((
-                'my-tasks',
-                session.account.id,
-                session.account.generation,
-              )),
-              session: session,
-              fixedMineOnly: true,
-              active: _destination == 1,
+            Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  child: SegmentedButton<bool>(
+                    showSelectedIcon: false,
+                    segments: [
+                      ButtonSegment(
+                        value: false,
+                        icon: const Icon(Icons.view_list_outlined),
+                        label: Text(text.taskListView),
+                      ),
+                      ButtonSegment(
+                        value: true,
+                        icon: const Icon(Icons.calendar_month_outlined),
+                        label: Text(text.taskCalendarView),
+                      ),
+                    ],
+                    selected: {_calendar},
+                    onSelectionChanged: (value) => setState(() {
+                      _calendar = value.first;
+                      _calendarVisited |= _calendar;
+                    }),
+                  ),
+                ),
+                Expanded(
+                  child: IndexedStack(
+                    index: _calendar ? 1 : 0,
+                    children: [
+                      CardSearchView(
+                        key: ValueKey((
+                          'my-tasks',
+                          session.account.id,
+                          session.account.generation,
+                        )),
+                        session: session,
+                        fixedMineOnly: true,
+                        active: _destination == 1 && !_calendar,
+                      ),
+                      if (_calendarVisited)
+                        CalendarView(
+                          key: ValueKey((
+                            'calendar',
+                            session.account.id,
+                            session.account.generation,
+                          )),
+                          session: session,
+                          active: _destination == 1 && _calendar,
+                        )
+                      else
+                        const SizedBox.shrink(),
+                    ],
+                  ),
+                ),
+              ],
             )
           else
             const SizedBox.shrink(),

@@ -2527,6 +2527,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No open cards are assigned to you.'**
   String get myTasksEmpty;
+
+  /// No description provided for @taskListView.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get taskListView;
+
+  /// No description provided for @taskCalendarView.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar'**
+  String get taskCalendarView;
+
+  /// No description provided for @calendarPreviousMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous month'**
+  String get calendarPreviousMonth;
+
+  /// No description provided for @calendarNextMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Next month'**
+  String get calendarNextMonth;
+
+  /// No description provided for @calendarIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Cards of 1 board are not saved on this device yet, so the calendar may be incomplete. Open the board to load them.} other{Cards of {count} boards are not saved on this device yet, so the calendar may be incomplete. Open the boards to load them.}}'**
+  String calendarIncomplete(int count);
+
+  /// No description provided for @calendarNothingOnDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing on this day.'**
+  String get calendarNothingOnDay;
+
+  /// No description provided for @calendarDayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{date}: {summary}'**
+  String calendarDayLabel(String date, String summary);
+
+  /// No description provided for @calendarDaySummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} start, {due} due, {done} completed'**
+  String calendarDaySummary(int start, int due, int done);
+
+  /// No description provided for @calendarDayEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'no dates'**
+  String get calendarDayEmpty;
 }
 
 class _AppLocalizationsDelegate

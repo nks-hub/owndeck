@@ -42,10 +42,14 @@ final class CardSearchResult {
     required this.hits,
     required this.accountAvailable,
     required this.identityKnown,
+    this.uncachedBoards = 0,
   });
   final List<CardSearchHit> hits;
   final bool accountAvailable;
   final bool identityKnown;
+
+  /// Searched boards whose cards were never saved on this device.
+  final int uncachedBoards;
 }
 
 extension DeckCardSearch on DeckDatabase {
@@ -101,6 +105,7 @@ extension DeckCardSearch on DeckDatabase {
     final deletedBoards = <int>{};
     final deletedStacks = <int>{};
     final deletedCards = <int>{};
+    var uncachedBoards = 0;
     for (final write in await writesFor(accountId)) {
       if (write.kind == 'deleteBoard') {
         deletedBoards.add(
@@ -127,6 +132,9 @@ extension DeckCardSearch on DeckDatabase {
           deletedBoards.contains(board.id) ||
           board.archived && !options.includeArchived) {
         continue;
+      }
+      if (await checkpoint(accountId, 'board:${board.id}') == null) {
+        uncachedBoards++;
       }
       for (final stack in await stackView(accountId, board.id)) {
         if (deletedStacks.contains(stack.id) ||
@@ -186,6 +194,7 @@ extension DeckCardSearch on DeckDatabase {
       hits: List.unmodifiable(hits),
       accountAvailable: true,
       identityKnown: identityKnown,
+      uncachedBoards: uncachedBoards,
     );
   });
 }

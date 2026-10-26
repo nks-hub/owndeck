@@ -510,5 +510,44 @@
   "noArchivedCards": "V tomto sloupci nejsou žádné archivované karty.",
   "noServerMatches": "Server pro toto hledání nenašel žádné karty.",
   "noCardsYet": "Na vašich nástěnkách zatím nejsou žádné karty.",
-  "myTasksEmpty": "Nejsou vám přiřazeny žádné otevřené karty."
+  "myTasksEmpty": "Nejsou vám přiřazeny žádné otevřené karty.",
+  "taskListView": "Seznam",
+  "taskCalendarView": "Kalendář",
+  "calendarPreviousMonth": "Předchozí měsíc",
+  "calendarNextMonth": "Další měsíc",
+  "calendarIncomplete": "{count, plural, =1{Karty 1 nástěnky zatím nejsou uložené v zařízení, kalendář proto může být neúplný. Otevřete nástěnku, aby se načetly.} few{Karty {count} nástěnek zatím nejsou uložené v zařízení, kalendář proto může být neúplný. Otevřete nástěnky, aby se načetly.} other{Karty {count} nástěnek zatím nejsou uložené v zařízení, kalendář proto může být neúplný. Otevřete nástěnky, aby se načetly.}}",
+  "@calendarIncomplete": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarNothingOnDay": "V tento den nic není.",
+  "calendarDayLabel": "{date}: {summary}",
+  "@calendarDayLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "summary": {
+        "type": "String"
+      }
+    }
+  },
+  "calendarDaySummary": "začátky {start}, termíny {due}, dokončeno {done}",
+  "@calendarDaySummary": {
+    "placeholders": {
+      "start": {
+        "type": "int"
+      },
+      "due": {
+        "type": "int"
+      },
+      "done": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarDayEmpty": "bez dat"
 }

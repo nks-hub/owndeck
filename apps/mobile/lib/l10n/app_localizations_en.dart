@@ -1347,4 +1347,45 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get myTasksEmpty => 'No open cards are assigned to you.';
+
+  @override
+  String get taskListView => 'List';
+
+  @override
+  String get taskCalendarView => 'Calendar';
+
+  @override
+  String get calendarPreviousMonth => 'Previous month';
+
+  @override
+  String get calendarNextMonth => 'Next month';
+
+  @override
+  String calendarIncomplete(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Cards of $count boards are not saved on this device yet, so the calendar may be incomplete. Open the boards to load them.',
+      one:
+          'Cards of 1 board are not saved on this device yet, so the calendar may be incomplete. Open the board to load them.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get calendarNothingOnDay => 'Nothing on this day.';
+
+  @override
+  String calendarDayLabel(String date, String summary) {
+    return '$date: $summary';
+  }
+
+  @override
+  String calendarDaySummary(int start, int due, int done) {
+    return '$start start, $due due, $done completed';
+  }
+
+  @override
+  String get calendarDayEmpty => 'no dates';
 }

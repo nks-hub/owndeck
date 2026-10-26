@@ -1354,4 +1354,47 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get myTasksEmpty => 'Nejsou vám přiřazeny žádné otevřené karty.';
+
+  @override
+  String get taskListView => 'Seznam';
+
+  @override
+  String get taskCalendarView => 'Kalendář';
+
+  @override
+  String get calendarPreviousMonth => 'Předchozí měsíc';
+
+  @override
+  String get calendarNextMonth => 'Další měsíc';
+
+  @override
+  String calendarIncomplete(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Karty $count nástěnek zatím nejsou uložené v zařízení, kalendář proto může být neúplný. Otevřete nástěnky, aby se načetly.',
+      few:
+          'Karty $count nástěnek zatím nejsou uložené v zařízení, kalendář proto může být neúplný. Otevřete nástěnky, aby se načetly.',
+      one:
+          'Karty 1 nástěnky zatím nejsou uložené v zařízení, kalendář proto může být neúplný. Otevřete nástěnku, aby se načetly.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get calendarNothingOnDay => 'V tento den nic není.';
+
+  @override
+  String calendarDayLabel(String date, String summary) {
+    return '$date: $summary';
+  }
+
+  @override
+  String calendarDaySummary(int start, int due, int done) {
+    return 'začátky $start, termíny $due, dokončeno $done';
+  }
+
+  @override
+  String get calendarDayEmpty => 'bez dat';
 }
