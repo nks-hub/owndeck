@@ -121,6 +121,8 @@ void main() {
           expect(jsonDecode(writes.single.proposal), {
             'stackId': target.anchor.stackId,
             'order': expectedOrder,
+            'anchorCardId': target.anchor.cardId,
+            'before': point.dy < target.rect.center.dy,
           });
           expect(tester.takeException(), isNull);
         } finally {
@@ -233,7 +235,12 @@ void main() {
           tester,
           fixture.db.writesFor(fixture.account.id),
         );
-        expect(jsonDecode(writes.single.proposal), {'stackId': 11, 'order': 0});
+        expect(jsonDecode(writes.single.proposal), {
+          'stackId': 11,
+          'order': 0,
+          'anchorCardId': null,
+          'before': false,
+        });
       } finally {
         await tester.pumpWidget(const SizedBox());
         await boardModel(tester, fixture.close());

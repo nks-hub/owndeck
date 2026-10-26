@@ -92,6 +92,33 @@ void main() {
     await settleBoard(tester);
   }
 
+  testWidgets('end placement queues intent even when the cached card is last', (
+    tester,
+  ) async {
+    final fixture = (await tester.runAsync(
+      () => BoardFixture.create(counts: [1]),
+    ))!;
+    try {
+      await openMove(tester, fixture);
+      await tester.tap(find.widgetWithText(FilledButton, 'Move card'));
+      await settleBoard(tester);
+      final writes = await boardModel(
+        tester,
+        fixture.db.writesFor(fixture.account.id),
+      );
+      expect(writes.single.kind, 'moveCard');
+      expect(jsonDecode(writes.single.proposal), {
+        'stackId': 10,
+        'order': 0,
+        'anchorCardId': null,
+        'before': false,
+      });
+    } finally {
+      await tester.pumpWidget(const SizedBox());
+      await boardModel(tester, fixture.close());
+    }
+  });
+
   testWidgets('offline transfer keeps its identity and named destination', (
     tester,
   ) async {

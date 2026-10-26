@@ -39,7 +39,10 @@ bool activeBoardCard(DeckCard card) =>
     order = anchor + (position.after ? 1 : 0);
   }
   if (order < 0 || order > cards.length) throw StateError('invalid_position');
-  if (target.id == source.id &&
+  if (position.anchorId == null &&
+      position.index != null &&
+      position.index != 0 &&
+      target.id == source.id &&
       source.cards
               .where(activeBoardCard)
               .toList()
