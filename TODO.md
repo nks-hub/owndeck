@@ -28,27 +28,27 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] B21 Viditelný detail i přehled obnovují data po návratu a změně sítě bez nového čtení zakrytých tras (`1d058b4`, `ed41e58`); 25 testů prošlo, analyzer čistý.
 - [x] B22 Správa sloupce je v nabídce bez přetečení (`e7d07c2`); reprodukce selhala před opravou, po opravě osm testů prošlo včetně správce a 200% textu. Opravené APK ještě ověřit na S21.
 - [x] B23 Rychlé přidání respektuje spodní systémový okraj i klávesnici (`b5ba90b`); reprodukce selhala před opravou, po opravě osm testů prošlo. Opravený dotykový cíl ještě ověřit na S21.
-- [ ] B24 Pojmenované umístění karty se dosud mění na číselné pořadí už při zařazení; zachovat kotvu/začátek/konec a vyhodnotit je proti čerstvému úplnému sloupci před odesláním, i po offline změnách jiného klienta.
-- [ ] B25 Systémové Zpět na Androidu 15 ze skutečně otevřeného detailu opustí aplikaci místo návratu; reprodukováno na S21/kandidátu `96b8662` bez opakovaného spuštění aktivity. Ověřit příčinu a návrat i z komentářů/editorů.
+- [x] B24 Přesuny uchovávají začátek/konec/kotvu a vyhodnocují je proti čerstvému sloupci (`e68650c`, `cdb05f0`); zaniklá kotva blokuje zápis, starší číselná fronta zůstává čitelná. Devět position-intent testů prošlo.
+- [ ] B25 Systémové Zpět místo návratu opustí aplikaci; reprodukováno na S21/Android 15 v detailu i S9/Android 10 v účtech, kandidát `96b8662`, bez opakovaného spuštění aktivity. Ověřit příčinu a návrat i z komentářů/editorů.
 - [x] T04 E2E používá oddělené testovací identity a evidenci vlastních záznamů; úklid odstraňuje pouze testem vytvořená data a přístupy, ověřuje jejich stav a zachovává ostatní účty.
-- [ ] U01 Ukazovat na kartě termín/dokončení, štítky, lidi, známé počty a stav fronty; stejný souhrn v nástěnce, seznamu a hledání bez načítání příloh každé karty.
-- [ ] U02 Přidání karty zpřístupnit z hlavní navigace i hlavičky sloupce; poslední stále platný cíl uchovávat pro každý účet, rozepsaný text zachovat jako koncept.
-- [ ] U03 Zjednodušit hlavičky: čitelný název, rozpoznatelný účet, hlavní pracovní akce; správu, archiv a obnovu přesunout do vedlejší nabídky.
-- [ ] U04 Sjednotit přesun z detailu, nástěnky a seznamu; místo číselné pozice volby Začátek/Konec/Před/Za kartu a aktuální kotva i při filtrech.
-- [ ] U05 V detailu zobrazit celý název a kontext, metadata a popis před komentáři, přílohami a vazbami; zachovat také všechny štítky, začátek a barvu při převodu na společné komponenty.
-- [ ] U06 Moje úkoly začínají úkoly a rychlými termínovými volbami; podrobné filtry patří do panelu, nástěnka dostane vlastní kombinovatelné filtry a jasné zrušení.
+- [x] U01 Společný souhrn karty zobrazuje štítky, termíny, dokončení, známé počty a přiřazení (`5514cc7`, `3b82d66`, `ea667cd`); widget testy metadat prošly. E2E všech cest zůstává v R06.
+- [x] U02 Rychlé přidání z přehledu a sloupce uchová cíl podle účtu i koncept (`1a58735`, `b5ba90b`); osm cílených testů prošlo. Opravený bezpečný okraj ověřit v R06.
+- [x] U03 Hlavní hlavičky ukazují účet a pracovní akce, správa je v nabídce (`ba77d62`, `e7d07c2`, `3110575`); testy malé výšky a plných práv prošly.
+- [x] U04 Přesun používá společný dialog nástěnky/sloupce a volby začátek/konec/před/za (`cdb05f0`); backend zachovává kotvu do čerstvého čtení (`e68650c`). 26 navazujících UI/SQLite testů prošlo; skutečný server v R06.
+- [x] U05 Detail ukazuje úplný název, metadata, všechny štítky/lidi, začátek a popis před vedlejšími sekcemi (`ba77d62`, `ce0b476`); cílené testy prošly.
+- [x] U06 Moje úkoly mají rychlé termínové volby a panel podrobných filtrů, nástěnky kombinované filtry se zrušením (`5514cc7`); widget scénáře prošly.
 - [ ] U07 Sjednotit význam a zobrazení místního uložení, odesílání, potvrzení a problému; počet čekajících změn a srozumitelné konkrétní chyby místo obecné hlášky.
-- [ ] U08 Uložit/Odeslat držet dostupné i nad klávesnicí a dlouhým textem; zachovat autosave a pravdivě hlásit selhání uložení konceptu.
+- [x] U08 Uložit/Odeslat je v horním pruhu, autosave a chybové kategorie zachované (`ba77d62`, `36352f9`); scénáře dlouhého textu, klávesnice a chyb místního uložení prošly.
 - [ ] U09 Barvy vybírat vizuálně podle názvu; nikde v běžném UI nevypisovat hex, serverová ID, nulové indexy ani syrové chyby. Platí pro karty, nástěnky, štítky i konflikty; stávající vlastní barvu zachovat.
-- [ ] U10 Výběr více štítků/lidí nesmí po každém klepnutí zavírat panel; průběžně ukazovat vlastní změny, chyby a jedno Hotovo. Panel se nesmí zavřít tažením během ukládání a skrýt chybu transakce.
-- [ ] U11 Zachovat filtry, vyhledávání a posun hlavních záložek odděleně pro účet; skrytá záložka nesmí spouštět zbytečné online obnovy.
-- [ ] U12 Neodeslané změny rozlišit na čekání, konflikt, nejistý výsledek a koncepty; ukázat rozdíly a důsledky jednotlivých rozhodnutí.
-- [ ] U13 Koncepty doplnit o typ, kontext a čas; podezření na chybné pole náhledu komentáře vyvráceno, protože saveCommentDraft záměrně ukládá jeho text do description.
+- [x] U10 Vícečetný výběr drží panel až do Hotovo a předá změny atomicky; při ukládání nejde zahodit tažením (`ba77d62`, `43a16e2`); šest widget/SQLite scénářů prošlo.
+- [x] U11 Hlavní záložky uchovají stav podle účtu, skryté neobnovují data (`ba77d62`, `ed41e58`); testy navigace a viditelnosti prošly.
+- [x] U12 Čekající změny rozlišují čekání, konflikt, nejistý výsledek a koncepty (`3c56742`); přijatý přenos ukáže zbývající umístění bez opakování celé operace (`d9d7644`), šest nových regresí prošlo.
+- [x] U13 Koncepty mají typ, kontext a čas (`3c56742`); zaniklý přístup odstraní kontext. Náhled komentáře ponechán správně v description, testy prošly.
 - [ ] U14 Prázdné/chybové stavy rozlišují prázdný obsah, filtr, neúplnou cache a chybějící oprávnění; nabídnout jednu odpovídající následující akci.
 - [ ] U15 Sjednotit vzhled a význam komponent napříč všemi obrazovkami při zachování rodiny OwnTalk/Notes; ověřit světlý/tmavý režim, 200% text, klávesnici a čtečku.
-- [ ] U16 Zkontrolovat čitelnost náhledu Markdownu na kartách; formátovací značky ani příklady checkboxů v kódu nesmějí vytvářet zavádějící metadata.
-- [ ] U17 Konflikty nástěnek, štítků a sdílení musí zobrazit i rozdíly známých metadat a oprávnění; obecné textové srovnání tyto hodnoty skrývá. Bez raw JSON, ID a číselných bitů práv.
-- [ ] F01 Interaktivní checklist v podporovaném Markdownu: změna položky a přehled postupu zachovají ostatní popis a projdou stejnou frontou/konflikty jako editace karty.
+- [x] U16 Náhled Markdownu je čitelný a omezený délkou, checkboxy v kódu nezvyšují průběh (`e91c96f`); cílené parser/widget testy prošly.
+- [x] U17 Konflikty nástěnek, štítků a sdílení ukazují známá metadata a práva bez JSON/ID/bitů (`8ef69fc`); testy porovnání prošly.
+- [x] F01 Checklist mění položku přes stejnou trvalou frontu a zachová ostatní popis (`e485272`, `6465b8e`); devět parser/widget testů a zapnutí/vypnutí ve skutečném UI kandidátu `96b8662` prošly. Finální společná revize v R06.
 - [ ] F06 Doplnit přesun karty mezi nástěnkami stejného účtu po vzoru Trella a oficiálního Decku; plná zachovaná aktualizace kvůli migraci štítků, navazující trvalé řazení, jasná pravidla dokončení a ověření práv/příloh/komentářů na 1.18.5 i 1.19.1.
 
 ## Navazující funkce z konkurenční analýzy
