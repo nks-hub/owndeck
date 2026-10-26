@@ -58,6 +58,7 @@ void main() {
         final writes = await db.writesFor(account.id);
         if (version >= 2) {
           expect(writes.single.id, 'queued');
+          expect(writes.single.sentAt, isNull);
           expect(jsonDecode(writes.single.proposal), {
             'description': 'Pending change',
           });
@@ -84,7 +85,7 @@ void main() {
           (await db.customSelect('PRAGMA user_version').getSingle()).read<int>(
             'user_version',
           ),
-          9,
+          10,
         );
       },
     );
@@ -137,7 +138,7 @@ void main() {
       (await fixed.customSelect('PRAGMA user_version').getSingle()).read<int>(
         'user_version',
       ),
-      9,
+      10,
     );
   });
 }

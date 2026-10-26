@@ -2249,6 +2249,15 @@ class $PendingWritesTable extends PendingWrites
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _sentAtMeta = const VerificationMeta('sentAt');
+  @override
+  late final GeneratedColumn<DateTime> sentAt = GeneratedColumn<DateTime>(
+    'sent_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     sequence,
@@ -2263,6 +2272,7 @@ class $PendingWritesTable extends PendingWrites
     remote,
     state,
     error,
+    sentAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2357,6 +2367,12 @@ class $PendingWritesTable extends PendingWrites
         error.isAcceptableOrUnknown(data['error']!, _errorMeta),
       );
     }
+    if (data.containsKey('sent_at')) {
+      context.handle(
+        _sentAtMeta,
+        sentAt.isAcceptableOrUnknown(data['sent_at']!, _sentAtMeta),
+      );
+    }
     return context;
   }
 
@@ -2414,6 +2430,10 @@ class $PendingWritesTable extends PendingWrites
         DriftSqlType.string,
         data['${effectivePrefix}error'],
       ),
+      sentAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}sent_at'],
+      ),
     );
   }
 
@@ -2436,6 +2456,7 @@ class PendingWrite extends DataClass implements Insertable<PendingWrite> {
   final String? remote;
   final String state;
   final String? error;
+  final DateTime? sentAt;
   const PendingWrite({
     required this.sequence,
     required this.id,
@@ -2449,6 +2470,7 @@ class PendingWrite extends DataClass implements Insertable<PendingWrite> {
     this.remote,
     required this.state,
     this.error,
+    this.sentAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2473,6 +2495,9 @@ class PendingWrite extends DataClass implements Insertable<PendingWrite> {
     if (!nullToAbsent || error != null) {
       map['error'] = Variable<String>(error);
     }
+    if (!nullToAbsent || sentAt != null) {
+      map['sent_at'] = Variable<DateTime>(sentAt);
+    }
     return map;
   }
 
@@ -2496,6 +2521,9 @@ class PendingWrite extends DataClass implements Insertable<PendingWrite> {
       error: error == null && nullToAbsent
           ? const Value.absent()
           : Value(error),
+      sentAt: sentAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sentAt),
     );
   }
 
@@ -2517,6 +2545,7 @@ class PendingWrite extends DataClass implements Insertable<PendingWrite> {
       remote: serializer.fromJson<String?>(json['remote']),
       state: serializer.fromJson<String>(json['state']),
       error: serializer.fromJson<String?>(json['error']),
+      sentAt: serializer.fromJson<DateTime?>(json['sentAt']),
     );
   }
   @override
@@ -2535,6 +2564,7 @@ class PendingWrite extends DataClass implements Insertable<PendingWrite> {
       'remote': serializer.toJson<String?>(remote),
       'state': serializer.toJson<String>(state),
       'error': serializer.toJson<String?>(error),
+      'sentAt': serializer.toJson<DateTime?>(sentAt),
     };
   }
 
@@ -2551,6 +2581,7 @@ class PendingWrite extends DataClass implements Insertable<PendingWrite> {
     Value<String?> remote = const Value.absent(),
     String? state,
     Value<String?> error = const Value.absent(),
+    Value<DateTime?> sentAt = const Value.absent(),
   }) => PendingWrite(
     sequence: sequence ?? this.sequence,
     id: id ?? this.id,
@@ -2564,6 +2595,7 @@ class PendingWrite extends DataClass implements Insertable<PendingWrite> {
     remote: remote.present ? remote.value : this.remote,
     state: state ?? this.state,
     error: error.present ? error.value : this.error,
+    sentAt: sentAt.present ? sentAt.value : this.sentAt,
   );
   PendingWrite copyWithCompanion(PendingWritesCompanion data) {
     return PendingWrite(
@@ -2579,6 +2611,7 @@ class PendingWrite extends DataClass implements Insertable<PendingWrite> {
       remote: data.remote.present ? data.remote.value : this.remote,
       state: data.state.present ? data.state.value : this.state,
       error: data.error.present ? data.error.value : this.error,
+      sentAt: data.sentAt.present ? data.sentAt.value : this.sentAt,
     );
   }
 
@@ -2596,7 +2629,8 @@ class PendingWrite extends DataClass implements Insertable<PendingWrite> {
           ..write('base: $base, ')
           ..write('remote: $remote, ')
           ..write('state: $state, ')
-          ..write('error: $error')
+          ..write('error: $error, ')
+          ..write('sentAt: $sentAt')
           ..write(')'))
         .toString();
   }
@@ -2615,6 +2649,7 @@ class PendingWrite extends DataClass implements Insertable<PendingWrite> {
     remote,
     state,
     error,
+    sentAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -2631,7 +2666,8 @@ class PendingWrite extends DataClass implements Insertable<PendingWrite> {
           other.base == this.base &&
           other.remote == this.remote &&
           other.state == this.state &&
-          other.error == this.error);
+          other.error == this.error &&
+          other.sentAt == this.sentAt);
 }
 
 class PendingWritesCompanion extends UpdateCompanion<PendingWrite> {
@@ -2647,6 +2683,7 @@ class PendingWritesCompanion extends UpdateCompanion<PendingWrite> {
   final Value<String?> remote;
   final Value<String> state;
   final Value<String?> error;
+  final Value<DateTime?> sentAt;
   const PendingWritesCompanion({
     this.sequence = const Value.absent(),
     this.id = const Value.absent(),
@@ -2660,6 +2697,7 @@ class PendingWritesCompanion extends UpdateCompanion<PendingWrite> {
     this.remote = const Value.absent(),
     this.state = const Value.absent(),
     this.error = const Value.absent(),
+    this.sentAt = const Value.absent(),
   });
   PendingWritesCompanion.insert({
     this.sequence = const Value.absent(),
@@ -2674,6 +2712,7 @@ class PendingWritesCompanion extends UpdateCompanion<PendingWrite> {
     this.remote = const Value.absent(),
     this.state = const Value.absent(),
     this.error = const Value.absent(),
+    this.sentAt = const Value.absent(),
   }) : id = Value(id),
        accountId = Value(accountId),
        kind = Value(kind),
@@ -2693,6 +2732,7 @@ class PendingWritesCompanion extends UpdateCompanion<PendingWrite> {
     Expression<String>? remote,
     Expression<String>? state,
     Expression<String>? error,
+    Expression<DateTime>? sentAt,
   }) {
     return RawValuesInsertable({
       if (sequence != null) 'sequence': sequence,
@@ -2707,6 +2747,7 @@ class PendingWritesCompanion extends UpdateCompanion<PendingWrite> {
       if (remote != null) 'remote': remote,
       if (state != null) 'state': state,
       if (error != null) 'error': error,
+      if (sentAt != null) 'sent_at': sentAt,
     });
   }
 
@@ -2723,6 +2764,7 @@ class PendingWritesCompanion extends UpdateCompanion<PendingWrite> {
     Value<String?>? remote,
     Value<String>? state,
     Value<String?>? error,
+    Value<DateTime?>? sentAt,
   }) {
     return PendingWritesCompanion(
       sequence: sequence ?? this.sequence,
@@ -2737,6 +2779,7 @@ class PendingWritesCompanion extends UpdateCompanion<PendingWrite> {
       remote: remote ?? this.remote,
       state: state ?? this.state,
       error: error ?? this.error,
+      sentAt: sentAt ?? this.sentAt,
     );
   }
 
@@ -2779,6 +2822,9 @@ class PendingWritesCompanion extends UpdateCompanion<PendingWrite> {
     if (error.present) {
       map['error'] = Variable<String>(error.value);
     }
+    if (sentAt.present) {
+      map['sent_at'] = Variable<DateTime>(sentAt.value);
+    }
     return map;
   }
 
@@ -2796,7 +2842,8 @@ class PendingWritesCompanion extends UpdateCompanion<PendingWrite> {
           ..write('base: $base, ')
           ..write('remote: $remote, ')
           ..write('state: $state, ')
-          ..write('error: $error')
+          ..write('error: $error, ')
+          ..write('sentAt: $sentAt')
           ..write(')'))
         .toString();
   }
@@ -6922,6 +6969,7 @@ typedef $$PendingWritesTableCreateCompanionBuilder =
       Value<String?> remote,
       Value<String> state,
       Value<String?> error,
+      Value<DateTime?> sentAt,
     });
 typedef $$PendingWritesTableUpdateCompanionBuilder =
     PendingWritesCompanion Function({
@@ -6937,6 +6985,7 @@ typedef $$PendingWritesTableUpdateCompanionBuilder =
       Value<String?> remote,
       Value<String> state,
       Value<String?> error,
+      Value<DateTime?> sentAt,
     });
 
 final class $$PendingWritesTableReferences
@@ -7030,6 +7079,11 @@ class $$PendingWritesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<DateTime> get sentAt => $composableBuilder(
+    column: $table.sentAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$StoredAccountsTableFilterComposer get accountId {
     final $$StoredAccountsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -7118,6 +7172,11 @@ class $$PendingWritesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get sentAt => $composableBuilder(
+    column: $table.sentAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$StoredAccountsTableOrderingComposer get accountId {
     final $$StoredAccountsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -7184,6 +7243,9 @@ class $$PendingWritesTableAnnotationComposer
   GeneratedColumn<String> get error =>
       $composableBuilder(column: $table.error, builder: (column) => column);
 
+  GeneratedColumn<DateTime> get sentAt =>
+      $composableBuilder(column: $table.sentAt, builder: (column) => column);
+
   $$StoredAccountsTableAnnotationComposer get accountId {
     final $$StoredAccountsTableAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -7248,6 +7310,7 @@ class $$PendingWritesTableTableManager
                 Value<String?> remote = const Value.absent(),
                 Value<String> state = const Value.absent(),
                 Value<String?> error = const Value.absent(),
+                Value<DateTime?> sentAt = const Value.absent(),
               }) => PendingWritesCompanion(
                 sequence: sequence,
                 id: id,
@@ -7261,6 +7324,7 @@ class $$PendingWritesTableTableManager
                 remote: remote,
                 state: state,
                 error: error,
+                sentAt: sentAt,
               ),
           createCompanionCallback:
               ({
@@ -7276,6 +7340,7 @@ class $$PendingWritesTableTableManager
                 Value<String?> remote = const Value.absent(),
                 Value<String> state = const Value.absent(),
                 Value<String?> error = const Value.absent(),
+                Value<DateTime?> sentAt = const Value.absent(),
               }) => PendingWritesCompanion.insert(
                 sequence: sequence,
                 id: id,
@@ -7289,6 +7354,7 @@ class $$PendingWritesTableTableManager
                 remote: remote,
                 state: state,
                 error: error,
+                sentAt: sentAt,
               ),
           withReferenceMapper: (p0) => p0
               .map(

@@ -211,6 +211,19 @@ class AppLocalizationsCs extends AppLocalizations {
       'Opakování může vytvořit duplicitní položku. Opravdu odeslat znovu?';
 
   @override
+  String get checkServer => 'Zkontrolovat server';
+
+  @override
+  String get serverCheckFound => 'Server tuto změnu už obsahuje. Dokončuji ji.';
+
+  @override
+  String get serverCheckMissing =>
+      'Server tuto změnu neobsahuje. Můžete ji odeslat znovu.';
+
+  @override
+  String get confirmResend => 'Odeslat tuto změnu znovu?';
+
+  @override
   String get confirmDiscard =>
       'Zahodit tuto místní změnu? Případný již provedený zápis na serveru to nevrátí.';
 

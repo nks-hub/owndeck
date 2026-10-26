@@ -125,7 +125,35 @@ class _PendingScreenState extends State<PendingScreen> {
           : text.confirmUseLocalChanges;
     }
     if (discard) return text.confirmDiscard;
-    return write.state == 'uncertain' ? text.confirmRetry : text.blocked;
+    if (write.state != 'uncertain') return text.blocked;
+    return duplicateRiskKinds.contains(write.kind)
+        ? text.confirmRetry
+        : text.confirmResend;
+  }
+
+  Future<void> _checkServer(PendingWrite write) async {
+    if (!_deciding.add(write.id)) return;
+    setState(() {});
+    final text = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final found = await widget.session.sync.checkServer(write.id);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            found ? text.serverCheckFound : text.serverCheckMissing,
+          ),
+        ),
+      );
+      if (found) unawaited(widget.session.refreshStacks(write.boardId));
+    } catch (error) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(errorMessage(error, text))),
+      );
+    } finally {
+      _deciding.remove(write.id);
+      if (mounted) setState(() {});
+    }
   }
 
   Future<void> _refreshTransfer(PendingWrite write, bool discard) async {
@@ -704,13 +732,20 @@ class _PendingScreenState extends State<PendingScreen> {
                 ),
               ],
             ],
-            if (write.state != 'sending')
+            if (write.state != 'sending' &&
+                (write.state != 'applied' || write.kind == 'cardTransfer'))
               Padding(
                 padding: const EdgeInsets.only(top: 12),
                 child: Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: [
+                    if (write.state == 'uncertain' &&
+                        serverCheckKinds.contains(write.kind))
+                      FilledButton(
+                        onPressed: busy ? null : () => _checkServer(write),
+                        child: Text(text.checkServer),
+                      ),
                     if (write.state != 'queued' && write.state != 'applied')
                       FilledButton.tonal(
                         onPressed: busy ? null : () => _decide(write, false),

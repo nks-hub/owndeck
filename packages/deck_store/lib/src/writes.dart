@@ -238,9 +238,10 @@ extension DeckWrites on DeckDatabase {
                                 : w.base.equals(expected.base!))),
             ))
             .write(
-              const PendingWritesCompanion(
-                state: Value('sending'),
-                error: Value(null),
+              PendingWritesCompanion(
+                state: const Value('sending'),
+                error: const Value(null),
+                sentAt: Value(DateTime.now().toUtc()),
               ),
             ) ==
         1;
@@ -269,6 +270,44 @@ extension DeckWrites on DeckDatabase {
           ),
         );
   });
+
+  /// Reopens an uncertain row once a server check has found its effect.
+  Future<bool> resumeUncertain(
+    StoredAccount account,
+    String owner,
+    String id,
+  ) => transaction(() async {
+    if (!await ownsLease(account, owner)) return false;
+    return await (update(pendingWrites)..where(
+              (w) =>
+                  w.accountId.equals(account.id) &
+                  w.id.equals(id) &
+                  w.state.equals('uncertain'),
+            ))
+            .write(
+              const PendingWritesCompanion(
+                state: Value('sending'),
+                error: Value(null),
+              ),
+            ) ==
+        1;
+  });
+
+  /// Returns a claimed row to the queue when no request was sent. It needs no
+  /// lease, so a lost lease cannot strand the row in `sending`.
+  Future<void> requeueUnsent(String accountId, String id) =>
+      (update(pendingWrites)..where(
+            (w) =>
+                w.accountId.equals(accountId) &
+                w.id.equals(id) &
+                w.state.equals('sending'),
+          ))
+          .write(
+            const PendingWritesCompanion(
+              state: Value('queued'),
+              error: Value('stale_response'),
+            ),
+          );
 
   Future<bool> confirmCard(
     StoredAccount account,
@@ -339,7 +378,10 @@ extension DeckWrites on DeckDatabase {
         write.state == 'confirmed') {
       throw StateError('write_unavailable');
     }
-    if (write.state == 'applied' && !discard) {
+    // An accepted transfer may be kept as the server has it; for any other
+    // write, discarding would lose the local-to-remote ID mapping.
+    if (write.state == 'applied' &&
+        (!discard || write.kind != 'cardTransfer')) {
       throw StateError('already_applied');
     }
     await (update(pendingWrites)..where((w) => w.id.equals(id))).write(

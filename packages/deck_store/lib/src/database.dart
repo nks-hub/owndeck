@@ -115,6 +115,7 @@ class PendingWrites extends Table {
   TextColumn get remote => text().nullable()();
   TextColumn get state => text().withDefault(const Constant('queued'))();
   TextColumn get error => text().nullable()();
+  DateTimeColumn get sentAt => dateTime().nullable()();
 }
 
 class SyncLeases extends Table {
@@ -181,12 +182,15 @@ class DeckDatabase extends _$DeckDatabase {
   DeckDatabase(super.executor);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) => m.createAll(),
     onUpgrade: (m, from, to) => transaction(() async {
+      if (from >= 2 && from < 10) {
+        await m.addColumn(pendingWrites, pendingWrites.sentAt);
+      }
       if (from < 9) {
         await m.addColumn(storedAccounts, storedAccounts.syncNotBefore);
       }
@@ -216,7 +220,11 @@ class DeckDatabase extends _$DeckDatabase {
         );
       }
     }),
-    beforeOpen: (_) => customStatement('PRAGMA foreign_keys = ON'),
+    beforeOpen: (_) async {
+      await customStatement('PRAGMA foreign_keys = ON');
+      // One process owns the database, so any lease left here is from a dead run.
+      await customStatement('DELETE FROM sync_leases');
+    },
   );
 
   Future<List<StoredAccount>> accounts() => select(storedAccounts).get();

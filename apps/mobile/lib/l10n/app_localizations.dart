@@ -476,6 +476,30 @@ abstract class AppLocalizations {
   /// **'Retrying may create a duplicate item. Send again?'**
   String get confirmRetry;
 
+  /// No description provided for @checkServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Check server'**
+  String get checkServer;
+
+  /// No description provided for @serverCheckFound.
+  ///
+  /// In en, this message translates to:
+  /// **'The server already has this change. Finishing it.'**
+  String get serverCheckFound;
+
+  /// No description provided for @serverCheckMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'The server does not have this change. You can send it again.'**
+  String get serverCheckMissing;
+
+  /// No description provided for @confirmResend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send this change again?'**
+  String get confirmResend;
+
   /// No description provided for @confirmDiscard.
   ///
   /// In en, this message translates to:

@@ -18,6 +18,7 @@ part 'card_context_reads.dart';
 part 'stack_reorder_sync.dart';
 part 'card_transfer_sync.dart';
 part 'card_move_sync.dart';
+part 'server_check_sync.dart';
 
 bool _shouldRetry(DeckException error, bool mutationStarted) =>
     error.status == 401 ||

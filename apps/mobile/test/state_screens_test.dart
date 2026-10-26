@@ -582,9 +582,13 @@ void main() {
     'uncertain retry keeps the duplicate warning and cancel leaves the operation intact',
     (tester) async {
       await _using(tester, (fixture) async {
-        final write = (await tester.runAsync(
-          () => fixture.write('uncertain'),
-        ))!;
+        final write = (await tester.runAsync(() async {
+          await fixture.write('uncertain');
+          await (fixture.database.update(
+            fixture.database.pendingWrites,
+          )).write(const PendingWritesCompanion(kind: Value('createCard')));
+          return (await fixture.database.writesFor(fixture.account.id)).single;
+        }))!;
         await tester.pumpWidget(_app(PendingScreen(session: fixture.session)));
         await _until(
           tester,
@@ -607,6 +611,50 @@ void main() {
       });
     },
   );
+
+  testWidgets(
+    'uncertain edit retries without the duplicate warning and has no server check (B60)',
+    (tester) async {
+      await _using(tester, (fixture) async {
+        await tester.runAsync(() => fixture.write('uncertain'));
+        await tester.pumpWidget(_app(PendingScreen(session: fixture.session)));
+        await _until(
+          tester,
+          () => find.text('Send again').evaluate().isNotEmpty,
+        );
+        expect(find.text('Check server'), findsNothing);
+        await tester.tap(find.widgetWithText(FilledButton, 'Send again'));
+        await tester.pumpAndSettle();
+        expect(find.text('Send this change again?'), findsOneWidget);
+        expect(find.textContaining('duplicate'), findsNothing);
+      });
+    },
+  );
+
+  testWidgets('uncertain creation offers a server check (B60)', (tester) async {
+    await _using(tester, (fixture) async {
+      await tester.runAsync(() async {
+        await fixture.write('uncertain');
+        await (fixture.database.update(
+          fixture.database.pendingWrites,
+        )).write(const PendingWritesCompanion(kind: Value('createCard')));
+      });
+      await tester.pumpWidget(_app(PendingScreen(session: fixture.session)));
+      await _until(
+        tester,
+        () => find.text('Check server').evaluate().isNotEmpty,
+      );
+    });
+  });
+
+  testWidgets('an accepted change offers no discard (B59)', (tester) async {
+    await _using(tester, (fixture) async {
+      await tester.runAsync(() => fixture.write('applied'));
+      await tester.pumpWidget(_app(PendingScreen(session: fixture.session)));
+      await _until(tester, () => find.text('My task').evaluate().isNotEmpty);
+      expect(find.text('Discard local change'), findsNothing);
+    });
+  });
 
   testWidgets(
     'comment drafts show their real text and location then hide revoked context',

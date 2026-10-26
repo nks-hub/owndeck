@@ -210,6 +210,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'Retrying may create a duplicate item. Send again?';
 
   @override
+  String get checkServer => 'Check server';
+
+  @override
+  String get serverCheckFound =>
+      'The server already has this change. Finishing it.';
+
+  @override
+  String get serverCheckMissing =>
+      'The server does not have this change. You can send it again.';
+
+  @override
+  String get confirmResend => 'Send this change again?';
+
+  @override
   String get confirmDiscard =>
       'Discard this local change? This will not undo any write already applied on the server.';
 
