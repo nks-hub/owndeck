@@ -1209,8 +1209,12 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get attachmentMissingError =>
-      'Soubor k odeslání už není v zařízení dostupný. Připojte ho znovu.';
+      'Příloha už není dostupná. Obnovte seznam příloh.';
 
   @override
   String get unsupportedOperation => 'Tuto akci zde nelze provést.';
+
+  @override
+  String get attachmentStorageError =>
+      'Přílohu nelze v tomto zařízení přečíst nebo uložit. Zkuste akci znovu.';
 }

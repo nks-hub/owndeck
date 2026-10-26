@@ -2297,7 +2297,7 @@ abstract class AppLocalizations {
   /// No description provided for @attachmentMissingError.
   ///
   /// In en, this message translates to:
-  /// **'The file to upload is no longer on this device. Attach it again.'**
+  /// **'This attachment is no longer available. Refresh the attachments.'**
   String get attachmentMissingError;
 
   /// No description provided for @unsupportedOperation.
@@ -2305,6 +2305,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This action is not available here.'**
   String get unsupportedOperation;
+
+  /// No description provided for @attachmentStorageError.
+  ///
+  /// In en, this message translates to:
+  /// **'The attachment could not be read or saved on this device. Try again.'**
+  String get attachmentStorageError;
 }
 
 class _AppLocalizationsDelegate

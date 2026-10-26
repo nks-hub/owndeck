@@ -24,7 +24,7 @@ String errorMessage(Object error, AppLocalizations text, {String? fallback}) {
     'comment_missing' => text.commentUnavailable,
     'item_missing' => text.itemUnavailable,
     'attachment_missing' => text.attachmentMissingError,
-    'attachment_storage_unavailable' => text.localSaveError,
+    'attachment_storage_unavailable' => text.attachmentStorageError,
     'invalid_response' => text.invalidResponse,
     'unsupported_operation' => text.unsupportedOperation,
     'concurrent_edit' => text.conflict,

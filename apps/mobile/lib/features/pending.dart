@@ -263,6 +263,8 @@ class _PendingScreenState extends State<PendingScreen> {
 
   String _stateMessage(PendingWrite write) {
     final text = AppLocalizations.of(context)!;
+    if (write.state == 'uncertain') return text.uncertain;
+    if (write.state == 'applied') return text.awaitingReadback;
     if (write.error == 'already_shared') return text.alreadyShared;
     if (write.error == 'dependency_unavailable') {
       return text.dependencyUnavailable;
@@ -272,9 +274,7 @@ class _PendingScreenState extends State<PendingScreen> {
     return switch (write.state) {
       'queued' => text.savedLocally,
       'sending' => text.sending,
-      'applied' => text.awaitingReadback,
       'conflict' => text.pendingConflictHelp,
-      'uncertain' => text.uncertain,
       _ =>
         write.error == null
             ? text.blocked

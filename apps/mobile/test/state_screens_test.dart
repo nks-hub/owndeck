@@ -202,7 +202,7 @@ void main() {
         'This destination has changed or is no longer available. Refresh and choose again.',
     'card_archived': 'This card is archived. Restore it before editing.',
     'attachment_missing':
-        'The file to upload is no longer on this device. Attach it again.',
+        'This attachment is no longer available. Refresh the attachments.',
     'invalid_response':
         'The server returned a response this app cannot safely use.',
     'server_private_payload':
@@ -232,6 +232,36 @@ void main() {
       },
     );
   }
+
+  testWidgets(
+    'revoked access keeps the uncertain result of an in-flight write visible',
+    (tester) async {
+      await _using(tester, (fixture) async {
+        await tester.runAsync(() async {
+          await fixture.write('sending');
+          await fixture.database.revokeBoardAccess(fixture.account, 1);
+        });
+        await tester.pumpWidget(_app(PendingScreen(session: fixture.session)));
+        await _until(tester, () => find.text('My task').evaluate().isNotEmpty);
+        expect(
+          find.text(
+            'The server may have accepted this change. Check the server before retrying.',
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.text('You no longer have access to this content.'),
+          findsNothing,
+        );
+        expect(
+          (await tester.runAsync(
+            () => fixture.database.writesFor(fixture.account.id),
+          ))!.single.state,
+          'uncertain',
+        );
+      });
+    },
+  );
 
   testWidgets(
     'metadata conflicts show named permissions and colors without identifiers',

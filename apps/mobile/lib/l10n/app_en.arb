@@ -414,6 +414,7 @@
   "cardArchivedError": "This card is archived. Restore it before editing.",
   "commentUnavailable": "This comment is no longer available. Refresh the comments.",
   "itemUnavailable": "This item is no longer available. Refresh and check its current state.",
-  "attachmentMissingError": "The file to upload is no longer on this device. Attach it again.",
-  "unsupportedOperation": "This action is not available here."
+  "attachmentMissingError": "This attachment is no longer available. Refresh the attachments.",
+  "unsupportedOperation": "This action is not available here.",
+  "attachmentStorageError": "The attachment could not be read or saved on this device. Try again."
 }

@@ -1206,8 +1206,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attachmentMissingError =>
-      'The file to upload is no longer on this device. Attach it again.';
+      'This attachment is no longer available. Refresh the attachments.';
 
   @override
   String get unsupportedOperation => 'This action is not available here.';
+
+  @override
+  String get attachmentStorageError =>
+      'The attachment could not be read or saved on this device. Try again.';
 }
