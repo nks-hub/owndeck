@@ -71,6 +71,40 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] F01 Checklist mění položku přes stejnou trvalou frontu a zachová ostatní popis (`e485272`, `6465b8e`); devět parser/widget testů a zapnutí/vypnutí ve skutečném UI kandidátu `96b8662` prošly. Finální společná revize v R06.
 - [ ] F06 Přesun mezi nástěnkami implementován (`e68650c`, `cdb05f0`); skutečné API 1.18.5 ověřilo identitu, obsah, metadata, komentáře, štítky podle práv a kotvu. API 1.18.5 ověřilo i zachování obsahu přílohy; API 1.19.1 prošlo v CI `40318645367` na `996ef07` pro vlastníka i EDIT bez MANAGE včetně stažení přílohy přes účet přesouvajícího a úplného úklidu; úplné nativní UI ověření zůstává v R06.
 
+## Desktopová verze (Windows, macOS, Linux)
+
+Rozpad z auditu desktopového režimu OwnTalku, souhrn a nálezy v `docs/desktop.md`. Pořadí podle závislostí.
+
+- [ ] DK01 Přepsat rozhodnutí v `docs/reuse.md:17` a popis v pubspec na Android, iOS a desktop; doklad commit.
+- [ ] DK02 Vytvořit platformy Windows, macOS a Linux v `apps/mobile` s ID `com.nkshub.nextclouddeck`, názvem OwnDeck a ikonami; doklad `flutter build windows|macos|linux --release` a otevřené okno.
+- [ ] DK03 Závislosti Linux buildu (libgtk-3-dev, libsecret-1-dev, libcurl4-openssl-dev) podle OwnTalku; doklad build na čistém ubuntu-latest.
+- [ ] DK04 Kamera, zxing2 a QR přihlášení se na desktopu nenabízí; doklad widget test pro Windows a macOS bez tlačítka skeneru.
+- [ ] DK05 Start na desktopu bez MissingPluginException z kanálů links, share a files; doklad log prvního startu na Windows a macOS.
+- [ ] DK06 Trezor na macOS: `MacOsOptions(usesDataProtectionKeychain: false, synchronizable: false)` a entitlements podle OwnTalku; doklad přihlášení přežije restart.
+- [ ] DK07 Zamčená klíčenka na Linuxu nesmí zablokovat start (`_migrateLegacy`, `recover()` readAll); převzít značkový soubor z OwnTalku; doklad test a běh se zamčenou klíčenkou, okno do 3 s.
+- [ ] DK08 Login Flow v2 v systémovém prohlížeči na Windows, macOS a Linuxu; doklad přihlášení proti testovacímu serveru a restart bez nového přihlášení.
+- [ ] DK09 Okno s minimální velikostí a pamatováním polohy (vzor MainFlutterWindow.swift, window_state.cpp, GTK); doklad zastavení pod minimem a poloha po restartu.
+- [ ] DK10 Desktopová hustota prvků v celé aplikaci; doklad widget testy výšky řádků při VisualDensity.compact.
+- [ ] DK11 Široké okno: boční panel nástěnek a detail karty jako pravý panel, mobil beze změny; doklad widget testy při 720/1024/1440/1920 px bez přetečení a s funkčním Zpět.
+- [ ] DK12 Přetahování karet myší (Draggable místo LongPressDraggable na desktopu) se zachovaným automatickým posunem; doklad widget test přesunu myší mezi sloupci, dotyk beze změny.
+- [ ] DK13 Klávesové zkratky Ctrl/Cmd+N, Ctrl/Cmd+F, Esc, Enter a šipky; doklad widget test každé zkratky na Windows i macOS.
+- [ ] DK14 Pravé tlačítko na kartě a sloupci (přesun, archivace, štítky, smazání) a hover s kurzorem; doklad widget test sekundárního kliku.
+- [ ] DK15 Otevření přílohy na desktopu místo `UnsupportedError` (`attachments.dart:214`); doklad PDF a obrázek v systémové aplikaci na všech třech OS.
+- [ ] DK16 Ověřit uložení přílohy přes `FilePicker.saveFile(bytes:)` na desktopu, jinak zapisovat ručně; doklad shodné SHA-256.
+- [ ] DK17 Přetažení souboru ze správce souborů do detailu karty jako příloha (fork `desktop_drop` z OwnTalku); doklad reálné přetažení na Windows a macOS a příloha na serveru.
+- [ ] DK18 Jedna instance a odkazy `ncdeck:` na desktopu (HKCU, CFBundleURLTypes, `.desktop` s x-scheme-handler, předání běžící instanci podle OwnTalku); doklad odkaz otevře kartu v běžícím okně.
+- [ ] DK19 Telemetrie na desktopu: Sentry a Rybbit hlásí platformu, ladicí symboly se nahrávají (`--split-debug-info`, sentry-cli); doklad čitelný testovací pád z Windows buildu.
+- [ ] DK20 Kontrola a instalace aktualizací převzaté z OwnTalku s repem nks-hub/owndeck, ve výchozím stavu vypnuté; doklad převzaté testy a dotaz na skutečný release.
+- [ ] DK21 Windows instalátor Inno Setup pro jednoho uživatele s novým AppId; doklad smoke test instalace, upgradu za běhu, zamítnutí downgradu a odinstalace se zachováním dat.
+- [ ] DK22 Podpis instalátoru Authenticode a signtool v CI. BLOKOVÁNO: chybí certifikát pro podpis kódu na Windows. Doklad `Get-AuthenticodeSignature` = Valid.
+- [ ] DK23 Skript vydání macOS v `tool/` (build, podpis Sparkle, podpis zevnitř ven, notarytool, stapler, ZIP `owndeck-macos-<verze>-<build>.zip`). BLOKOVÁNO: Developer ID a přístupy k notarizaci drží majitel. Doklad spctl „Notarized Developer ID“ a stapler validate.
+- [ ] DK24 Sparkle pro OwnDeck: vlastní pár klíčů EdDSA, SUFeedURL na nks-hub/owndeck, appcast u každého tagu. BLOKOVÁNO: generování klíčů v klíčence build-mac. Doklad aktualizace N na N+1 se sandboxem.
+- [ ] DK25 Linux balíček (tarball s bundlem, `.desktop` a ikonou) a výměna složky z OwnTalku; doklad aktualizace na reálném Linuxu a návrat při selhání.
+- [ ] DK26 CI joby linux, windows (testy a instalátor) a release se SHA256SUMS podle OwnTalku; doklad zelený workflow_dispatch se všemi artefakty.
+- [ ] DK27 Desktopové testy (layout, zkratky, myš, přetažení, aktualizace) a integrační test na Windows; doklad `flutter test` a `flutter test integration_test -d windows`.
+- [ ] DK28 E2E na reálných strojích Windows 10/11, macOS s obrazovkou a nativním Linuxu: přihlášení, nástěnky, přesun myší, přílohy, odkaz, aktualizace, restart. BLOKOVÁNO: Mac s obrazovkou a oprávněním Accessibility a nativní Linux. Doklad zápis v `docs/testing.md`.
+- [ ] DK29 První desktopové vydání: tag, GitHub release se všemi artefakty a SHA256SUMS, macOS ZIP s appcastem; doklad stažení, instalace a spuštění na každém OS.
+
 ## Navazující funkce z konkurenční analýzy
 
 - [x] F02 Hromadný výběr z nabídky karty v obou pohledech, přesun společným dialogem se zachováním pořadí a archivace; každá karta jde samostatně trvalou frontou, výsledek po kartách (uloženo/selhalo/bez oprávnění), opakování jen selhaných se zachováním výběru (`00af4e9`). Sedm cílených testů včetně 200% textu prošlo; nativní ověření v R06.
