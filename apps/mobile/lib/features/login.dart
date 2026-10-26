@@ -204,8 +204,19 @@ class _LoginContentState extends ConsumerState<_LoginContent> {
     if (!opened) throw const LoginException('browser_unavailable');
     setState(() => _phase = LoginPhase.waitingForLogin);
     final deadline = DateTime.now().toUtc().add(const Duration(minutes: 15));
+    var lostPolls = 0;
     while (_valid(generation) && DateTime.now().toUtc().isBefore(deadline)) {
-      final credentials = await session.poll();
+      LoginCredentials? credentials;
+      try {
+        credentials = await session.poll();
+        lostPolls = 0;
+      } on LoginException catch (error) {
+        // A connection reused after the app was suspended behind the browser
+        // fails once; the session stays open, so poll again on a fresh one.
+        final lost =
+            error.code == 'transport_failed' || error.code == 'timeout';
+        if (!lost || ++lostPolls > 5) rethrow;
+      }
       if (!_valid(generation)) return;
       if (credentials != null) {
         await _complete(credentials, generation);

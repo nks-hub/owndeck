@@ -282,4 +282,44 @@ void main() {
     expect(polls, 1);
     expect(tester.takeException(), isNull);
   });
+  testWidgets('a lost poll after returning from the browser is retried', (
+    tester,
+  ) async {
+    final hanging = Completer<http.Response>();
+    var polls = 0;
+    await mount(
+      tester,
+      LoginScreen(
+        transportFactory: (_, _) => MockClient((request) async {
+          if (request.url.path == '/status.php') {
+            return jsonResponse({
+              'installed': true,
+              'maintenance': false,
+              'needsDbUpgrade': false,
+            });
+          }
+          if (request.url.path == '/index.php/login/v2') {
+            return jsonResponse({
+              'login': 'https://cloud.example.com/login/flow',
+              'poll': {
+                'endpoint': 'https://cloud.example.com/login/poll',
+                'token': 'test-token',
+              },
+            });
+          }
+          if (++polls == 1) throw http.ClientException('connection closed');
+          return hanging.future;
+        }),
+        openBrowser: (_) async => true,
+      ),
+    );
+    await connect(tester, 'cloud.example.com');
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(seconds: 3));
+    expect(polls, 2);
+    expect(find.text('Finish signing in in your browser'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    hanging.complete(http.Response('', 404));
+    await tester.pumpAndSettle();
+  });
 }
