@@ -193,6 +193,9 @@ void main() {
           scrollable: find.byType(Scrollable).first,
         );
         noVisibleHex();
+        // The lazily built list underestimates its extent until it is dragged.
+        await tester.drag(find.byType(ListView).first, const Offset(0, -300));
+        await tester.pump();
         await tester.ensureVisible(find.byTooltip('Blue'));
         await tester.tap(find.byTooltip('Blue'));
         await tester.tap(find.text('Save'));
