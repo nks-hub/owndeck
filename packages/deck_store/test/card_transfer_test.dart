@@ -191,6 +191,24 @@ void main() {
   }
 
   test(
+    'retrying a transfer the server already applied only positions the card (B62)',
+    () async {
+      await f.queue();
+      f.server.loseTransferResponse = true;
+      await f.sync.run();
+      final pending = (await f.database.writesFor(f.account.id)).single;
+      expect(pending.state, 'uncertain');
+      f.server.loseTransferResponse = false;
+      await f.database.decideWrite(f.account.id, pending.id, discard: false);
+      await f.sync.run();
+      expect(f.server.transfers, 1);
+      expect(f.server.positions, 1);
+      expect(await f.database.writesFor(f.account.id), isEmpty);
+      expect(f.server.cards[8]!['stackId'], 4);
+    },
+  );
+
+  test(
     'permission loss after transfer preserves the accepted step for a later retry',
     () async {
       await f.queue();

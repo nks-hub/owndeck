@@ -77,6 +77,25 @@ extension _CardTransferSync on DeckSync {
         );
         return true;
       }
+      if (!positioning &&
+          current.board.id == targetBoardId &&
+          current.stack.id == targetStackId) {
+        // A retried transfer the server already applied: only positioning is left.
+        final receipt = <String, Object?>{
+          'phase': 'transfer',
+          'sourceBoardId': write.boardId,
+          'sourceStackId': write.stackId,
+          'boardId': targetBoardId,
+          'stackId': targetStackId,
+          'cardId': current.card.id,
+          'acceptedCard': current.card.raw,
+          'beforeCard': current.card.raw,
+        };
+        await database.markApplied(account, _owner, write, receipt);
+        return _finishCardTransfer(
+          write.copyWith(remote: Value(jsonEncode(receipt))),
+        );
+      }
       final expectedLocation =
           current.board.id == write.boardId &&
           current.stack.id == write.stackId;
