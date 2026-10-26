@@ -12,7 +12,12 @@ final class NativeSharedText {
   bool _closed = false;
 
   void _offer(Object? value) {
-    if (_closed || value is! Map) return;
+    if (_closed) return;
+    if (value is List) {
+      value.forEach(_offer);
+      return;
+    }
+    if (value is! Map) return;
     final text = value['text'];
     final subject = value['subject'];
     inbox.offer(

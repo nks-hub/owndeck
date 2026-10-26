@@ -127,6 +127,26 @@ void main() {
       inbox.dispose();
     });
 
+    test('a list of launch shares is queued in order', () async {
+      const channel = MethodChannel('test.deck.share.list');
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      messenger.setMockMethodCallHandler(
+        channel,
+        (_) async => [
+          {'text': 'One'},
+          {'text': 'Two', 'subject': 'Second'},
+        ],
+      );
+      final inbox = SharedTextInbox();
+      await NativeSharedText(inbox, channel: channel).start();
+      expect(inbox.pending?.content?.title, 'One');
+      inbox.complete(inbox.pending!);
+      expect(inbox.pending?.content?.title, 'Second');
+      messenger.setMockMethodCallHandler(channel, null);
+      inbox.dispose();
+    });
+
     test(
       'launch and warm shares reach the inbox, a closed bridge is silent',
       () async {

@@ -6,6 +6,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
+import org.json.JSONArray
+import org.json.JSONObject
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterActivity
@@ -22,13 +24,11 @@ class MainActivity : FlutterActivity() {
     private var pendingLink: String? = null
     private var shareChannel: MethodChannel? = null
     private var shareReady = false
-    private var pendingShare: Map<String, String?>? = null
+    private val pendingShares = ArrayDeque<Map<String, String?>>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         pendingLink = savedInstanceState?.getString("pending_card_link")
-        savedInstanceState?.getString("pending_share_text")?.let {
-            pendingShare = mapOf("text" to it, "subject" to savedInstanceState.getString("pending_share_subject"))
-        }
+        savedInstanceState?.getString("pending_shares")?.let { restoreShares(it) }
         if (savedInstanceState == null) {
             receiveLink(intent)
             receiveShare(intent)
@@ -38,10 +38,7 @@ class MainActivity : FlutterActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         pendingLink?.let { outState.putString("pending_card_link", it) }
-        pendingShare?.let {
-            outState.putString("pending_share_text", it["text"])
-            outState.putString("pending_share_subject", it["subject"])
-        }
+        if (pendingShares.isNotEmpty()) outState.putString("pending_shares", encodeShares())
         super.onSaveInstanceState(outState)
     }
 
@@ -52,18 +49,39 @@ class MainActivity : FlutterActivity() {
         receiveShare(intent)
     }
 
+    private fun encodeShares() = JSONArray(
+        pendingShares.map { JSONObject().put("text", it["text"] ?: JSONObject.NULL).put("subject", it["subject"] ?: JSONObject.NULL) }
+    ).toString()
+
+    private fun restoreShares(raw: String) {
+        val items = JSONArray(raw)
+        for (index in 0 until items.length()) {
+            val item = items.getJSONObject(index)
+            pendingShares.addLast(
+                mapOf(
+                    "text" to item.optString("text").takeIf { !item.isNull("text") },
+                    "subject" to item.optString("subject").takeIf { !item.isNull("subject") },
+                )
+            )
+        }
+    }
+
+    // A task restored from Recents re-delivers the intent that first started it; it is not a new share or link.
+    private fun isStale(intent: Intent) = intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0
+
     // Only plain text is read from the intent; no stream or storage access is requested.
     private fun receiveShare(intent: Intent?) {
-        if (intent?.action != Intent.ACTION_SEND || intent.type?.startsWith("text/") != true) return
+        if (intent == null || isStale(intent)) return
+        if (intent.action != Intent.ACTION_SEND || intent.type?.startsWith("text/") != true) return
         val text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()?.take(MAX_SHARE_LENGTH)
         val subject = intent.getStringExtra(Intent.EXTRA_SUBJECT)?.take(MAX_SHARE_LENGTH)
         if (text.isNullOrBlank() && subject.isNullOrBlank()) return
         val value = mapOf("text" to text, "subject" to subject)
-        if (shareReady) shareChannel?.invokeMethod("share", value) else pendingShare = value
+        if (shareReady) shareChannel?.invokeMethod("share", value) else pendingShares.addLast(value)
     }
 
     private fun receiveLink(intent: Intent?) {
-        if (intent?.action != Intent.ACTION_VIEW) return
+        if (intent == null || isStale(intent) || intent.action != Intent.ACTION_VIEW) return
         val uri = intent.data ?: return
         val value = uri.toString()
         if (uri.scheme != "ncdeck" || value.length > 4096) return
@@ -87,8 +105,8 @@ class MainActivity : FlutterActivity() {
         shareChannel?.setMethodCallHandler { call, result ->
             if (call.method == "getLaunchShare") {
                 shareReady = true
-                val value = pendingShare
-                pendingShare = null
+                val value = pendingShares.toList()
+                pendingShares.clear()
                 result.success(value)
             } else result.notImplemented()
         }
