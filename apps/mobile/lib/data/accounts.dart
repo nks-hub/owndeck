@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:deck_protocol/deck_protocol.dart';
 import 'package:deck_store/deck_store.dart';
@@ -8,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 
 import 'keychain_migration.dart';
 import 'session.dart';
@@ -17,18 +19,35 @@ import '../platform/attachment_storage.dart';
 final accountsProvider = ChangeNotifierProvider((ref) => Accounts());
 
 final class SecureVault implements CredentialVault {
-  const SecureVault(this.storage);
+  const SecureVault(this.storage, {this.marker});
   final FlutterSecureStorage storage;
+
+  /// Linux only: a file that exists once this app has stored a secret.
+  ///
+  /// Reading the whole keystore unlocks the keyring synchronously on the
+  /// platform thread, and a locked keyring nobody answers never returns, so
+  /// the window never appears. Without the file nothing was ever stored and
+  /// [references] can answer without opening the keystore.
+  final Future<File> Function()? marker;
+
   @override
   Future<String?> read(String reference) => storage.read(key: reference);
   @override
-  Future<void> write(String reference, String password) =>
-      storage.write(key: reference, value: password);
+  Future<void> write(String reference, String password) async {
+    // Marker first: one left behind costs a single keystore read, one missing
+    // would hide an orphaned secret from the startup cleanup.
+    await (await marker?.call())?.create(recursive: true);
+    await storage.write(key: reference, value: password);
+  }
+
   @override
   Future<void> delete(String reference) => storage.delete(key: reference);
   @override
-  Future<Set<String>> references() async =>
-      (await storage.readAll()).keys.toSet();
+  Future<Set<String>> references() async {
+    final file = await marker?.call();
+    if (file != null && !await file.exists()) return {};
+    return (await storage.readAll()).keys.toSet();
+  }
 }
 
 final class Accounts extends ChangeNotifier {
@@ -36,12 +55,22 @@ final class Accounts extends ChangeNotifier {
     FlutterSecureStorage? storage,
     DeckDatabase? database,
     this.transportFactory,
+    Future<File> Function()? vaultMarker,
   }) : _storage =
-           storage ?? const FlutterSecureStorage(iOptions: deviceOnlyKeychain),
+           storage ??
+           const FlutterSecureStorage(
+             iOptions: deviceOnlyKeychain,
+             mOptions: desktopMacKeychain,
+           ),
        _migrateKeychain =
            storage == null && defaultTargetPlatform == TargetPlatform.iOS,
        database = database ?? DeckDatabase(driftDatabase(name: 'owndeck')) {
-    vault = SecureVault(_storage);
+    vault = SecureVault(
+      _storage,
+      marker:
+          vaultMarker ??
+          (defaultTargetPlatform == TargetPlatform.linux ? _vaultMarker : null),
+    );
     repository = AccountRepository(
       this.database,
       vault,
@@ -110,7 +139,18 @@ final class Accounts extends ChangeNotifier {
     }
   }
 
+  static Future<File> _vaultMarker() async => File(
+    '${(await getApplicationSupportDirectory()).path}/owndeck.vault-used',
+  );
+
   Future<void> _migrateLegacy() async {
+    // The single-blob store existed only before the database, on phones.
+    if (!{
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }.contains(defaultTargetPlatform)) {
+      return;
+    }
     final legacy = await _storage.read(key: 'accounts.v1');
     if (legacy == null) return;
     final json = object(jsonDecode(legacy));
