@@ -17,6 +17,7 @@ import '../platform/attachment_storage.dart';
 import 'accounts.dart';
 import 'attachment_files.dart';
 import 'keychain_migration.dart';
+import 'reminders.dart';
 import 'session.dart';
 
 /// Android WorkManager unique name and iOS BGTaskScheduler identifier. The iOS
@@ -116,6 +117,7 @@ Future<bool> runBackgroundSync({
   Future<AttachmentFiles> Function()? files,
   Future<bool> Function()? allowed,
   Duration? budget,
+  ReminderPlatform? reminderPlatform,
 }) async {
   WidgetsFlutterBinding.ensureInitialized();
   final isAllowed = allowed ?? backgroundSyncAllowed;
@@ -169,6 +171,11 @@ Future<bool> runBackgroundSync({
         session.dispose();
         inner.close();
       }
+    }
+    try {
+      await reconcileStoredReminders(db, platform: reminderPlatform);
+    } on Object {
+      // Reminders are refreshed again at the next app start or run.
     }
     return true;
   } finally {

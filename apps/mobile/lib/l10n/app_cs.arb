@@ -654,5 +654,28 @@
   "backgroundSyncWifiOnly": "Jen přes Wi-Fi",
   "backgroundSyncWifiOnlyHint": "Na mobilních datech a měřených sítích se běh přeskočí.",
   "backgroundSyncHelpAndroid": "Odešle změny z fronty a obnoví místní kopii, i když je aplikace zavřená. Přesný čas určuje Android a úspora baterie ho může odložit.",
-  "backgroundSyncHelpIos": "iOS rozhoduje, kdy úlohu spustí, a může ji vynechat, zvlášť když aplikaci málo otvíráte nebo je zapnutý spořič baterie. Interval je jen nejdřívější možný začátek. Aby se změny odeslaly jistě, otevřete aplikaci."
+  "backgroundSyncHelpIos": "iOS rozhoduje, kdy úlohu spustí, a může ji vynechat, zvlášť když aplikaci málo otvíráte nebo je zapnutý spořič baterie. Interval je jen nejdřívější možný začátek. Aby se změny odeslaly jistě, otevřete aplikaci.",
+  "reminderTitle": "Připomínky termínů",
+  "reminderSwitch": "Připomínat termíny karet",
+  "reminderSwitchHint": "Týká se karet přiřazených vám, z kopie uložené v tomto zařízení.",
+  "reminderLead": "Kdy",
+  "reminderLeadAtDue": "V čase termínu",
+  "reminderLead15Minutes": "15 minut předem",
+  "reminderLead1Hour": "1 hodinu předem",
+  "reminderLead1Day": "1 den předem",
+  "reminderDenied": "Oznámení jsou zablokovaná. Povolte je pro OwnDeck v nastavení systému.",
+  "reminderHelpAndroid": "Když telefon nic nedělá, může Android připomínku doručit o několik minut později. Karty, které dokončíte, přesunete na jiný termín nebo k nim ztratíte přístup, se z plánu odeberou.",
+  "reminderHelpIos": "iOS drží nejvýše 64 naplánovaných oznámení, proto se plánuje 60 nejbližších; další se doplní při otevření aplikace nebo obnově na pozadí. Karty, které dokončíte, přesunete na jiný termín nebo k nim ztratíte přístup, se z plánu odeberou.",
+  "reminderChannel": "Termíny karet",
+  "reminderBody": "Termín {when} · {board}",
+  "@reminderBody": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      },
+      "board": {
+        "type": "String"
+      }
+    }
+  }
 }

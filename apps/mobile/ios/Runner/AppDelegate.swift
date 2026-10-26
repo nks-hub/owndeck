@@ -1,5 +1,6 @@
 import Flutter
 import UIKit
+import UserNotifications
 import workmanager_apple
 
 final class CardLinkDelivery {
@@ -78,6 +79,8 @@ final class ShareDelivery {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    // Local due date reminders: the plugin reports taps and shows them in the foreground through this delegate.
+    UNUserNotificationCenter.current().delegate = self
     // Background refresh starts a headless engine that needs the plugins registered.
     WorkmanagerPlugin.setPluginRegistrantCallback { registry in
       GeneratedPluginRegistrant.register(with: registry)

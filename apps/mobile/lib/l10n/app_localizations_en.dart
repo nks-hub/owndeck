@@ -1555,4 +1555,49 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get backgroundSyncHelpIos =>
       'iOS decides when to run this and may skip runs, especially if you rarely open the app or Low Power Mode is on. The interval is only the earliest start. Open the app to be sure changes are sent.';
+
+  @override
+  String get reminderTitle => 'Due date reminders';
+
+  @override
+  String get reminderSwitch => 'Remind me of due cards';
+
+  @override
+  String get reminderSwitchHint =>
+      'For cards assigned to you, from the copy saved on this device.';
+
+  @override
+  String get reminderLead => 'When';
+
+  @override
+  String get reminderLeadAtDue => 'At the due time';
+
+  @override
+  String get reminderLead15Minutes => '15 minutes before';
+
+  @override
+  String get reminderLead1Hour => '1 hour before';
+
+  @override
+  String get reminderLead1Day => '1 day before';
+
+  @override
+  String get reminderDenied =>
+      'Notifications are blocked. Allow them for OwnDeck in the system settings.';
+
+  @override
+  String get reminderHelpAndroid =>
+      'Android may deliver a reminder a few minutes late while the phone is idle. Cards you finish, move to another date or lose access to are removed from the schedule.';
+
+  @override
+  String get reminderHelpIos =>
+      'iOS keeps at most 64 scheduled notifications, so the 60 nearest are scheduled; later ones are added when the app opens or refreshes in the background. Cards you finish, move to another date or lose access to are removed from the schedule.';
+
+  @override
+  String get reminderChannel => 'Card due dates';
+
+  @override
+  String reminderBody(String when, String board) {
+    return 'Due $when · $board';
+  }
 }

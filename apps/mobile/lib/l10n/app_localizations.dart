@@ -2857,6 +2857,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'iOS decides when to run this and may skip runs, especially if you rarely open the app or Low Power Mode is on. The interval is only the earliest start. Open the app to be sure changes are sent.'**
   String get backgroundSyncHelpIos;
+
+  /// No description provided for @reminderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Due date reminders'**
+  String get reminderTitle;
+
+  /// No description provided for @reminderSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me of due cards'**
+  String get reminderSwitch;
+
+  /// No description provided for @reminderSwitchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'For cards assigned to you, from the copy saved on this device.'**
+  String get reminderSwitchHint;
+
+  /// No description provided for @reminderLead.
+  ///
+  /// In en, this message translates to:
+  /// **'When'**
+  String get reminderLead;
+
+  /// No description provided for @reminderLeadAtDue.
+  ///
+  /// In en, this message translates to:
+  /// **'At the due time'**
+  String get reminderLeadAtDue;
+
+  /// No description provided for @reminderLead15Minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'15 minutes before'**
+  String get reminderLead15Minutes;
+
+  /// No description provided for @reminderLead1Hour.
+  ///
+  /// In en, this message translates to:
+  /// **'1 hour before'**
+  String get reminderLead1Hour;
+
+  /// No description provided for @reminderLead1Day.
+  ///
+  /// In en, this message translates to:
+  /// **'1 day before'**
+  String get reminderLead1Day;
+
+  /// No description provided for @reminderDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are blocked. Allow them for OwnDeck in the system settings.'**
+  String get reminderDenied;
+
+  /// No description provided for @reminderHelpAndroid.
+  ///
+  /// In en, this message translates to:
+  /// **'Android may deliver a reminder a few minutes late while the phone is idle. Cards you finish, move to another date or lose access to are removed from the schedule.'**
+  String get reminderHelpAndroid;
+
+  /// No description provided for @reminderHelpIos.
+  ///
+  /// In en, this message translates to:
+  /// **'iOS keeps at most 64 scheduled notifications, so the 60 nearest are scheduled; later ones are added when the app opens or refreshes in the background. Cards you finish, move to another date or lose access to are removed from the schedule.'**
+  String get reminderHelpIos;
+
+  /// No description provided for @reminderChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Card due dates'**
+  String get reminderChannel;
+
+  /// No description provided for @reminderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Due {when} · {board}'**
+  String reminderBody(String when, String board);
 }
 
 class _AppLocalizationsDelegate

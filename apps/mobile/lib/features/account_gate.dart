@@ -13,6 +13,7 @@ import '../data/accounts.dart';
 import '../data/background_sync.dart';
 import '../data/card_link_inbox.dart';
 import '../data/card_reads.dart';
+import '../data/reminders.dart';
 import '../data/session.dart';
 import '../data/shared_text_inbox.dart';
 import '../l10n/app_localizations.dart';
@@ -63,7 +64,11 @@ class _DeckAccountGateState extends ConsumerState<DeckAccountGate> {
     _scheduleShare();
     unawaited(
       ref.read(accountsProvider).ready.then((_) {
-        if (mounted) _applySchedule(ref.read(accountsProvider));
+        if (!mounted) return;
+        _applySchedule(ref.read(accountsProvider));
+        if (hasLocalReminders) {
+          unawaited(ref.read(reminderCoordinatorProvider).start());
+        }
       }),
     );
   }

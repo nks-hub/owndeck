@@ -1565,4 +1565,49 @@ class AppLocalizationsCs extends AppLocalizations {
   @override
   String get backgroundSyncHelpIos =>
       'iOS rozhoduje, kdy úlohu spustí, a může ji vynechat, zvlášť když aplikaci málo otvíráte nebo je zapnutý spořič baterie. Interval je jen nejdřívější možný začátek. Aby se změny odeslaly jistě, otevřete aplikaci.';
+
+  @override
+  String get reminderTitle => 'Připomínky termínů';
+
+  @override
+  String get reminderSwitch => 'Připomínat termíny karet';
+
+  @override
+  String get reminderSwitchHint =>
+      'Týká se karet přiřazených vám, z kopie uložené v tomto zařízení.';
+
+  @override
+  String get reminderLead => 'Kdy';
+
+  @override
+  String get reminderLeadAtDue => 'V čase termínu';
+
+  @override
+  String get reminderLead15Minutes => '15 minut předem';
+
+  @override
+  String get reminderLead1Hour => '1 hodinu předem';
+
+  @override
+  String get reminderLead1Day => '1 den předem';
+
+  @override
+  String get reminderDenied =>
+      'Oznámení jsou zablokovaná. Povolte je pro OwnDeck v nastavení systému.';
+
+  @override
+  String get reminderHelpAndroid =>
+      'Když telefon nic nedělá, může Android připomínku doručit o několik minut později. Karty, které dokončíte, přesunete na jiný termín nebo k nim ztratíte přístup, se z plánu odeberou.';
+
+  @override
+  String get reminderHelpIos =>
+      'iOS drží nejvýše 64 naplánovaných oznámení, proto se plánuje 60 nejbližších; další se doplní při otevření aplikace nebo obnově na pozadí. Karty, které dokončíte, přesunete na jiný termín nebo k nim ztratíte přístup, se z plánu odeberou.';
+
+  @override
+  String get reminderChannel => 'Termíny karet';
+
+  @override
+  String reminderBody(String when, String board) {
+    return 'Termín $when · $board';
+  }
 }
