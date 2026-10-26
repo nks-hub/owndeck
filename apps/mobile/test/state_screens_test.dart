@@ -513,7 +513,7 @@ void main() {
         expect(find.text('My words'), findsOneWidget);
         expect(find.text('Not set'), findsWidgets);
         expect(find.text('Not completed'), findsOneWidget);
-        expect(find.text('Custom color'), findsNWidgets(2));
+        expect(find.textContaining('Custom color:'), findsNWidgets(2));
         expect(find.textContaining('abcdef'), findsNothing);
         expect(find.textContaining('fedcba'), findsNothing);
         expect(find.byTooltip('Different values'), findsWidgets);

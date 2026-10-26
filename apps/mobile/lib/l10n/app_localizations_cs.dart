@@ -1415,4 +1415,74 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get calendarDayEmpty => 'bez dat';
+
+  @override
+  String get colorPickCustom => 'Vlastní barva…';
+
+  @override
+  String get colorPickerHint =>
+      'Barvu zvolte posuvníky. Barva textu se vybere automaticky.';
+
+  @override
+  String get colorHue => 'Odstín';
+
+  @override
+  String get colorSaturation => 'Sytost';
+
+  @override
+  String get colorLightness => 'Světlost';
+
+  @override
+  String colorIncrease(String name) {
+    return 'Zvýšit: $name';
+  }
+
+  @override
+  String colorDecrease(String name) {
+    return 'Snížit: $name';
+  }
+
+  @override
+  String get colorHexToggle => 'Zadat přesný kód';
+
+  @override
+  String get colorHexLabel => 'Kód (6 znaků 0-9, A-F)';
+
+  @override
+  String get colorHexInvalid => 'Zadejte přesně 6 znaků 0-9 nebo A-F.';
+
+  @override
+  String colorContrast(String ratio) {
+    return 'Kontrast textu $ratio:1';
+  }
+
+  @override
+  String get colorSample => 'Ukázka textu';
+
+  @override
+  String get colorApply => 'Použít tuto barvu';
+
+  @override
+  String get colorYellow => 'Žlutá';
+
+  @override
+  String get colorBlack => 'Černá';
+
+  @override
+  String get colorWhite => 'Bílá';
+
+  @override
+  String colorDark(String name) {
+    return 'tmavě $name';
+  }
+
+  @override
+  String colorLight(String name) {
+    return 'světle $name';
+  }
+
+  @override
+  String colorCustomNamed(String description) {
+    return 'Vlastní barva: $description';
+  }
 }

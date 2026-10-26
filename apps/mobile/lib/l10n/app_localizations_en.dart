@@ -1404,4 +1404,74 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get calendarDayEmpty => 'no dates';
+
+  @override
+  String get colorPickCustom => 'Custom color…';
+
+  @override
+  String get colorPickerHint =>
+      'Pick a color with the sliders. The text color is chosen automatically.';
+
+  @override
+  String get colorHue => 'Hue';
+
+  @override
+  String get colorSaturation => 'Saturation';
+
+  @override
+  String get colorLightness => 'Lightness';
+
+  @override
+  String colorIncrease(String name) {
+    return 'Increase $name';
+  }
+
+  @override
+  String colorDecrease(String name) {
+    return 'Decrease $name';
+  }
+
+  @override
+  String get colorHexToggle => 'Enter exact code';
+
+  @override
+  String get colorHexLabel => 'Code (6 characters 0-9, A-F)';
+
+  @override
+  String get colorHexInvalid => 'Enter exactly 6 characters 0-9 or A-F.';
+
+  @override
+  String colorContrast(String ratio) {
+    return 'Text contrast $ratio:1';
+  }
+
+  @override
+  String get colorSample => 'Sample text';
+
+  @override
+  String get colorApply => 'Use this color';
+
+  @override
+  String get colorYellow => 'Yellow';
+
+  @override
+  String get colorBlack => 'Black';
+
+  @override
+  String get colorWhite => 'White';
+
+  @override
+  String colorDark(String name) {
+    return 'dark $name';
+  }
+
+  @override
+  String colorLight(String name) {
+    return 'light $name';
+  }
+
+  @override
+  String colorCustomNamed(String description) {
+    return 'Custom color: $description';
+  }
 }

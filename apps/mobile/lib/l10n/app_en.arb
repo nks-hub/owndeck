@@ -558,5 +558,66 @@
       }
     }
   },
-  "calendarDayEmpty": "no dates"
+  "calendarDayEmpty": "no dates",
+  "colorPickCustom": "Custom color…",
+  "colorPickerHint": "Pick a color with the sliders. The text color is chosen automatically.",
+  "colorHue": "Hue",
+  "colorSaturation": "Saturation",
+  "colorLightness": "Lightness",
+  "colorIncrease": "Increase {name}",
+  "@colorIncrease": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "colorDecrease": "Decrease {name}",
+  "@colorDecrease": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "colorHexToggle": "Enter exact code",
+  "colorHexLabel": "Code (6 characters 0-9, A-F)",
+  "colorHexInvalid": "Enter exactly 6 characters 0-9 or A-F.",
+  "colorContrast": "Text contrast {ratio}:1",
+  "@colorContrast": {
+    "placeholders": {
+      "ratio": {
+        "type": "String"
+      }
+    }
+  },
+  "colorSample": "Sample text",
+  "colorApply": "Use this color",
+  "colorYellow": "Yellow",
+  "colorBlack": "Black",
+  "colorWhite": "White",
+  "colorDark": "dark {name}",
+  "@colorDark": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "colorLight": "light {name}",
+  "@colorLight": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "colorCustomNamed": "Custom color: {description}",
+  "@colorCustomNamed": {
+    "placeholders": {
+      "description": {
+        "type": "String"
+      }
+    }
+  }
 }

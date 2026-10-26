@@ -2593,6 +2593,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'no dates'**
   String get calendarDayEmpty;
+
+  /// No description provided for @colorPickCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom color…'**
+  String get colorPickCustom;
+
+  /// No description provided for @colorPickerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a color with the sliders. The text color is chosen automatically.'**
+  String get colorPickerHint;
+
+  /// No description provided for @colorHue.
+  ///
+  /// In en, this message translates to:
+  /// **'Hue'**
+  String get colorHue;
+
+  /// No description provided for @colorSaturation.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturation'**
+  String get colorSaturation;
+
+  /// No description provided for @colorLightness.
+  ///
+  /// In en, this message translates to:
+  /// **'Lightness'**
+  String get colorLightness;
+
+  /// No description provided for @colorIncrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase {name}'**
+  String colorIncrease(String name);
+
+  /// No description provided for @colorDecrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrease {name}'**
+  String colorDecrease(String name);
+
+  /// No description provided for @colorHexToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter exact code'**
+  String get colorHexToggle;
+
+  /// No description provided for @colorHexLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Code (6 characters 0-9, A-F)'**
+  String get colorHexLabel;
+
+  /// No description provided for @colorHexInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter exactly 6 characters 0-9 or A-F.'**
+  String get colorHexInvalid;
+
+  /// No description provided for @colorContrast.
+  ///
+  /// In en, this message translates to:
+  /// **'Text contrast {ratio}:1'**
+  String colorContrast(String ratio);
+
+  /// No description provided for @colorSample.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample text'**
+  String get colorSample;
+
+  /// No description provided for @colorApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this color'**
+  String get colorApply;
+
+  /// No description provided for @colorYellow.
+  ///
+  /// In en, this message translates to:
+  /// **'Yellow'**
+  String get colorYellow;
+
+  /// No description provided for @colorBlack.
+  ///
+  /// In en, this message translates to:
+  /// **'Black'**
+  String get colorBlack;
+
+  /// No description provided for @colorWhite.
+  ///
+  /// In en, this message translates to:
+  /// **'White'**
+  String get colorWhite;
+
+  /// No description provided for @colorDark.
+  ///
+  /// In en, this message translates to:
+  /// **'dark {name}'**
+  String colorDark(String name);
+
+  /// No description provided for @colorLight.
+  ///
+  /// In en, this message translates to:
+  /// **'light {name}'**
+  String colorLight(String name);
+
+  /// No description provided for @colorCustomNamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom color: {description}'**
+  String colorCustomNamed(String description);
 }
 
 class _AppLocalizationsDelegate

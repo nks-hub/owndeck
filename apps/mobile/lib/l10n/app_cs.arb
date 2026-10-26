@@ -558,5 +558,66 @@
       }
     }
   },
-  "calendarDayEmpty": "bez dat"
+  "calendarDayEmpty": "bez dat",
+  "colorPickCustom": "Vlastní barva…",
+  "colorPickerHint": "Barvu zvolte posuvníky. Barva textu se vybere automaticky.",
+  "colorHue": "Odstín",
+  "colorSaturation": "Sytost",
+  "colorLightness": "Světlost",
+  "colorIncrease": "Zvýšit: {name}",
+  "@colorIncrease": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "colorDecrease": "Snížit: {name}",
+  "@colorDecrease": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "colorHexToggle": "Zadat přesný kód",
+  "colorHexLabel": "Kód (6 znaků 0-9, A-F)",
+  "colorHexInvalid": "Zadejte přesně 6 znaků 0-9 nebo A-F.",
+  "colorContrast": "Kontrast textu {ratio}:1",
+  "@colorContrast": {
+    "placeholders": {
+      "ratio": {
+        "type": "String"
+      }
+    }
+  },
+  "colorSample": "Ukázka textu",
+  "colorApply": "Použít tuto barvu",
+  "colorYellow": "Žlutá",
+  "colorBlack": "Černá",
+  "colorWhite": "Bílá",
+  "colorDark": "tmavě {name}",
+  "@colorDark": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "colorLight": "světle {name}",
+  "@colorLight": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "colorCustomNamed": "Vlastní barva: {description}",
+  "@colorCustomNamed": {
+    "placeholders": {
+      "description": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -188,7 +188,7 @@ void main() {
         await tester.tap(find.text('Open form'));
         await settleBoard(tester);
         await tester.scrollUntilVisible(
-          find.text('Custom color'),
+          find.textContaining('Custom color'),
           200,
           scrollable: find.byType(Scrollable).first,
         );
@@ -211,6 +211,108 @@ void main() {
     },
   );
 
+  Future<void> pickCustomHex(WidgetTester tester, String hex) async {
+    final chip = find.textContaining('Custom color');
+    if (chip.evaluate().isEmpty) {
+      await tester.scrollUntilVisible(
+        chip,
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+    }
+    await tester.ensureVisible(chip);
+    if (chip.hitTestable().evaluate().isEmpty) {
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, -150));
+      await tester.pumpAndSettle();
+    }
+    await tester.tap(chip);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Enter exact code'));
+    await tester.tap(find.text('Enter exact code'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(AlertDialog).last,
+        matching: find.byType(TextField),
+      ),
+      hex,
+    );
+    await tester.pump();
+    await tester.ensureVisible(find.text('Use this color'));
+    await tester.tap(find.text('Use this color'));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('card custom color picked in the picker is queued exactly', (
+    tester,
+  ) async {
+    final model = (await tester.runAsync(fixture))!;
+    try {
+      final card = (await tester.runAsync(() => currentCard(model)))!;
+      await tester.pumpWidget(
+        launch(
+          (context) async =>
+              editCard(context, model.session, 1, 10, card: card),
+        ),
+      );
+      await tester.tap(find.text('Open form'));
+      await settleBoard(tester);
+      await pickCustomHex(tester, '0a1B2c');
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await settleBoard(tester);
+      final write = (await boardModel(
+        tester,
+        model.db.writesFor(model.account.id),
+      )).single;
+      expect(jsonDecode(write.proposal), {'color': '0a1b2c'});
+      expect(tester.takeException(), isNull);
+    } finally {
+      await tester.pumpWidget(const SizedBox());
+      await boardModel(tester, model.close());
+    }
+  });
+
+  for (final label in [false, true]) {
+    testWidgets(
+      '${label ? 'label' : 'board'} custom color from the picker is queued',
+      (tester) async {
+        final model = (await tester.runAsync(fixture))!;
+        try {
+          await tester.pumpWidget(
+            launch(
+              (context) => editStructure(
+                context,
+                model.session,
+                board: model.board,
+                labelItem: label,
+                label: label
+                    ? {'id': 7, 'title': 'Original label', 'color': 'abcdef'}
+                    : null,
+              ),
+            ),
+          );
+          await tester.tap(find.text('Open form'));
+          await settleBoard(tester);
+          await pickCustomHex(tester, '336699');
+          await tester.enterText(field('Name'), 'Renamed');
+          await tester.tap(find.text('Save'));
+          await settleBoard(tester);
+          final write = (await boardModel(
+            tester,
+            model.db.writesFor(model.account.id),
+          )).single;
+          expect(write.kind, label ? 'updateLabel' : 'updateBoard');
+          expect(jsonDecode(write.proposal)['color'], '336699');
+          expect(tester.takeException(), isNull);
+        } finally {
+          await tester.pumpWidget(const SizedBox());
+          await boardModel(tester, model.close());
+        }
+      },
+    );
+  }
+
   for (final label in [false, true]) {
     testWidgets(
       '${label ? 'label' : 'board'} palette preserves custom colors and saves a named choice',
@@ -232,7 +334,7 @@ void main() {
           );
           await tester.tap(find.text('Open form'));
           await settleBoard(tester);
-          expect(find.text('Custom color'), findsOneWidget);
+          expect(find.textContaining('Custom color'), findsOneWidget);
           noVisibleHex();
           await tester.ensureVisible(find.text('Purple'));
           await tester.tap(find.text('Purple'));
