@@ -287,12 +287,17 @@ class _DeckAccountGateState extends ConsumerState<DeckAccountGate> {
               if (session == null) {
                 return LoginScreen(reauthenticateAccount: accounts.selected);
               }
-              return Navigator(
-                key: _navigation,
-                observers: [telemetry.navigatorObserver()],
-                onGenerateRoute: (_) => MaterialPageRoute<void>(
-                  settings: const RouteSettings(name: '/boards'),
-                  builder: (_) => BoardsScreen(session: session),
+              return NavigatorPopHandler<Object?>(
+                key: ValueKey(session),
+                onPopWithResult: (result) =>
+                    unawaited(_navigation?.currentState?.maybePop(result)),
+                child: Navigator(
+                  key: _navigation,
+                  observers: [telemetry.navigatorObserver()],
+                  onGenerateRoute: (_) => MaterialPageRoute<void>(
+                    settings: const RouteSettings(name: '/boards'),
+                    builder: (_) => BoardsScreen(session: session),
+                  ),
                 ),
               );
             },

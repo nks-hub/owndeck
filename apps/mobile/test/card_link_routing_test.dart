@@ -14,12 +14,15 @@ import 'package:http/testing.dart';
 import 'package:nextclouddeck/data/accounts.dart';
 import 'package:nextclouddeck/data/card_link_inbox.dart';
 import 'package:nextclouddeck/features/account_gate.dart';
+import 'package:nextclouddeck/features/accounts.dart';
 import 'package:nextclouddeck/features/boards.dart';
 import 'package:nextclouddeck/features/card_detail.dart';
+import 'package:nextclouddeck/features/card_editor.dart';
 import 'package:nextclouddeck/features/card_link_dialog.dart';
 import 'package:nextclouddeck/platform/card_links.dart';
 
 import 'test_support.dart';
+import 'board_test_support.dart' show settleBoard;
 
 Map<String, Object?> get board => {
   'id': 1,
@@ -196,6 +199,130 @@ void main() {
           find.byType(LinearProgressIndicator).evaluate().isEmpty,
     );
   }
+
+  Future<int> systemBack(WidgetTester tester) async {
+    var exits = 0;
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+      if (call.method == 'SystemNavigator.pop') exits++;
+      return null;
+    });
+    try {
+      await messenger.handlePlatformMessage(
+        SystemChannels.navigation.name,
+        const JSONMethodCodec().encodeMethodCall(const MethodCall('popRoute')),
+        (_) {},
+      );
+      await settleBoard(tester);
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump();
+      return exits;
+    } finally {
+      messenger.setMockMethodCallHandler(SystemChannels.platform, null);
+    }
+  }
+
+  void openCard(WidgetTester tester) {
+    Navigator.of(tester.element(find.byType(BoardsScreen))).push(
+      MaterialPageRoute<void>(
+        builder: (_) => CardScreen(
+          session: accounts.session!,
+          board: DeckBoard.fromJson(board),
+          card: DeckCard.fromJson(card),
+        ),
+      ),
+    );
+  }
+
+  testClean(
+    'platform Back pops card and accounts routes before exiting the root',
+    (tester) async {
+      await mount(tester);
+      openCard(tester);
+      await settleBoard(tester);
+      expect(find.byType(CardScreen), findsOneWidget);
+      expect(await systemBack(tester), 0);
+      expect(find.byType(CardScreen), findsNothing);
+      final navigator = Navigator.of(tester.element(find.byType(BoardsScreen)));
+      navigator.push(
+        MaterialPageRoute<void>(builder: (_) => const AccountsScreen()),
+      );
+      await settleBoard(tester);
+      expect(find.byType(AccountsScreen), findsOneWidget);
+      expect(await systemBack(tester), 0);
+      expect(find.byType(AccountsScreen), findsNothing);
+      expect(await systemBack(tester), 1);
+    },
+  );
+
+  testClean('platform Back uses only the current account navigator', (
+    tester,
+  ) async {
+    await mount(tester);
+    openCard(tester);
+    await settleBoard(tester);
+    await modelChange(tester, accounts.select(second.id));
+    await settleBoard(tester);
+    expect(find.byType(CardScreen), findsNothing);
+    expect(await systemBack(tester), 1);
+    openCard(tester);
+    await settleBoard(tester);
+    expect(await systemBack(tester), 0);
+    expect(find.byType(CardScreen), findsNothing);
+    expect(accounts.selected!.id, second.id);
+  });
+
+  testClean(
+    'platform Back honors editor PopScope and preserves a failed draft on cancel',
+    (tester) async {
+      await mount(tester);
+      unawaited(
+        editCard(
+          tester.element(find.byType(BoardsScreen)),
+          accounts.session!,
+          1,
+          2,
+          card: DeckCard.fromJson(card),
+        ),
+      );
+      await settleBoard(tester);
+      await modelChange(
+        tester,
+        database.customStatement(
+          "CREATE TRIGGER fail_draft BEFORE INSERT ON editor_drafts BEGIN SELECT RAISE(ABORT, 'private failure'); END",
+        ),
+      );
+      await tester.enterText(
+        find.byType(TextField).first,
+        'Keep unsaved title',
+      );
+      await settleBoard(tester);
+      expect(await systemBack(tester), 0);
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.text('Leave unsaved changes?'), findsOneWidget);
+      await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+      await settleBoard(tester);
+      expect(find.byType(CardEditor), findsOneWidget);
+      expect(find.text('Keep unsaved title'), findsOneWidget);
+      await modelChange(
+        tester,
+        database.customStatement('DROP TRIGGER fail_draft'),
+      );
+      await tester.enterText(find.byType(TextField).first, 'Saved draft title');
+      await settleBoard(tester);
+      expect(await systemBack(tester), 0);
+      expect(find.byType(CardEditor), findsNothing);
+      String? savedTitle;
+      await modelChange(tester, () async {
+        final drafts = await database
+            .watchEditorDrafts(accounts.selected!.id)
+            .first;
+        savedTitle = jsonDecode(drafts.single.payload)['title'] as String;
+      }());
+      expect(savedTitle, 'Saved draft title');
+    },
+  );
 
   testClean(
     'incoming cards belong to the session navigator and disappear on account switch',
