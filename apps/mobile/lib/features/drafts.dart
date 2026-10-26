@@ -5,9 +5,11 @@ import 'package:deck_store/deck_store.dart';
 import 'package:flutter/material.dart';
 
 import '../data/session.dart';
+import '../data/shared_text_inbox.dart';
 import '../l10n/app_localizations.dart';
 import 'card_editor.dart';
 import 'comment_editor.dart';
+import 'quick_add_card.dart';
 
 class DraftsScreen extends StatefulWidget {
   const DraftsScreen({super.key, required this.session});
@@ -232,7 +234,17 @@ class _DraftsScreenState extends State<DraftsScreen> {
                         ),
                       ],
                     ),
-                    onTap: draft.kind == 'comment'
+                    onTap: draft.draftKey.startsWith(sharedDraftPrefix)
+                        ? () => showQuickAddCard(
+                            context,
+                            widget.session,
+                            shared: SharedText(
+                              title: stringField(fields, 'title'),
+                              description: stringField(fields, 'description'),
+                            ),
+                            draftKey: draft.draftKey,
+                          )
+                        : draft.kind == 'comment'
                         ? () => openCommentEditor(
                             context,
                             widget.session,

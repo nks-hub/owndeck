@@ -4,32 +4,41 @@ import 'package:deck_protocol/deck_protocol.dart';
 import 'package:deck_store/deck_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
+import '../core/app_preferences.dart';
 import '../core/errors.dart';
 import '../core/telemetry_bootstrap.dart';
 import '../data/accounts.dart';
 import '../data/card_link_inbox.dart';
 import '../data/card_reads.dart';
 import '../data/session.dart';
+import '../data/shared_text_inbox.dart';
 import '../l10n/app_localizations.dart';
 import '../platform/card_links.dart';
+import '../platform/shared_text.dart';
 import 'boards.dart';
 import 'card_detail.dart';
 import 'login.dart';
+import 'quick_add_card.dart';
 
 class DeckAccountGate extends ConsumerStatefulWidget {
-  const DeckAccountGate({super.key, this.links});
+  const DeckAccountGate({super.key, this.links, this.shares});
   final CardLinkInbox? links;
+  final SharedTextInbox? shares;
   @override
   ConsumerState<DeckAccountGate> createState() => _DeckAccountGateState();
 }
 
 class _DeckAccountGateState extends ConsumerState<DeckAccountGate> {
   late final _links = widget.links ?? incomingCardLinks;
+  late final _shares = widget.shares ?? incomingSharedText;
   NativeCardLinks? _native;
+  NativeSharedText? _nativeShares;
   DeckSession? _shown;
   GlobalKey<NavigatorState>? _navigation;
   bool _routing = false;
+  bool _sharing = false;
   int? _authenticationRetry;
 
   @override
@@ -40,13 +49,21 @@ class _DeckAccountGateState extends ConsumerState<DeckAccountGate> {
       _native = NativeCardLinks(_links);
       unawaited(_native!.start());
     }
+    _shares.addListener(_shareChanged);
+    if (widget.shares == null) {
+      _nativeShares = NativeSharedText(_shares);
+      unawaited(_nativeShares!.start());
+    }
     _schedule();
+    _scheduleShare();
   }
 
   @override
   void dispose() {
     _links.removeListener(_inboxChanged);
     _native?.close();
+    _shares.removeListener(_shareChanged);
+    _nativeShares?.close();
     super.dispose();
   }
 
@@ -63,6 +80,133 @@ class _DeckAccountGateState extends ConsumerState<DeckAccountGate> {
       await WidgetsBinding.instance.endOfFrame;
       await _route();
     });
+  }
+
+  void _shareChanged() {
+    if (!mounted) return;
+    _scheduleShare();
+  }
+
+  void _scheduleShare() {
+    if (!mounted ||
+        _sharing ||
+        _shares.pending == null ||
+        ref.read(accountsProvider).items.isEmpty) {
+      return;
+    }
+    _sharing = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      await _routeShare();
+    });
+    WidgetsBinding.instance.scheduleFrame();
+  }
+
+  Future<StoredAccount?> _chooseShareAccount(Accounts accounts) async {
+    final items = accounts.items;
+    if (items.length == 1) return items.single;
+    final text = AppLocalizations.of(context)!;
+    return showDialog<StoredAccount>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(text.chooseShareAccount),
+        children: [
+          for (final account in items)
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, account),
+              child: Text('${account.loginName} (${account.server})'),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _routeShare() async {
+    final request = _shares.pending;
+    if (!mounted || request == null) {
+      _sharing = false;
+      return;
+    }
+    var deferred = false;
+    try {
+      final content = request.content;
+      final text = AppLocalizations.of(context)!;
+      final messenger = ScaffoldMessenger.of(context);
+      if (content == null) {
+        messenger.showSnackBar(SnackBar(content: Text(text.sharedTextEmpty)));
+        return;
+      }
+      final accounts = ref.read(accountsProvider);
+      await accounts.ready;
+      if (!mounted || !_shares.contains(request)) return;
+      if (accounts.loadError != null) throw StateError('account_unavailable');
+      if (accounts.items.isEmpty ||
+          ModalRoute.of(context)?.isCurrent == false) {
+        deferred = true;
+        return;
+      }
+      final selected = await _chooseShareAccount(accounts);
+      if (!mounted || !_shares.contains(request) || selected == null) return;
+      if (accounts.selected?.id != selected.id) {
+        await accounts.select(selected.id);
+      }
+      if (!mounted || !_shares.contains(request)) return;
+      if (accounts.session == null) {
+        await Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            settings: const RouteSettings(name: '/login'),
+            builder: (_) => LoginScreen(
+              reauthenticateAccount: accounts.selected,
+              closeOnSuccess: true,
+            ),
+          ),
+        );
+        if (!mounted || !_shares.contains(request)) return;
+      }
+      await WidgetsBinding.instance.endOfFrame;
+      if (!mounted || !_shares.contains(request)) return;
+      final session = accounts.session;
+      final navigator = _navigation?.currentState;
+      if (session == null ||
+          session.account.id != selected.id ||
+          !identical(_shown, session) ||
+          navigator == null) {
+        final destination = await ref
+            .read(appPreferencesProvider)
+            .lastCardDestination(selected.id);
+        await accounts.database.saveSignedOutDraft(
+          selected.id,
+          '$sharedDraftPrefix${const Uuid().v4()}',
+          destination?.boardId ?? 0,
+          destination?.stackId ?? 0,
+          {
+            'title': content.title,
+            'description': content.description,
+            'duedate': null,
+          },
+        );
+        if (mounted) {
+          messenger.showSnackBar(
+            SnackBar(content: Text(text.sharedTextSavedDraft)),
+          );
+        }
+        return;
+      }
+      _shares.complete(request);
+      unawaited(showQuickAddCard(navigator.context, session, shared: content));
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage(error, AppLocalizations.of(context)!)),
+          ),
+        );
+      }
+    } finally {
+      if (mounted && !deferred) _shares.complete(request);
+      _sharing = false;
+      if (mounted && !deferred) _scheduleShare();
+    }
   }
 
   void _inboxChanged() {
@@ -241,7 +385,10 @@ class _DeckAccountGateState extends ConsumerState<DeckAccountGate> {
     final accounts = ref.watch(accountsProvider);
     final text = AppLocalizations.of(context)!;
     final current = ModalRoute.of(context)?.isCurrent != false;
-    if (current) _schedule();
+    if (current) {
+      _schedule();
+      _scheduleShare();
+    }
     final busy = _routing && _links.pending != null && current;
     return Stack(
       fit: StackFit.expand,

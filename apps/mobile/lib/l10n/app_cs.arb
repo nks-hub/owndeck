@@ -361,6 +361,16 @@
   "moveRelativeCard": "Karta",
   "invalidDestination": "Cílové místo se změnilo nebo už není dostupné. Obnovte obsah a vyberte jej znovu.",
   "quickAddSavedDraft": "Text zůstává v Konceptech, dokud kartu nepřidáte.",
+  "quickAddAccount": "Účet: {account} ({server})",
+  "@quickAddAccount": {
+    "placeholders": {
+      "account": {"type": "String"},
+      "server": {"type": "String"}
+    }
+  },
+  "chooseShareAccount": "Vyberte účet pro novou kartu",
+  "sharedTextEmpty": "Nebyl k dispozici žádný text pro novou kartu.",
+  "sharedTextSavedDraft": "Sdílený text je uložen v Konceptech. Přihlaste se a přidejte ho jako kartu.",
   "colorDefault": "Bez vlastní barvy",
   "colorCustom": "Vlastní barva",
   "colorBlue": "Modrá",

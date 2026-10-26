@@ -361,6 +361,16 @@
   "moveRelativeCard": "Card",
   "invalidDestination": "This destination has changed or is no longer available. Refresh and choose again.",
   "quickAddSavedDraft": "Your text is saved in Drafts until you add the card.",
+  "quickAddAccount": "Account: {account} ({server})",
+  "@quickAddAccount": {
+    "placeholders": {
+      "account": {"type": "String"},
+      "server": {"type": "String"}
+    }
+  },
+  "chooseShareAccount": "Choose an account for the new card",
+  "sharedTextEmpty": "There was no text to add as a card.",
+  "sharedTextSavedDraft": "Shared text is saved in Drafts. Sign in to add it as a card.",
   "colorDefault": "No custom color",
   "colorCustom": "Custom color",
   "colorBlue": "Blue",

@@ -1053,6 +1053,21 @@ class AppLocalizationsCs extends AppLocalizations {
       'Text zůstává v Konceptech, dokud kartu nepřidáte.';
 
   @override
+  String quickAddAccount(String account, String server) {
+    return 'Účet: $account ($server)';
+  }
+
+  @override
+  String get chooseShareAccount => 'Vyberte účet pro novou kartu';
+
+  @override
+  String get sharedTextEmpty => 'Nebyl k dispozici žádný text pro novou kartu.';
+
+  @override
+  String get sharedTextSavedDraft =>
+      'Sdílený text je uložen v Konceptech. Přihlaste se a přidejte ho jako kartu.';
+
+  @override
   String get colorDefault => 'Bez vlastní barvy';
 
   @override

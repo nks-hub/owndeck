@@ -1049,6 +1049,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your text is saved in Drafts until you add the card.';
 
   @override
+  String quickAddAccount(String account, String server) {
+    return 'Account: $account ($server)';
+  }
+
+  @override
+  String get chooseShareAccount => 'Choose an account for the new card';
+
+  @override
+  String get sharedTextEmpty => 'There was no text to add as a card.';
+
+  @override
+  String get sharedTextSavedDraft =>
+      'Shared text is saved in Drafts. Sign in to add it as a card.';
+
+  @override
   String get colorDefault => 'No custom color';
 
   @override

@@ -9,6 +9,7 @@ import 'package:uuid/uuid.dart';
 import '../core/app_preferences.dart';
 import '../core/errors.dart';
 import '../data/session.dart';
+import '../data/shared_text_inbox.dart';
 import '../l10n/app_localizations.dart';
 import 'structure_editor.dart';
 
@@ -17,6 +18,8 @@ Future<void> showQuickAddCard(
   DeckSession session, {
   DeckBoard? board,
   int? stackId,
+  SharedText? shared,
+  String? draftKey,
 }) => showModalBottomSheet<void>(
   context: context,
   isScrollControlled: true,
@@ -27,6 +30,8 @@ Future<void> showQuickAddCard(
     session: session,
     initialBoard: board,
     initialStackId: stackId,
+    shared: shared,
+    draftKey: draftKey,
   ),
 );
 
@@ -35,10 +40,14 @@ class _QuickAddCard extends ConsumerStatefulWidget {
     required this.session,
     this.initialBoard,
     this.initialStackId,
+    this.shared,
+    this.draftKey,
   });
   final DeckSession session;
   final DeckBoard? initialBoard;
   final int? initialStackId;
+  final SharedText? shared;
+  final String? draftKey;
 
   @override
   ConsumerState<_QuickAddCard> createState() => _QuickAddCardState();
@@ -47,7 +56,7 @@ class _QuickAddCard extends ConsumerStatefulWidget {
 class _QuickAddCardState extends ConsumerState<_QuickAddCard> {
   final _title = TextEditingController();
   final _description = TextEditingController();
-  final _draftKey = 'quick:${const Uuid().v4()}';
+  late final _draftKey = widget.draftKey ?? 'quick:${const Uuid().v4()}';
   List<DeckBoard> _boards = [];
   List<DeckStack> _stacks = [];
   DeckBoard? _board;
@@ -67,6 +76,12 @@ class _QuickAddCardState extends ConsumerState<_QuickAddCard> {
   @override
   void initState() {
     super.initState();
+    final shared = widget.shared;
+    if (shared != null) {
+      _title.text = shared.title;
+      _description.text = shared.description;
+      _details = shared.description.isNotEmpty;
+    }
     unawaited(_load());
   }
 
@@ -359,6 +374,16 @@ class _QuickAddCardState extends ConsumerState<_QuickAddCard> {
                     label: Text(text.addBoard),
                   ),
               ] else ...[
+                if (widget.shared != null) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    text.quickAddAccount(
+                      widget.session.account.loginName,
+                      widget.session.account.server,
+                    ),
+                    key: const Key('quick-add-account'),
+                  ),
+                ],
                 const SizedBox(height: 12),
                 DropdownButtonFormField<int>(
                   key: ValueKey(('quick-board', _board?.id)),

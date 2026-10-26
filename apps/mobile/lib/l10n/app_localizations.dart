@@ -2018,6 +2018,30 @@ abstract class AppLocalizations {
   /// **'Your text is saved in Drafts until you add the card.'**
   String get quickAddSavedDraft;
 
+  /// No description provided for @quickAddAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account: {account} ({server})'**
+  String quickAddAccount(String account, String server);
+
+  /// No description provided for @chooseShareAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an account for the new card'**
+  String get chooseShareAccount;
+
+  /// No description provided for @sharedTextEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'There was no text to add as a card.'**
+  String get sharedTextEmpty;
+
+  /// No description provided for @sharedTextSavedDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared text is saved in Drafts. Sign in to add it as a card.'**
+  String get sharedTextSavedDraft;
+
   /// No description provided for @colorDefault.
   ///
   /// In en, this message translates to:
