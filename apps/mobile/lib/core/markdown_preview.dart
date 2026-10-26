@@ -3,6 +3,8 @@ import 'package:markdown/markdown.dart' as md;
 
 const markdownPreviewSourceLimit = 1200;
 const markdownPreviewLength = 160;
+final _markdownSyntax = RegExp(r'[`*_~\[\]<>\\&|#=+\-\r\n]');
+final _orderedList = RegExp(r'^ {0,3}[0-9]{1,9}[.)](?:[ \t]|$)');
 
 // One extra code point records truncation without scanning the remaining text.
 String markdownPreviewInput(String source) {
@@ -25,10 +27,14 @@ String markdownPreview(String source) {
     final clusters = Characters(bounded).toList(growable: false);
     bounded = clusters.take(clusters.length - 1).join();
   }
-  final nodes = md.Document(
-    extensionSet: md.ExtensionSet.gitHubFlavored,
-    encodeHtml: false,
-  ).parse(bounded);
+  final plain =
+      !_markdownSyntax.hasMatch(bounded) && !_orderedList.hasMatch(bounded);
+  final nodes = plain
+      ? <md.Node>[md.Text(bounded)]
+      : md.Document(
+          extensionSet: md.ExtensionSet.gitHubFlavored,
+          encodeHtml: false,
+        ).parse(bounded);
   const blocks = {
     'p',
     'blockquote',

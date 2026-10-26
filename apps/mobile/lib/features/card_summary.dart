@@ -65,8 +65,13 @@ List<({String name, IconData icon})> _assignedDisplay(
   return result;
 }
 
-DateTime? cardDueDate(DeckCard card) =>
-    DateTime.tryParse(card.raw['duedate']?.toString() ?? '')?.toLocal();
+DateTime? _cardDate(Object? value) {
+  final source = value?.toString();
+  if (source == null || source.isEmpty) return null;
+  return DateTime.tryParse(source)?.toLocal();
+}
+
+DateTime? cardDueDate(DeckCard card) => _cardDate(card.raw['duedate']);
 
 class CardSummary extends StatelessWidget {
   const CardSummary({
@@ -297,7 +302,7 @@ class _CardMetadataState extends State<CardMetadata> {
     final theme = Theme.of(context);
     final due = cardDueDate(card);
     final start = widget.showStartDate
-        ? DateTime.tryParse(card.raw['startdate']?.toString() ?? '')?.toLocal()
+        ? _cardDate(card.raw['startdate'])
         : null;
     final completed = card.raw['done'] != null;
     final assignees = _assignedDisplay(card, text);

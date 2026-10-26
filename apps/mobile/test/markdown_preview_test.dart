@@ -10,6 +10,27 @@ import 'test_support.dart';
 
 void main() {
   test(
+    'plain paragraphs retain punctuation and ordered lists keep their text',
+    () {
+      expect(
+        markdownPreview('  Žluťoučký kůň.  Připravit 3 úkoly!  '),
+        'Žluťoučký kůň. Připravit 3 úkoly!',
+      );
+      expect(markdownPreview('1. First item'), 'First item');
+      expect(markdownPreview('2) Next item'), 'Next item');
+      for (final marker in ['1.', '2)', '   3.']) {
+        expect(markdownPreview(marker), isEmpty);
+      }
+      expect(markdownPreview('Version 1.2 is ready.'), 'Version 1.2 is ready.');
+      expect(markdownPreview('---'), isEmpty);
+      expect(
+        markdownPreview('~~Removed~~ &amp; remaining'),
+        'Removed & remaining',
+      );
+    },
+  );
+
+  test(
     'preview removes formatting and separates headings, paragraphs and list items',
     () {
       const source =
