@@ -1760,6 +1760,12 @@ abstract class AppLocalizations {
   /// **'The Deck app is not available on this server. Ask the administrator to install or enable it.'**
   String get adviceDeckMissing;
 
+  /// No description provided for @projects.
+  ///
+  /// In en, this message translates to:
+  /// **'Projects'**
+  String get projects;
+
   /// No description provided for @cardLinkCopied.
   ///
   /// In en, this message translates to:

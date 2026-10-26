@@ -306,6 +306,7 @@
   "adviceCertificate": "The server certificate is not trusted. Check the certificate of this account or ask the administrator.",
   "adviceTimeout": "The server did not answer in time. Check your connection and try again.",
   "adviceDeckMissing": "The Deck app is not available on this server. Ask the administrator to install or enable it.",
+  "projects": "Projects",
   "cardLinkCopied": "Card link copied.",
   "localSearchMode": "Saved cards",
   "serverSearchMode": "Search on server",

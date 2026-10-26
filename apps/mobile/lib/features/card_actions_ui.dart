@@ -15,6 +15,30 @@ extension _CardDialogs on _CardScreenState {
     }
   }
 
+  /// Boards open natively when saved; everything else goes through [_link].
+  Future<void> _openProject(ProjectResource resource) async {
+    final target = resource.openUri(widget.session.client.base);
+    if (resource.type == 'deck') {
+      final id = int.tryParse(resource.id);
+      final boards = await widget.session.database.boardView(
+        widget.session.account.id,
+      );
+      final board = boards.where((b) => b.id == id && b.deletedAt == 0);
+      if (!mounted) return;
+      if (board.isNotEmpty) {
+        await Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            settings: const RouteSettings(name: '/board'),
+            builder: (_) =>
+                BoardScreen(session: widget.session, board: board.first),
+          ),
+        );
+        return;
+      }
+    }
+    await _link(target?.toString());
+  }
+
   Future<void> _share(DeckBoard board, DeckCard card) async {
     final text = AppLocalizations.of(context)!;
     final locale = MaterialLocalizations.of(context);

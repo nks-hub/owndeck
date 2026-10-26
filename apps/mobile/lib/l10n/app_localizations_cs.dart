@@ -916,6 +916,9 @@ class AppLocalizationsCs extends AppLocalizations {
       'Aplikace Deck na tomto serveru není dostupná. Požádejte správce, aby ji nainstaloval nebo zapnul.';
 
   @override
+  String get projects => 'Projekty';
+
+  @override
   String get cardLinkCopied => 'Odkaz na kartu byl zkopírován.';
 
   @override

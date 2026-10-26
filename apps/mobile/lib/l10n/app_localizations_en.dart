@@ -914,6 +914,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'The Deck app is not available on this server. Ask the administrator to install or enable it.';
 
   @override
+  String get projects => 'Projects';
+
+  @override
   String get cardLinkCopied => 'Card link copied.';
 
   @override

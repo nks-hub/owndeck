@@ -27,7 +27,9 @@ import 'pending.dart';
 import 'sync_state.dart';
 import 'comments.dart';
 import 'attachments.dart';
+import 'board_view.dart' show BoardScreen;
 import 'card_links.dart';
+import 'card_projects.dart';
 import 'sharing.dart' show shareParticipantId;
 import 'share_text.dart';
 import 'state_message.dart';
@@ -493,6 +495,13 @@ class _CardScreenState extends State<_CardContent> {
                       ),
                     ),
                   ),
+                  if (widget.session.capabilities != null && card.id > 0)
+                    CardProjects(
+                      key: ValueKey(card.id),
+                      session: widget.session,
+                      cardId: card.id,
+                      open: (resource) => unawaited(_openProject(resource)),
+                    ),
                   if (widget.session.capabilities?.supportsActivity == true &&
                       card.id > 0)
                     CardActivity(session: widget.session, cardId: card.id),
