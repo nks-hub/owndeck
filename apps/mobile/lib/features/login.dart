@@ -94,6 +94,11 @@ class _LoginContentState extends ConsumerState<_LoginContent> {
   bool _scannerOpen = false;
   int _generation = 0;
   bool get _busy => _phase != LoginPhase.entry;
+  bool get _desktop => const {
+    TargetPlatform.windows,
+    TargetPlatform.macOS,
+    TargetPlatform.linux,
+  }.contains(defaultTargetPlatform);
   bool _valid(int generation) => mounted && generation == _generation;
 
   @override
@@ -244,6 +249,9 @@ class _LoginContentState extends ConsumerState<_LoginContent> {
       if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
         return false;
       }
+      // A desktop window stays visible behind the browser, so there is no
+      // hide and resume to wait for; polling starts right away.
+      if (_desktop) return true;
       await Future.any([
         returned.future,
         cancelled,
