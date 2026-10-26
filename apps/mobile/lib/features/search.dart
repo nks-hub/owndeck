@@ -594,7 +594,8 @@ class _CardSearchViewState extends State<CardSearchView> {
           ..._remoteSlivers(text)
         else
           StreamBuilder<CardSearchResult>(
-            key: ValueKey(_request),
+            // Keyed by the query itself: hiding the tab must not re-run it.
+            key: ObjectKey(_results),
             stream: _results,
             builder: (context, snapshot) {
               final result = snapshot.data;
