@@ -4,6 +4,9 @@ import 'package:flutter/widgets.dart';
 import 'package:rybbit_flutter_sdk/rybbit_flutter_sdk.dart';
 // ignore: implementation_imports
 import 'package:rybbit_flutter_sdk/src/services/http_client.dart';
+// The pinned SDK keeps its default persistent queue type internal.
+// ignore: implementation_imports
+import 'package:rybbit_flutter_sdk/src/services/offline_store.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'telemetry.dart';
@@ -21,7 +24,7 @@ abstract interface class TelemetryBackend {
     TelemetryConfig config,
     TelemetryPreferences preferences,
   );
-  Future<void> stopAnalytics();
+  Future<void> stopAnalytics({bool clearPendingEvents = false});
   void screen(String route);
   void event(TelemetryEvent event);
   Future<void> probeCrash();
@@ -29,6 +32,7 @@ abstract interface class TelemetryBackend {
 
 final class TelemetrySdkBackend implements TelemetryBackend {
   RybbitHttpClient? _analyticsHttp;
+  HiveOfflineStore? _analyticsStore;
 
   @override
   Future<void> startCrashes(
@@ -46,6 +50,8 @@ final class TelemetrySdkBackend implements TelemetryBackend {
     TelemetryConfig config,
     TelemetryPreferences preferences,
   ) async {
+    final store = HiveOfflineStore(maxEvents: 100, ttlDays: 1);
+    _analyticsStore = store;
     final host = config.rybbitHost.replaceFirst(RegExp(r'/$'), '');
     final http = RybbitHttpClient(
       host: host,
@@ -63,16 +69,27 @@ final class TelemetrySdkBackend implements TelemetryBackend {
       autoTrackLifecycle: false,
       autoUploadIcon: false,
       debug: false,
-      maxOfflineEvents: 100,
-      offlineTtlDays: 1,
+      maxOfflineEvents: store.maxEvents,
+      offlineTtlDays: store.ttlDays,
       userAgent: 'OwnDeck',
     );
   }
 
   @override
-  Future<void> stopAnalytics() async {
+  Future<void> stopAnalytics({bool clearPendingEvents = false}) async {
     try {
       await Rybbit.reset();
+      final store = _analyticsStore;
+      if (clearPendingEvents && store != null) {
+        // reset waits for in-flight retries before closing the SDK's box.
+        // Reopen its default box only after that final write has completed.
+        await store.init();
+        try {
+          await store.clear();
+        } finally {
+          await store.close();
+        }
+      }
     } finally {
       _analyticsHttp?.close();
       _analyticsHttp = null;
@@ -194,7 +211,9 @@ final class TelemetryRuntime extends ChangeNotifier {
       analyticsReady = false;
       _lastScreen = null;
       try {
-        await _backend.stopAnalytics();
+        await _backend.stopAnalytics(
+          clearPendingEvents: preferences.loaded && !preferences.analytics,
+        );
       } catch (_) {}
     }
     if (config.releaseProbe && !_closed) {

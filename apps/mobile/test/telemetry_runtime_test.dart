@@ -64,7 +64,7 @@ class FakeBackend implements TelemetryBackend {
   }
 
   @override
-  Future<void> stopAnalytics() async {
+  Future<void> stopAnalytics({bool clearPendingEvents = false}) async {
     analyticsStops++;
   }
 
