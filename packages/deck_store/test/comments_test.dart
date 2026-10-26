@@ -100,6 +100,25 @@ void main() {
     );
   });
 
+  test('closing the engine while reading comments requeues (B49)', () async {
+    await db.queueComment(account, 1, 2, 8, 'updateComment', {
+      'message': 'Changed',
+    }, original: DeckComment.fromJson(commentJson(10)));
+    late final DeckSync engine;
+    engine = sync((request) async {
+      if (request.url.path.endsWith('/boards/1')) {
+        return reply(board(1, 'Read only').raw);
+      }
+      if (request.url.path.endsWith('/cloud/user')) {
+        return reply({'id': 'uid-1'}, ocs: true);
+      }
+      engine.close();
+      return reply([commentJson(10)], ocs: true);
+    });
+    await engine.run();
+    expect((await db.writesFor(account.id)).single.state, 'queued');
+  });
+
   test(
     'uncertain comment creation is not repeated and its text survives',
     () async {

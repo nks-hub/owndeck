@@ -30,6 +30,7 @@ extension _CommentSync on DeckSync {
         DeckComment? current;
         await for (final page in client.commentPages(write.cardId!)) {
           if (_closed || !await database.acquireLease(account, _owner)) {
+            await database.markWrite(account, _owner, write.id, 'queued');
             return false;
           }
           current = page
@@ -78,6 +79,7 @@ extension _CommentSync on DeckSync {
         path.add('${current.id}');
       }
       if (_closed || !await database.acquireLease(account, _owner)) {
+        await database.markWrite(account, _owner, write.id, 'queued');
         return false;
       }
       mutationStarted = true;
