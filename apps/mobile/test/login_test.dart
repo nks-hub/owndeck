@@ -146,9 +146,15 @@ void main() {
         scan: (_) async => null,
       ),
     );
-    expect(find.text('Your boards, one app'), findsOneWidget);
-    expect(find.byIcon(Icons.hub_outlined), findsOneWidget);
-    expect(find.byIcon(Icons.shield_outlined), findsOneWidget);
+    expect(find.text('OwnDeck'), findsOneWidget);
+    expect(find.text('Tasks and boards from your Nextcloud'), findsOneWidget);
+    expect(
+      find.text(
+        'You sign in on your server in the browser. '
+        'The app password stays on this device.',
+      ),
+      findsOneWidget,
+    );
     expect(find.byIcon(Icons.qr_code_scanner_rounded), findsOneWidget);
     expect(
       tester.widget<TextField>(find.byType(TextField)).controller!.text,
