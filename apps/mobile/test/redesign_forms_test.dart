@@ -439,7 +439,12 @@ void main() {
             tester,
             model.db.writesFor(model.account.id),
           )).single;
-          expect(jsonDecode(write.proposal), {'stackId': 10, 'order': 1});
+          expect(jsonDecode(write.proposal), {
+            'stackId': 10,
+            'order': 1,
+            'anchorCardId': 101,
+            'before': false,
+          });
           final stacks = await boardModel(
             tester,
             model.db.stackView(model.account.id, 1),

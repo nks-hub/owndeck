@@ -1165,4 +1165,33 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get writePermissionError => 'Nemáte oprávnění tuto změnu uložit.';
+
+  @override
+  String get transferCardHint =>
+      'Komentáře a přílohy zůstanou u karty. Štítky se přiřadí podle cílové nástěnky.';
+
+  @override
+  String get transferAccessHint =>
+      'Kdo kartu uvidí, bude záviset na sdílení cílové nástěnky.';
+
+  @override
+  String transferLabelLoss(String labels) {
+    return 'Tyto štítky nejsou v cílové nástěnce dostupné a při přesunu se odeberou: $labels';
+  }
+
+  @override
+  String get transferToDone =>
+      'Tento sloupec označuje přesunuté karty jako dokončené.';
+
+  @override
+  String get transferFromDone =>
+      'Přesun z hotového sloupce vrátí kartu mezi nedokončené.';
+
+  @override
+  String get transferPositionPending =>
+      'Karta už byla přesunuta. Ještě se potvrzuje její umístění.';
+
+  @override
+  String get confirmTransferRetry =>
+      'Před opakováním zbývající změny ověřte aktuální stav karty na serveru.';
 }

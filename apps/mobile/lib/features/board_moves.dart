@@ -8,6 +8,7 @@ import '../data/session.dart';
 import '../core/errors.dart';
 import '../l10n/app_localizations.dart';
 import 'board_drag.dart';
+import 'card_move_dialog.dart';
 
 bool activeBoardCard(DeckCard card) =>
     !card.archived && (card.raw['deletedAt'] ?? 0) == 0;
@@ -63,17 +64,73 @@ Future<void> queueBoardCardMove(
       board.deletedAt != 0) {
     throw StateError('permission_denied');
   }
-  final stacks = await session.database.stackView(session.account.id, board.id);
-  final move = resolveBoardDrop(stacks, drag, position);
-  if (move == null) return;
-  await session.database.queueCardAction(
-    session.account,
-    board.id,
-    move.card,
-    'moveCard',
-    {'stackId': position.stackId, 'order': move.order},
-  );
-  unawaited(session.refreshStacks(board.id));
+  final database = session.database;
+  final account = session.account;
+  var boardId = board.id;
+  final changed = await database.transaction<bool>(() async {
+    if (!await database.accepts(account.id, account.generation)) {
+      throw StateError('account_unavailable');
+    }
+    boardId =
+        await database.resolveId(account.id, board.id, 'createBoard') ??
+        board.id;
+    final current = (await database.boardView(
+      account.id,
+    )).where((value) => value.id == boardId).firstOrNull;
+    if (current == null ||
+        !current.permissions.edit ||
+        current.archived ||
+        current.deletedAt != 0) {
+      throw StateError('permission_denied');
+    }
+    final sourceId =
+        await database.resolveId(account.id, drag.stackId, 'createStack') ??
+        drag.stackId;
+    final targetId =
+        await database.resolveId(account.id, position.stackId, 'createStack') ??
+        position.stackId;
+    final cardId =
+        await database.resolveId(account.id, drag.cardId, 'createCard') ??
+        drag.cardId;
+    final anchorId = position.anchorId == null
+        ? null
+        : await database.resolveId(
+                account.id,
+                position.anchorId!,
+                'createCard',
+              ) ??
+              position.anchorId;
+    final stacks = await database.stackView(account.id, boardId);
+    final move = resolveBoardDrop(
+      stacks,
+      BoardCardDrag(
+        accountId: account.id,
+        generation: account.generation,
+        boardId: boardId,
+        stackId: sourceId,
+        cardId: cardId,
+      ),
+      BoardDropPosition(
+        targetId,
+        index: position.index,
+        anchorId: anchorId,
+        after: position.after,
+      ),
+    );
+    if (move == null) return false;
+    await database.queueCardAction(account, boardId, move.card, 'moveCard', {
+      'stackId': targetId,
+      'order': move.order,
+      if (anchorId != null ||
+          position.index == null ||
+          position.index == 0) ...{
+        'anchorCardId': anchorId,
+        'before': anchorId != null ? !position.after : position.index == 0,
+      },
+    });
+    return true;
+  });
+  if (changed) unawaited(session.refreshStacks(boardId));
 }
 
 Future<void> moveBoardCard(
@@ -100,178 +157,99 @@ Future<void> showBoardCardMove(
   BuildContext context,
   DeckSession session,
   DeckBoard board,
-  DeckCard card,
-) async {
+  DeckCard card, {
+  VoidCallback? onTransferred,
+}) async {
   final text = AppLocalizations.of(context)!;
-  List<DeckStack> stacks;
+  final database = session.database;
+  final account = session.account;
   try {
-    stacks = (await session.database.stackView(
-      session.account.id,
-      board.id,
-    )).where((s) => (s.raw['deletedAt'] ?? 0) == 0).toList();
-  } catch (_) {
+    final sourceId =
+        await database.resolveId(account.id, board.id, 'createBoard') ??
+        board.id;
+    final boards = (await database.boardView(account.id))
+        .where(
+          (value) =>
+              value.permissions.read &&
+              value.permissions.edit &&
+              !value.archived &&
+              value.deletedAt == 0 &&
+              value.raw['externalId'] == null,
+        )
+        .toList();
+    final source = boards.where((value) => value.id == sourceId).firstOrNull;
+    if (source == null) throw StateError('permission_denied');
+    final stacks = (await database.stackView(
+      account.id,
+      sourceId,
+    )).where((stack) => (stack.raw['deletedAt'] ?? 0) == 0).toList();
+    final cardId =
+        await database.resolveId(account.id, card.id, 'createCard') ?? card.id;
+    final current = stacks
+        .expand((stack) => stack.cards)
+        .where((value) => value.id == cardId && activeBoardCard(value))
+        .firstOrNull;
+    if (current == null) throw StateError('card_unavailable');
+    if (!context.mounted) return;
+    final move = await showDialog<CardMoveDestination>(
+      context: context,
+      builder: (_) => CardMoveDialog(
+        session: session,
+        source: source,
+        card: current,
+        boards: boards,
+        stacks: stacks,
+      ),
+    );
+    if (move == null || !context.mounted) return;
+    final resolvedSource =
+        await database.resolveId(account.id, sourceId, 'createBoard') ??
+        sourceId;
+    final targetId =
+        await database.resolveId(account.id, move.board.id, 'createBoard') ??
+        move.board.id;
+    if (resolvedSource == targetId) {
+      await queueBoardCardMove(
+        session,
+        source,
+        BoardCardDrag(
+          accountId: account.id,
+          generation: account.generation,
+          boardId: source.id,
+          stackId: current.stackId,
+          cardId: current.id,
+        ),
+        BoardDropPosition(
+          move.stack.id,
+          anchorId: move.anchorCardId,
+          after: !move.before,
+          index: move.anchorCardId == null && move.before ? 0 : null,
+        ),
+      );
+    } else {
+      await database.queueCardTransfer(
+        account,
+        sourceId,
+        current,
+        destinationBoardId: targetId,
+        destinationStackId: move.stack.id,
+        anchorCardId: move.anchorCardId,
+        before: move.before,
+      );
+      if (context.mounted) onTransferred?.call();
+      unawaited(session.refreshStacks(resolvedSource));
+      unawaited(session.refreshStacks(targetId));
+    }
     if (context.mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(text.storageError)));
+      ).showSnackBar(SnackBar(content: Text(text.savedLocally)));
     }
-    return;
-  }
-  if (!context.mounted ||
-      stacks.isEmpty ||
-      !board.permissions.edit ||
-      board.archived ||
-      !activeBoardCard(card)) {
-    return;
-  }
-
-  final move = await showDialog<BoardDropPosition>(
-    context: context,
-    builder: (_) => _BoardMoveDialog(stacks: stacks, card: card),
-  );
-  if (move != null && context.mounted) {
-    await moveBoardCard(
-      context,
-      session,
-      board,
-      BoardCardDrag(
-        accountId: session.account.id,
-        generation: session.account.generation,
-        boardId: board.id,
-        stackId: card.stackId,
-        cardId: card.id,
-      ),
-      move,
-    );
-  }
-}
-
-class _BoardMoveDialog extends StatefulWidget {
-  const _BoardMoveDialog({required this.stacks, required this.card});
-  final List<DeckStack> stacks;
-  final DeckCard card;
-  @override
-  State<_BoardMoveDialog> createState() => _BoardMoveDialogState();
-}
-
-class _BoardMoveDialogState extends State<_BoardMoveDialog> {
-  late int _destination = widget.stacks.any((s) => s.id == widget.card.stackId)
-      ? widget.card.stackId
-      : widget.stacks.first.id;
-  String _placement = 'end';
-  int? _anchor;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = AppLocalizations.of(context)!;
-    final cards = widget.stacks
-        .firstWhere((s) => s.id == _destination)
-        .cards
-        .where((c) => activeBoardCard(c) && c.id != widget.card.id)
-        .toList();
-    final relative = _placement == 'before' || _placement == 'after';
-    return AlertDialog(
-      scrollable: true,
-      title: Text(text.moveCard),
-      content: SizedBox(
-        width: 360,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              widget.card.title,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<int>(
-              initialValue: _destination,
-              isExpanded: true,
-              decoration: InputDecoration(labelText: text.destinationColumn),
-              items: [
-                for (final stack in widget.stacks)
-                  DropdownMenuItem(
-                    value: stack.id,
-                    child: Text(stack.title, overflow: TextOverflow.ellipsis),
-                  ),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _destination = value;
-                    _anchor = null;
-                    _placement = 'end';
-                  });
-                }
-              },
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              key: ValueKey(('placement', _destination, _placement)),
-              initialValue: _placement,
-              isExpanded: true,
-              decoration: InputDecoration(labelText: text.position),
-              items: [
-                DropdownMenuItem(value: 'start', child: Text(text.moveToTop)),
-                DropdownMenuItem(value: 'end', child: Text(text.moveToBottom)),
-                if (cards.isNotEmpty) ...[
-                  DropdownMenuItem(
-                    value: 'before',
-                    child: Text(text.moveBefore),
-                  ),
-                  DropdownMenuItem(value: 'after', child: Text(text.moveAfter)),
-                ],
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _placement = value;
-                    _anchor ??= cards.firstOrNull?.id;
-                  });
-                }
-              },
-            ),
-            if (relative) ...[
-              const SizedBox(height: 16),
-              DropdownButtonFormField<int>(
-                key: ValueKey(('anchor', _destination, _anchor)),
-                initialValue: _anchor,
-                isExpanded: true,
-                decoration: InputDecoration(labelText: text.moveRelativeCard),
-                items: [
-                  for (final card in cards)
-                    DropdownMenuItem(
-                      value: card.id,
-                      child: Text(card.title, overflow: TextOverflow.ellipsis),
-                    ),
-                ],
-                onChanged: (value) => setState(() => _anchor = value),
-              ),
-            ],
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(text.cancel),
-        ),
-        FilledButton(
-          onPressed: relative && _anchor == null
-              ? null
-              : () => Navigator.pop(
-                  context,
-                  BoardDropPosition(
-                    _destination,
-                    index: _placement == 'start' ? 0 : null,
-                    anchorId: relative ? _anchor : null,
-                    after: _placement == 'after',
-                  ),
-                ),
-          child: Text(text.moveCard),
-        ),
-      ],
-    );
+  } catch (error) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMessage(error, text))));
+    }
   }
 }

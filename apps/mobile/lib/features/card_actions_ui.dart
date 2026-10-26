@@ -176,8 +176,15 @@ extension _CardDialogs on _CardScreenState {
     if (confirmed == true && mounted) await _action(card, 'deleteCard', {});
   }
 
-  Future<void> _move(DeckBoard board, DeckCard card) =>
-      showBoardCardMove(context, widget.session, board, card);
+  Future<void> _move(DeckBoard board, DeckCard card) => showBoardCardMove(
+    context,
+    widget.session,
+    board,
+    card,
+    onTransferred: () {
+      if (mounted) Navigator.of(context).maybePop();
+    },
+  );
 
   Future<void> _labels(DeckBoard board, DeckCard card) async {
     final text = AppLocalizations.of(context)!;

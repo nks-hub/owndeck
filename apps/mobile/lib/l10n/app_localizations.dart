@@ -2233,6 +2233,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You do not have permission to save this change.'**
   String get writePermissionError;
+
+  /// No description provided for @transferCardHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The card keeps its comments and attachments. Labels are matched with the destination board.'**
+  String get transferCardHint;
+
+  /// No description provided for @transferAccessHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Who can see the card is determined by sharing on the destination board.'**
+  String get transferAccessHint;
+
+  /// No description provided for @transferLabelLoss.
+  ///
+  /// In en, this message translates to:
+  /// **'These labels are not available in the destination board and will be removed: {labels}'**
+  String transferLabelLoss(String labels);
+
+  /// No description provided for @transferToDone.
+  ///
+  /// In en, this message translates to:
+  /// **'This column marks incoming cards complete.'**
+  String get transferToDone;
+
+  /// No description provided for @transferFromDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Moving out of a done column marks the card incomplete.'**
+  String get transferFromDone;
+
+  /// No description provided for @transferPositionPending.
+  ///
+  /// In en, this message translates to:
+  /// **'The card has moved. Its position is still being confirmed.'**
+  String get transferPositionPending;
+
+  /// No description provided for @confirmTransferRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the card on the server before sending the remaining change again.'**
+  String get confirmTransferRetry;
 }
 
 class _AppLocalizationsDelegate

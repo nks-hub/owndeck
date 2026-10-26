@@ -180,7 +180,12 @@ void main() {
           fixture.db.writesFor(fixture.account.id),
         );
         expect(writes.single.kind, 'moveCard');
-        expect(jsonDecode(writes.single.proposal), {'stackId': 11, 'order': 0});
+        expect(jsonDecode(writes.single.proposal), {
+          'stackId': 11,
+          'order': 0,
+          'anchorCardId': null,
+          'before': false,
+        });
         expect(
           jsonDecode(writes.single.base!)['description'],
           'Description 100',
@@ -230,7 +235,12 @@ void main() {
           tester,
           fixture.db.writesFor(fixture.account.id),
         );
-        expect(jsonDecode(writes.single.proposal), {'stackId': 10, 'order': 1});
+        expect(jsonDecode(writes.single.proposal), {
+          'stackId': 10,
+          'order': 1,
+          'anchorCardId': 102,
+          'before': true,
+        });
         final stacks = await boardModel(
           tester,
           fixture.db.stackView(fixture.account.id, 1),
@@ -288,7 +298,14 @@ void main() {
         ),
         findsNothing,
       );
-      final placement = find.byKey(const ValueKey(('placement', 10, 'end')));
+      final placement = find.byKey(
+        const ValueKey<(String, int, int?, String)>((
+          'move-placement',
+          1,
+          10,
+          'end',
+        )),
+      );
       await tester.ensureVisible(placement);
       await tester.tap(placement);
       await tester.pumpAndSettle();
@@ -303,7 +320,12 @@ void main() {
         tester,
         fixture.db.writesFor(fixture.account.id),
       );
-      expect(jsonDecode(writes.single.proposal), {'stackId': 10, 'order': 1});
+      expect(jsonDecode(writes.single.proposal), {
+        'stackId': 10,
+        'order': 1,
+        'anchorCardId': 101,
+        'before': false,
+      });
       expect(tester.takeException(), isNull);
     } finally {
       await tester.pumpWidget(const SizedBox());

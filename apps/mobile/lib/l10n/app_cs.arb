@@ -396,5 +396,19 @@
   "permissionAllowed": "Povoleno",
   "permissionNotAllowed": "Nepovoleno",
   "localSaveError": "Změny se nepodařilo uložit v zařízení. Zkuste to znovu.",
-  "writePermissionError": "Nemáte oprávnění tuto změnu uložit."
+  "writePermissionError": "Nemáte oprávnění tuto změnu uložit.",
+  "transferCardHint": "Komentáře a přílohy zůstanou u karty. Štítky se přiřadí podle cílové nástěnky.",
+  "transferAccessHint": "Kdo kartu uvidí, bude záviset na sdílení cílové nástěnky.",
+  "transferLabelLoss": "Tyto štítky nejsou v cílové nástěnce dostupné a při přesunu se odeberou: {labels}",
+  "transferToDone": "Tento sloupec označuje přesunuté karty jako dokončené.",
+  "transferFromDone": "Přesun z hotového sloupce vrátí kartu mezi nedokončené.",
+  "transferPositionPending": "Karta už byla přesunuta. Ještě se potvrzuje její umístění.",
+  "confirmTransferRetry": "Před opakováním zbývající změny ověřte aktuální stav karty na serveru.",
+  "@transferLabelLoss": {
+    "placeholders": {
+      "labels": {
+        "type": "String"
+      }
+    }
+  }
 }

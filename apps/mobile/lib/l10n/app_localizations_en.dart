@@ -1163,4 +1163,32 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get writePermissionError =>
       'You do not have permission to save this change.';
+
+  @override
+  String get transferCardHint =>
+      'The card keeps its comments and attachments. Labels are matched with the destination board.';
+
+  @override
+  String get transferAccessHint =>
+      'Who can see the card is determined by sharing on the destination board.';
+
+  @override
+  String transferLabelLoss(String labels) {
+    return 'These labels are not available in the destination board and will be removed: $labels';
+  }
+
+  @override
+  String get transferToDone => 'This column marks incoming cards complete.';
+
+  @override
+  String get transferFromDone =>
+      'Moving out of a done column marks the card incomplete.';
+
+  @override
+  String get transferPositionPending =>
+      'The card has moved. Its position is still being confirmed.';
+
+  @override
+  String get confirmTransferRetry =>
+      'Check the card on the server before sending the remaining change again.';
 }

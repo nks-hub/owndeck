@@ -396,5 +396,19 @@
   "permissionAllowed": "Allowed",
   "permissionNotAllowed": "Not allowed",
   "localSaveError": "Changes could not be saved on this device. Try again.",
-  "writePermissionError": "You do not have permission to save this change."
+  "writePermissionError": "You do not have permission to save this change.",
+  "transferCardHint": "The card keeps its comments and attachments. Labels are matched with the destination board.",
+  "transferAccessHint": "Who can see the card is determined by sharing on the destination board.",
+  "transferLabelLoss": "These labels are not available in the destination board and will be removed: {labels}",
+  "transferToDone": "This column marks incoming cards complete.",
+  "transferFromDone": "Moving out of a done column marks the card incomplete.",
+  "transferPositionPending": "The card has moved. Its position is still being confirmed.",
+  "confirmTransferRetry": "Check the card on the server before sending the remaining change again.",
+  "@transferLabelLoss": {
+    "placeholders": {
+      "labels": {
+        "type": "String"
+      }
+    }
+  }
 }
