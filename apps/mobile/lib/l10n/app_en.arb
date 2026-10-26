@@ -303,7 +303,7 @@
   "copyTechnicalDetails": "Copy technical details",
   "technicalDetailsCopied": "Technical details copied.",
   "adviceMaintenance": "The server is in maintenance mode. Try again once the administrator has finished.",
-  "adviceCertificate": "The server certificate is not trusted. Check the certificate of this account or ask the administrator.",
+  "adviceCertificate": "Check the certificate of this account or ask the administrator.",
   "adviceTimeout": "The server did not answer in time. Check your connection and try again.",
   "adviceDeckMissing": "The Deck app is not available on this server. Ask the administrator to install or enable it.",
   "projects": "Projects",

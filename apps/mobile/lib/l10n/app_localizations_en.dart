@@ -903,7 +903,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adviceCertificate =>
-      'The server certificate is not trusted. Check the certificate of this account or ask the administrator.';
+      'Check the certificate of this account or ask the administrator.';
 
   @override
   String get adviceTimeout =>

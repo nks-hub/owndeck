@@ -1745,7 +1745,7 @@ abstract class AppLocalizations {
   /// No description provided for @adviceCertificate.
   ///
   /// In en, this message translates to:
-  /// **'The server certificate is not trusted. Check the certificate of this account or ask the administrator.'**
+  /// **'Check the certificate of this account or ask the administrator.'**
   String get adviceCertificate;
 
   /// No description provided for @adviceTimeout.

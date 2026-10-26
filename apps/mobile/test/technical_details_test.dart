@@ -81,7 +81,7 @@ void main() {
     ),
     'certificate': (
       answer: () async => throw const TlsException('bad certificate'),
-      advice: 'The server certificate is not trusted.',
+      advice: 'Check the certificate of this account',
     ),
     'timeout': (
       answer: () async => throw TimeoutException('slow'),
@@ -161,6 +161,7 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpAndSettle();
       session.dispose();
+      await tester.pumpAndSettle();
     });
   }
 

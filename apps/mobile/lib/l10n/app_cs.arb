@@ -303,7 +303,7 @@
   "copyTechnicalDetails": "Zkopírovat technické údaje",
   "technicalDetailsCopied": "Technické údaje byly zkopírovány.",
   "adviceMaintenance": "Server je v režimu údržby. Zkuste to znovu, až správce údržbu dokončí.",
-  "adviceCertificate": "Certifikát serveru není důvěryhodný. Zkontrolujte certifikát účtu nebo se obraťte na správce.",
+  "adviceCertificate": "Zkontrolujte certifikát tohoto účtu nebo se obraťte na správce.",
   "adviceTimeout": "Server neodpověděl včas. Zkontrolujte připojení a zkuste to znovu.",
   "adviceDeckMissing": "Aplikace Deck na tomto serveru není dostupná. Požádejte správce, aby ji nainstaloval nebo zapnul.",
   "projects": "Projekty",

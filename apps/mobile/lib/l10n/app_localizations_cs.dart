@@ -905,7 +905,7 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get adviceCertificate =>
-      'Certifikát serveru není důvěryhodný. Zkontrolujte certifikát účtu nebo se obraťte na správce.';
+      'Zkontrolujte certifikát tohoto účtu nebo se obraťte na správce.';
 
   @override
   String get adviceTimeout =>
