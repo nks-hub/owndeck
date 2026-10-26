@@ -174,9 +174,20 @@ class _StructureFormState extends State<_StructureForm> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => Padding(
+    // Avoid moving the dialog through an inset animation with stale iOS semantics.
+    padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+    child: MediaQuery.removeViewInsets(
+      context: context,
+      removeBottom: true,
+      child: _dialog(context),
+    ),
+  );
+
+  Widget _dialog(BuildContext context) {
     final text = AppLocalizations.of(context)!;
     return AlertDialog(
+      alignment: Alignment.topCenter,
       scrollable: true,
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       title: Text(
