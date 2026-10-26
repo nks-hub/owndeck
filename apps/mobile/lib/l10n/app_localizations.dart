@@ -1724,6 +1724,42 @@ abstract class AppLocalizations {
   /// **'Sharing failed.'**
   String get shareError;
 
+  /// No description provided for @copyTechnicalDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy technical details'**
+  String get copyTechnicalDetails;
+
+  /// No description provided for @technicalDetailsCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Technical details copied.'**
+  String get technicalDetailsCopied;
+
+  /// No description provided for @adviceMaintenance.
+  ///
+  /// In en, this message translates to:
+  /// **'The server is in maintenance mode. Try again once the administrator has finished.'**
+  String get adviceMaintenance;
+
+  /// No description provided for @adviceCertificate.
+  ///
+  /// In en, this message translates to:
+  /// **'The server certificate is not trusted. Check the certificate of this account or ask the administrator.'**
+  String get adviceCertificate;
+
+  /// No description provided for @adviceTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'The server did not answer in time. Check your connection and try again.'**
+  String get adviceTimeout;
+
+  /// No description provided for @adviceDeckMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'The Deck app is not available on this server. Ask the administrator to install or enable it.'**
+  String get adviceDeckMissing;
+
   /// No description provided for @cardLinkCopied.
   ///
   /// In en, this message translates to:

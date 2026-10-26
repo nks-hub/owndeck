@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../core/errors.dart';
+import '../core/technical_details.dart';
 import '../data/session.dart';
 import '../l10n/app_localizations.dart';
 
@@ -16,6 +20,18 @@ class SyncNotice extends StatelessWidget {
   final String scope;
   final VoidCallback retry;
   final bool hasData;
+
+  Future<void> _copyDetails(BuildContext context, Object error) async {
+    final text = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    final details = await technicalDetails(
+      error,
+      serverVersion: session.capabilities?.serverVersion,
+      deckVersion: session.capabilities?.version,
+    );
+    await Clipboard.setData(ClipboardData(text: details));
+    messenger.showSnackBar(SnackBar(content: Text(text.technicalDetailsCopied)));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,11 +56,22 @@ class SyncNotice extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(errorMessage(error, text)),
+                      if (errorAdvice(errorCategory(error), text)
+                          case final advice?)
+                        Text(
+                          advice,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
                       if (hasData)
                         Text(
                           text.cachedData,
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
+                      TextButton.icon(
+                        onPressed: () => unawaited(_copyDetails(context, error)),
+                        icon: const Icon(Icons.copy_outlined, size: 18),
+                        label: Text(text.copyTechnicalDetails),
+                      ),
                     ],
                   ),
                 ),

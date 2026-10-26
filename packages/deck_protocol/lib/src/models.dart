@@ -28,9 +28,15 @@ final class DeckCapabilities {
     required this.apiVersion,
     required this.canCreateBoards,
     this.supportsActivity = false,
+    this.serverVersion,
   });
 
-  factory DeckCapabilities.fromJson(JsonObject capabilities) {
+  /// [serverVersion] is the Nextcloud version string, which the OCS reply keeps
+  /// outside the capabilities object.
+  factory DeckCapabilities.fromJson(
+    JsonObject capabilities, {
+    String? serverVersion,
+  }) {
     final deck = object(capabilities['deck']);
     final versions = deck['apiVersions'];
     final apiv2 = capabilities['activity'] is Map
@@ -44,12 +50,18 @@ final class DeckCapabilities {
       apiVersion: '1.1',
       canCreateBoards: deck['canCreateBoards'] == true,
       supportsActivity: apiv2 is List && apiv2.contains('filters-api'),
+      serverVersion:
+          serverVersion ??
+          (capabilities['serverVersion'] is String
+              ? capabilities['serverVersion'] as String
+              : null),
     );
   }
 
   final String version;
   final String apiVersion;
   final bool canCreateBoards;
+  final String? serverVersion;
 
   /// The Activity app advertises `apiv2` `filters-api`, which the object filter needs.
   final bool supportsActivity;

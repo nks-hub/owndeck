@@ -894,6 +894,28 @@ class AppLocalizationsCs extends AppLocalizations {
   String get shareError => 'Sdílení se nepodařilo.';
 
   @override
+  String get copyTechnicalDetails => 'Zkopírovat technické údaje';
+
+  @override
+  String get technicalDetailsCopied => 'Technické údaje byly zkopírovány.';
+
+  @override
+  String get adviceMaintenance =>
+      'Server je v režimu údržby. Zkuste to znovu, až správce údržbu dokončí.';
+
+  @override
+  String get adviceCertificate =>
+      'Certifikát serveru není důvěryhodný. Zkontrolujte certifikát účtu nebo se obraťte na správce.';
+
+  @override
+  String get adviceTimeout =>
+      'Server neodpověděl včas. Zkontrolujte připojení a zkuste to znovu.';
+
+  @override
+  String get adviceDeckMissing =>
+      'Aplikace Deck na tomto serveru není dostupná. Požádejte správce, aby ji nainstaloval nebo zapnul.';
+
+  @override
   String get cardLinkCopied => 'Odkaz na kartu byl zkopírován.';
 
   @override

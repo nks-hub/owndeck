@@ -15,6 +15,8 @@ extension StructureWrites on DeckDatabase {
               'apiVersions': [capabilities.apiVersion],
               'canCreateBoards': capabilities.canCreateBoards,
             },
+            if (capabilities.serverVersion != null)
+              'serverVersion': capabilities.serverVersion,
             if (capabilities.supportsActivity)
               'activity': {
                 'apiv2': ['filters-api'],

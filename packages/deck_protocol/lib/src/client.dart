@@ -78,8 +78,13 @@ final class DeckClient {
   Future<DeckCapabilities> capabilities() async {
     final response = await ocs('GET', ['cloud', 'capabilities']);
     try {
+      final data = object(response.data);
+      final version = data['version'];
       return DeckCapabilities.fromJson(
-        object(object(response.data)['capabilities']),
+        object(data['capabilities']),
+        serverVersion: version is Map && version['string'] is String
+            ? version['string'] as String
+            : null,
       );
     } on FormatException {
       throw const DeckException('deck_unavailable');

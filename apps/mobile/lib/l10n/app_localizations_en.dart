@@ -892,6 +892,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shareError => 'Sharing failed.';
 
   @override
+  String get copyTechnicalDetails => 'Copy technical details';
+
+  @override
+  String get technicalDetailsCopied => 'Technical details copied.';
+
+  @override
+  String get adviceMaintenance =>
+      'The server is in maintenance mode. Try again once the administrator has finished.';
+
+  @override
+  String get adviceCertificate =>
+      'The server certificate is not trusted. Check the certificate of this account or ask the administrator.';
+
+  @override
+  String get adviceTimeout =>
+      'The server did not answer in time. Check your connection and try again.';
+
+  @override
+  String get adviceDeckMissing =>
+      'The Deck app is not available on this server. Ask the administrator to install or enable it.';
+
+  @override
   String get cardLinkCopied => 'Card link copied.';
 
   @override
