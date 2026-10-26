@@ -89,12 +89,40 @@ class _PendingScreenState extends State<PendingScreen> {
   );
   late final _boards = widget.session.watchBoards();
 
+  bool _transferAccepted(PendingWrite write) {
+    if (write.kind != 'cardTransfer') return false;
+    final proposal = object(jsonDecode(write.proposal));
+    if (proposal['transferReceipt'] is Map) return true;
+    if (write.state != 'applied' || write.remote == null) return false;
+    final receipt = object(jsonDecode(write.remote!));
+    return receipt['phase'] == 'transfer' && receipt['acceptedCard'] is Map;
+  }
+
   String _decisionLabel(PendingWrite write, bool discard) {
     final text = AppLocalizations.of(context)!;
+    if (_transferAccepted(write)) {
+      return discard ? text.discardWrite : text.retry;
+    }
     if (write.state == 'conflict') {
       return discard ? text.keepServerVersion : text.useLocalChanges;
     }
     return discard ? text.discardWrite : text.retryWrite;
+  }
+
+  String _decisionMessage(PendingWrite write, bool discard) {
+    final text = AppLocalizations.of(context)!;
+    if (_transferAccepted(write)) {
+      return discard
+          ? text.confirmKeepServerVersion
+          : text.confirmTransferRetry;
+    }
+    if (write.state == 'conflict') {
+      return discard
+          ? text.confirmKeepServerVersion
+          : text.confirmUseLocalChanges;
+    }
+    if (discard) return text.confirmDiscard;
+    return write.state == 'uncertain' ? text.confirmRetry : text.blocked;
   }
 
   Future<void> _decide(PendingWrite write, bool discard) async {
@@ -107,17 +135,7 @@ class _PendingScreenState extends State<PendingScreen> {
         builder: (context) => AlertDialog(
           title: Text(_decisionLabel(write, discard)),
           content: SingleChildScrollView(
-            child: Text(
-              write.state == 'conflict'
-                  ? discard
-                        ? text.confirmKeepServerVersion
-                        : text.confirmUseLocalChanges
-                  : discard
-                  ? text.confirmDiscard
-                  : write.state == 'uncertain'
-                  ? text.confirmRetry
-                  : text.blocked,
-            ),
+            child: Text(_decisionMessage(write, discard)),
           ),
           actions: [
             TextButton(
@@ -170,7 +188,7 @@ class _PendingScreenState extends State<PendingScreen> {
     return switch (write.kind) {
       'createCard' => text.addCard,
       'updateCard' => text.editCard,
-      'moveCard' => text.moveCard,
+      'moveCard' || 'cardTransfer' => text.moveCard,
       'cloneCard' => text.copyCard,
       'archiveCard' => text.archive,
       'unarchiveCard' => text.unarchive,
@@ -418,6 +436,30 @@ class _PendingScreenState extends State<PendingScreen> {
 
   String _textValue(Object? value) => value is String ? value : '';
 
+  Widget _transferDestination(JsonObject changes, Map<int, String> boardNames) {
+    final text = AppLocalizations.of(context)!;
+    final boardId = changes['destinationBoardId'];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '${text.destinationBoard}: ${boardNames[boardId] ?? text.pendingValueUnavailable}',
+        ),
+        StreamBuilder<List<DeckStack>>(
+          stream: boardId is int ? widget.session.watchStacks(boardId) : null,
+          builder: (context, snapshot) {
+            final stack = snapshot.data
+                ?.where((stack) => stack.id == changes['destinationStackId'])
+                .firstOrNull;
+            return Text(
+              '${text.destinationColumn}: ${stack?.title ?? text.pendingValueUnavailable}',
+            );
+          },
+        ),
+      ],
+    );
+  }
+
   Widget _writeCard(PendingWrite write, Map<int, String> boardNames) {
     final text = AppLocalizations.of(context)!;
     final changes = object(jsonDecode(write.proposal));
@@ -481,9 +523,15 @@ class _PendingScreenState extends State<PendingScreen> {
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
-            if (boardNames[write.boardId] case final String board)
-              Text(board, style: Theme.of(context).textTheme.bodySmall),
+            if (write.kind != 'cardTransfer')
+              if (boardNames[write.boardId] case final String board)
+                Text(board, style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: 12),
+            if (_transferAccepted(write))
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(text.transferPositionPending),
+              ),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -493,7 +541,9 @@ class _PendingScreenState extends State<PendingScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            if (card && write.state == 'conflict')
+            if (write.kind == 'cardTransfer')
+              _transferDestination(changes, boardNames)
+            else if (card && write.state == 'conflict')
               _cardComparison({...base, ...changes}, remoteCard)
             else if (card)
               ExpansionTile(
