@@ -1277,4 +1277,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bulkSelectionKept => 'Cards that were not saved stay selected.';
+
+  @override
+  String get addChecklistItems => 'Add checklist items';
+
+  @override
+  String get addChecklistItemsHelp => 'One item per line';
+
+  @override
+  String get addItems => 'Add';
+
+  @override
+  String get hideCompletedItems => 'Hide completed';
+
+  @override
+  String get allItemsCompleted => 'All items are completed';
 }

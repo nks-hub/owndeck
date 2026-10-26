@@ -101,6 +101,51 @@ Inline `- [ ] Code`
     );
   });
 
+  test('pasted lines become tasks and the original text stays a prefix', () {
+    const source = 'Intro 🐈\r\n\r\n- [x] Done\r\n\r\nTail';
+    final result = appendMarkdownTasks(
+      source,
+      'One\n\n- Two\n* [x] Three\n1. [ ] Four\r\n  \n',
+    );
+    expect(
+      result,
+      '$source\r\n\r\n- [ ] One\r\n- [ ] Two\r\n- [x] Three\r\n- [ ] Four\r\n',
+    );
+    expect(markdownTasks(result).map((task) => task.label), [
+      'Done',
+      'One',
+      'Two',
+      'Three',
+      'Four',
+    ]);
+  });
+
+  test('appended tasks join a trailing checklist or follow a blank line', () {
+    expect(appendMarkdownTasks('- [ ] A\n', 'B'), '- [ ] A\n- [ ] B\n');
+    expect(appendMarkdownTasks('Text\n', 'B'), 'Text\n\n- [ ] B\n');
+    expect(appendMarkdownTasks('', 'A\nB'), '- [ ] A\n- [ ] B\n');
+    expect(appendMarkdownTasks('Text', ' \n\n'), 'Text');
+  });
+
+  test('hiding completed tasks removes only their lines from the view', () {
+    const source =
+        'Intro\n\n- [x] Done\n- [ ] Open\n- [x] Parent\n'
+        '  - [ ] Child\n- [X] Last';
+    final hidden = hideCompletedTasks(source);
+    expect(hidden.view, 'Intro\n\n- [ ] Open\n- [x] Parent\n  - [ ] Child\n');
+    expect(hidden.tasks.map((task) => task.label), ['Open', 'Parent', 'Child']);
+    for (final task in hidden.tasks) {
+      expect(
+        toggleMarkdownTask(source, task, !task.checked).length,
+        source.length,
+      );
+    }
+    expect(
+      toggleMarkdownTask(source, hidden.tasks.first, true),
+      source.replaceFirst('- [ ] Open', '- [x] Open'),
+    );
+  });
+
   test('invalid stored offsets are rejected without modifying the source', () {
     const source = '- [ ] Task';
     for (final offset in [-1, source.length, 0, 2]) {

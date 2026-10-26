@@ -278,6 +278,79 @@ void main() {
     },
   );
 
+  testWidgets('multi-line input appends one task per line through the outbox', (
+    tester,
+  ) async {
+    await _using(tester, (fixture) async {
+      final stream = fixture.database.watchCard(fixture.account.id, 1, 8);
+      await tester.pumpWidget(
+        localizedTestApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: StreamBuilder<DeckCard?>(
+                stream: stream,
+                initialData: fixture.card,
+                builder: (_, snapshot) =>
+                    _descriptionWidget(fixture, snapshot.data!),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Add checklist items'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'Alpha\n- Beta\n\nGamma');
+      await tester.tap(find.widgetWithText(FilledButton, 'Add'));
+      final expected = '$_description\n- [ ] Alpha\n- [ ] Beta\n- [ ] Gamma\n';
+      await _until(
+        tester,
+        () =>
+            fixture.remoteCard['description'] == expected &&
+            !fixture.session.loading('board:1'),
+      );
+      expect(fixture.queuedBeforePut.single['description'], expected);
+      expect(find.byType(Checkbox), findsNWidgets(5));
+    });
+  });
+
+  testWidgets('hiding completed items keeps toggles on the original source', (
+    tester,
+  ) async {
+    await _using(tester, (fixture) async {
+      final stream = fixture.database.watchCard(fixture.account.id, 1, 8);
+      await tester.pumpWidget(
+        localizedTestApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: StreamBuilder<DeckCard?>(
+                stream: stream,
+                initialData: fixture.card,
+                builder: (_, snapshot) =>
+                    _descriptionWidget(fixture, snapshot.data!),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Hide completed'));
+      await tester.pumpAndSettle();
+      expect(find.byType(Checkbox), findsOneWidget);
+      expect(find.textContaining('Second'), findsNothing);
+      await tester.tap(find.byType(Checkbox));
+      final checked = _description.replaceFirst('- [ ] First', '- [x] First');
+      await _until(
+        tester,
+        () =>
+            fixture.remoteCard['description'] == checked &&
+            !fixture.session.loading('board:1'),
+      );
+      expect(find.byType(Checkbox), findsNothing);
+      expect(find.text('All items are completed'), findsNothing);
+    });
+  });
+
   testWidgets('read-only description disables tasks and produces no writes', (
     tester,
   ) async {

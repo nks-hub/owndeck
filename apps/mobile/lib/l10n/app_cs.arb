@@ -424,19 +424,60 @@
   "selectCard": "Vybrat kartu",
   "cancelSelection": "Zrušit výběr",
   "selectedCardsCount": "Vybráno: {count}",
-  "@selectedCardsCount": {"placeholders": {"count": {"type": "int"}}},
+  "@selectedCardsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "moveSelectedCards": "Přesunout vybrané karty",
   "archiveSelectedCards": "Archivovat vybrané karty",
   "bulkAllQueued": "Změny uložené v telefonu: {count}. Čekají na potvrzení serverem.",
-  "@bulkAllQueued": {"placeholders": {"count": {"type": "int"}}},
+  "@bulkAllQueued": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "bulkResultTitle": "Výsledek u každé karty",
   "bulkSummary": "Uloženo: {queued}, selhalo: {failed}, bez oprávnění: {blocked}.",
-  "@bulkSummary": {"placeholders": {"queued": {"type": "int"}, "failed": {"type": "int"}, "blocked": {"type": "int"}}},
+  "@bulkSummary": {
+    "placeholders": {
+      "queued": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "blocked": {
+        "type": "int"
+      }
+    }
+  },
   "bulkStatusQueued": "Uloženo v telefonu, čeká na server",
   "bulkStatusFailed": "Neuloženo: {error}",
-  "@bulkStatusFailed": {"placeholders": {"error": {"type": "String"}}},
+  "@bulkStatusFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "bulkStatusBlocked": "Chybí oprávnění, nic se nezměnilo",
   "bulkRetryFailed": "Zkusit znovu neúspěšné ({count})",
-  "@bulkRetryFailed": {"placeholders": {"count": {"type": "int"}}},
-  "bulkSelectionKept": "Karty, které se neuložily, zůstávají vybrané."
+  "@bulkRetryFailed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkSelectionKept": "Karty, které se neuložily, zůstávají vybrané.",
+  "addChecklistItems": "Přidat položky seznamu",
+  "addChecklistItemsHelp": "Jedna položka na řádek",
+  "addItems": "Přidat",
+  "hideCompletedItems": "Skrýt hotové",
+  "allItemsCompleted": "Všechny položky jsou hotové"
 }

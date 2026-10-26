@@ -101,3 +101,79 @@ String toggleMarkdownTask(String source, MarkdownTask task, bool checked) {
   }
   return source.replaceRange(task.offset, task.offset + 1, checked ? 'x' : ' ');
 }
+
+final _taskLine = RegExp(
+  r'^[ \t]*(?:>[ \t]*)*(?:[-+*]|\d+[.)])[ \t]+\[[ xX]\]',
+);
+final _listMarker = RegExp(
+  r'^[ \t]*(?:[-+*]|\d+[.)])[ \t]+(?:\[([ xX])\][ \t]+)?',
+);
+
+/// Appends one `- [ ] ` task per non-blank line of [input] to [source].
+///
+/// Existing bullet or checkbox prefixes in [input] are normalised; the
+/// original text is never rewritten, only extended.
+String appendMarkdownTasks(String source, String input) {
+  final items = <String>[];
+  for (final raw in const LineSplitter().convert(input)) {
+    final marker = _listMarker.firstMatch(raw);
+    final label = raw.substring(marker?.end ?? 0).trim();
+    if (label.isEmpty) continue;
+    final done = marker?[1]?.toLowerCase() == 'x';
+    items.add('- [${done ? 'x' : ' '}] $label');
+  }
+  if (items.isEmpty) return source;
+  final eol = source.contains('\r\n') ? '\r\n' : '\n';
+  final body = items.join(eol);
+  if (source.trim().isEmpty) return '$body$eol';
+  final lines = const LineSplitter().convert(source.trimRight());
+  final separator = source.endsWith('\n') ? '' : eol;
+  final blank = _taskLine.hasMatch(lines.last) ? '' : eol;
+  return '$source$separator$blank$body$eol';
+}
+
+/// Removes completed leaf tasks from [source] for display only.
+///
+/// Returns the reduced Markdown and the remaining tasks, which keep their
+/// offsets in the original [source]. A completed task with indented lines
+/// below it stays visible so unfinished sub-items are not hidden.
+({String view, List<MarkdownTask> tasks}) hideCompletedTasks(String source) {
+  final tasks = markdownTasks(source);
+  final ranges = <(int, int)>[];
+  final kept = <MarkdownTask>[];
+  for (final task in tasks) {
+    if (!task.checked) {
+      kept.add(task);
+      continue;
+    }
+    final start = source.lastIndexOf('\n', task.offset) + 1;
+    var end = source.indexOf('\n', task.offset);
+    end = end < 0 ? source.length : end + 1;
+    if (_hasIndentedChild(source, start, end)) {
+      kept.add(task);
+    } else {
+      ranges.add((start, end));
+    }
+  }
+  final view = StringBuffer();
+  var from = 0;
+  for (final (start, end) in ranges) {
+    view.write(source.substring(from, start));
+    from = end;
+  }
+  view.write(source.substring(from));
+  return (view: view.toString(), tasks: kept);
+}
+
+bool _hasIndentedChild(String source, int start, int end) {
+  int indent(String line) => line.length - line.trimLeft().length;
+  final own = indent(source.substring(start, end));
+  for (var pos = end; pos < source.length;) {
+    var next = source.indexOf('\n', pos);
+    next = next < 0 ? source.length : next + 1;
+    final line = source.substring(pos, next);
+    if (line.trim().isNotEmpty) return indent(line) > own;
+    pos = next;
+  }
+  return false;
+}

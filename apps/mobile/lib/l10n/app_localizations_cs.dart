@@ -1281,4 +1281,19 @@ class AppLocalizationsCs extends AppLocalizations {
   @override
   String get bulkSelectionKept =>
       'Karty, které se neuložily, zůstávají vybrané.';
+
+  @override
+  String get addChecklistItems => 'Přidat položky seznamu';
+
+  @override
+  String get addChecklistItemsHelp => 'Jedna položka na řádek';
+
+  @override
+  String get addItems => 'Přidat';
+
+  @override
+  String get hideCompletedItems => 'Skrýt hotové';
+
+  @override
+  String get allItemsCompleted => 'Všechny položky jsou hotové';
 }

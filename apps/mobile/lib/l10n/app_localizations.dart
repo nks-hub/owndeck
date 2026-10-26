@@ -2413,6 +2413,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cards that were not saved stay selected.'**
   String get bulkSelectionKept;
+
+  /// No description provided for @addChecklistItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Add checklist items'**
+  String get addChecklistItems;
+
+  /// No description provided for @addChecklistItemsHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'One item per line'**
+  String get addChecklistItemsHelp;
+
+  /// No description provided for @addItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get addItems;
+
+  /// No description provided for @hideCompletedItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide completed'**
+  String get hideCompletedItems;
+
+  /// No description provided for @allItemsCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'All items are completed'**
+  String get allItemsCompleted;
 }
 
 class _AppLocalizationsDelegate

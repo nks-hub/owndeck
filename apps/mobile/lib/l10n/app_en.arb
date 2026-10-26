@@ -424,19 +424,60 @@
   "selectCard": "Select card",
   "cancelSelection": "Cancel selection",
   "selectedCardsCount": "Selected: {count}",
-  "@selectedCardsCount": {"placeholders": {"count": {"type": "int"}}},
+  "@selectedCardsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "moveSelectedCards": "Move selected cards",
   "archiveSelectedCards": "Archive selected cards",
   "bulkAllQueued": "{count} changes saved on this device. They await server confirmation.",
-  "@bulkAllQueued": {"placeholders": {"count": {"type": "int"}}},
+  "@bulkAllQueued": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "bulkResultTitle": "Result per card",
   "bulkSummary": "Saved: {queued}, failed: {failed}, no permission: {blocked}.",
-  "@bulkSummary": {"placeholders": {"queued": {"type": "int"}, "failed": {"type": "int"}, "blocked": {"type": "int"}}},
+  "@bulkSummary": {
+    "placeholders": {
+      "queued": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "blocked": {
+        "type": "int"
+      }
+    }
+  },
   "bulkStatusQueued": "Saved on this device, awaiting server",
   "bulkStatusFailed": "Not saved: {error}",
-  "@bulkStatusFailed": {"placeholders": {"error": {"type": "String"}}},
+  "@bulkStatusFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "bulkStatusBlocked": "No permission, nothing changed",
   "bulkRetryFailed": "Retry failed ({count})",
-  "@bulkRetryFailed": {"placeholders": {"count": {"type": "int"}}},
-  "bulkSelectionKept": "Cards that were not saved stay selected."
+  "@bulkRetryFailed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkSelectionKept": "Cards that were not saved stay selected.",
+  "addChecklistItems": "Add checklist items",
+  "addChecklistItemsHelp": "One item per line",
+  "addItems": "Add",
+  "hideCompletedItems": "Hide completed",
+  "allItemsCompleted": "All items are completed"
 }
