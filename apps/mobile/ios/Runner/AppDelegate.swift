@@ -20,12 +20,42 @@ final class CardLinkDelivery {
   }
 }
 
+/// Receives text from `ncdeck://share?text=...&subject=...` URLs, for example from Shortcuts.
+final class ShareDelivery {
+  private var pending: [String: String]?
+  private var ready = false
+  var emit: (([String: String]) -> Void)?
+
+  func receive(_ url: URL) -> Bool {
+    guard url.scheme == "ncdeck", url.host == "share",
+      let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems
+    else { return false }
+    var value: [String: String] = [:]
+    for name in ["text", "subject"] {
+      if let item = items.first(where: { $0.name == name })?.value, !item.isEmpty {
+        value[name] = String(item.prefix(65536))
+      }
+    }
+    guard !value.isEmpty else { return false }
+    if ready, let emit { emit(value) } else { pending = value }
+    return true
+  }
+
+  func take() -> [String: String]? {
+    ready = true
+    let value = pending
+    pending = nil
+    return value
+  }
+}
+
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   let cardLinks = CardLinkDelivery()
+  let shares = ShareDelivery()
 
   override func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-    cardLinks.receive(url) || super.application(application, open: url, options: options)
+    shares.receive(url) || cardLinks.receive(url) || super.application(application, open: url, options: options)
   }
 
   override func application(
@@ -43,6 +73,12 @@ final class CardLinkDelivery {
       else { result(FlutterMethodNotImplemented) }
     }
     cardLinks.emit = { value in links.invokeMethod("link", arguments: value) }
+    let share = FlutterMethodChannel(name: "com.nkshub.nextclouddeck/share", binaryMessenger: engineBridge.applicationRegistrar.messenger())
+    share.setMethodCallHandler { [weak self] call, result in
+      if call.method == "getLaunchShare" { result(self?.shares.take()) }
+      else { result(FlutterMethodNotImplemented) }
+    }
+    shares.emit = { value in share.invokeMethod("share", arguments: value) }
     let channel = FlutterMethodChannel(name: "com.nkshub.nextclouddeck/files", binaryMessenger: engineBridge.applicationRegistrar.messenger())
     channel.setMethodCallHandler { call, result in
       guard call.method == "prepareAttachments" else {
