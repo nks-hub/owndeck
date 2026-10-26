@@ -275,7 +275,7 @@ abstract class AppLocalizations {
   /// No description provided for @removeAccountQuestion.
   ///
   /// In en, this message translates to:
-  /// **'Remove this account and all its local data from this device? Server data will be preserved.'**
+  /// **'Remove this account from the app? Its saved drafts and unsent changes will be deleted. Your content in Nextcloud will stay.'**
   String get removeAccountQuestion;
 
   /// No description provided for @remove.
@@ -2323,6 +2323,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Saved data could not be read on this device. Try opening this screen again.'**
   String get localReadError;
+
+  /// No description provided for @removeAccountAccessWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'The app password used for this account will be revoked. Other apps or devices using the same password will lose access too.'**
+  String get removeAccountAccessWarning;
 }
 
 class _AppLocalizationsDelegate

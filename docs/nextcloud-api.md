@@ -12,11 +12,13 @@ Nextcloud je rozšiřitelný systém a nemá jediné konečné API všech aplika
 
 Výchozí REST cesta je `<base>/index.php/apps/deck/api/v1.1/`. OCS je oddělené `<base>/ocs/v2.php/apps/deck/api/v1.0/`. Verzi REST a OCS neodvozovat mechanicky jednu z druhé. Základní adresa může obsahovat podadresář instalace.
 
-Všechny autentizované požadavky používají Basic Auth s přihlašovacím jménem a samostatným app password z Login Flow v2, `OCS-APIRequest: true` a `Accept: application/json`. JSON zápisy mají `Content-Type: application/json`; binární upload multipart. Přihlašovací POST/poll používá formulářová pole. Neskládat URL s heslem v userinfo.
+Všechny autentizované požadavky používají Basic Auth s přihlašovacím jménem a heslem pro aplikaci, `OCS-APIRequest: true` a `Accept: application/json`. JSON zápisy mají `Content-Type: application/json`; binární upload multipart. Přihlašovací POST/poll používá formulářová pole. Neskládat URL s heslem v userinfo.
 
 OCS odpověď má `ocs.meta` a `ocs.data`; kontrolovat nejen HTTP status, ale také úspěch obálky. REST Deck obálku nemá. Nepovažovat HTML přihlašovací stránku s HTTP 200 za úspěch. Timeout, TLS chyba, neplatný JSON a odmítnuté oprávnění jsou rozdílné chyby. Pro logy vracet jen bezpečné kódy, ne body odpovědí.
 
 Login Flow v2: POST `index.php/login/v2`, otevřít dodanou `login` URL systémovým prohlížečem, opakovaně POST `token` na dodaný poll endpoint. Poll 404 znamená čekání; po schválení server vrátí server/loginName/appPassword pouze jednou. Tok lze zrušit. Validovat origin a cestu obou vrácených URL, aby se tajný token neposlal jinému serveru. [Oficiální Login Flow](https://docs.nextcloud.com/server/stable/developer_manual/client_apis/LoginFlow/index.html).
+
+Alternativa přihlášení existujícím heslem pro aplikaci nevytváří nový token. Nextcloud 34.0.4 ověří zadané přihlašovací jméno a heslo v `apptokenRedirect`; `flowDoneWithAppPassword` pak klientovi předá stejné heslo. Běžné schválení přes `flowDone` naopak generuje nový token. Odvolání převzatého hesla proto může odpojit další aplikace, které je sdílejí; potvrzení odebrání účtu musí tento důsledek vysvětlit. Podklady: [controller](https://github.com/nextcloud/server/blob/v34.0.4/core/Controller/ClientFlowLoginV2Controller.php), [služba Login Flow v2](https://github.com/nextcloud/server/blob/v34.0.4/core/Service/LoginFlowV2Service.php).
 
 ## Modely
 
@@ -80,7 +82,7 @@ Tyto nálezy vycházejí ze zdrojů, nikoli ze spuštění exploitu či měřen�
 | Status | `/status.php` | Verze a údržba; bez přihlašovacích údajů, ne jako jediný test dostupnosti Decku. |
 | Capabilities | `/ocs/v2.php/cloud/capabilities` | Zjistit Deck, verzi a možnosti; bezpečně vypnout nedostupné funkce. |
 | Aktuální uživatel | `/ocs/v2.php/cloud/user` | UID a zobrazované jméno pro vlastní přiřazené úkoly. |
-| App password | Login Flow v2 a OCS core apppassword | Vlastní token aplikace, jeho odvolání při odebrání účtu. |
+| App password | Login Flow v2 a OCS core apppassword | Použité heslo pro aplikaci a jeho odvolání při odebrání účtu; upozornit na případné sdílení s dalšími klienty. |
 | Sharees | `/ocs/v2.php/apps/files_sharing/api/v1/sharees` | Hledání příjemců sdílení, typy filtrovat podle Decku. |
 | Autocomplete Deck | `/ocs/v2.php/core/autocomplete/get` | Primární hledání příjemců podle vydaného `src/stores/settings.js`; podporuje uživatele, skupiny, vzdálené uživatele a týmy. |
 | Files sharing | `/ocs/v2.php/apps/files_sharing/api/v1/shares` | Pouze když operace přílohy potřebuje vlastní share; práva nástěnky jsou Deck ACL. |

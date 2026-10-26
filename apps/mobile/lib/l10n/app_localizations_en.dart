@@ -102,7 +102,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get removeAccountQuestion =>
-      'Remove this account and all its local data from this device? Server data will be preserved.';
+      'Remove this account from the app? Its saved drafts and unsent changes will be deleted. Your content in Nextcloud will stay.';
 
   @override
   String get remove => 'Remove';
@@ -1221,4 +1221,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get localReadError =>
       'Saved data could not be read on this device. Try opening this screen again.';
+
+  @override
+  String get removeAccountAccessWarning =>
+      'The app password used for this account will be revoked. Other apps or devices using the same password will lose access too.';
 }

@@ -29,7 +29,7 @@
   "browserError": "The browser could not be opened.",
   "loadError": "The content could not be loaded.",
   "removeAccount": "Remove account",
-  "removeAccountQuestion": "Remove this account and all its local data from this device? Server data will be preserved.",
+  "removeAccountQuestion": "Remove this account from the app? Its saved drafts and unsent changes will be deleted. Your content in Nextcloud will stay.",
   "remove": "Remove",
   "revocationFailed": "The account was removed from this device. Server-side revocation could not be confirmed; check connected apps in Nextcloud settings.",
   "cachedData": "Showing the saved copy.",
@@ -418,5 +418,6 @@
   "unsupportedOperation": "This action is not available here.",
   "attachmentStorageError": "The attachment could not be read or saved on this device. Try again.",
   "noSavedContent": "No content is saved on this device yet.",
-  "localReadError": "Saved data could not be read on this device. Try opening this screen again."
+  "localReadError": "Saved data could not be read on this device. Try opening this screen again.",
+  "removeAccountAccessWarning": "The app password used for this account will be revoked. Other apps or devices using the same password will lose access too."
 }

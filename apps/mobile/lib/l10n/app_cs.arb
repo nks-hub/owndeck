@@ -29,7 +29,7 @@
   "browserError": "Prohlížeč se nepodařilo otevřít.",
   "loadError": "Obsah se nepodařilo načíst.",
   "removeAccount": "Odebrat účet",
-  "removeAccountQuestion": "Odstranit účet a všechna jeho místní data z tohoto zařízení? Data na serveru zůstanou zachovaná.",
+  "removeAccountQuestion": "Odebrat účet z této aplikace? Jeho uložené koncepty a neodeslané změny se smažou. Obsah v Nextcloudu zůstane zachovaný.",
   "remove": "Odebrat",
   "revocationFailed": "Účet byl odebrán z telefonu. Odvolání přístupu na serveru se nepodařilo potvrdit; zkontrolujte aplikace v nastavení Nextcloudu.",
   "cachedData": "Zobrazuji uloženou kopii.",
@@ -418,5 +418,6 @@
   "unsupportedOperation": "Tuto akci zde nelze provést.",
   "attachmentStorageError": "Přílohu nelze v tomto zařízení přečíst nebo uložit. Zkuste akci znovu.",
   "noSavedContent": "Na tomto zařízení zatím nejsou uložená data.",
-  "localReadError": "Uložená data nelze v tomto zařízení načíst. Zkuste obrazovku otevřít znovu."
+  "localReadError": "Uložená data nelze v tomto zařízení načíst. Zkuste obrazovku otevřít znovu.",
+  "removeAccountAccessWarning": "Použité heslo pro aplikaci se zneplatní. Pokud stejné heslo používáte v dalších aplikacích či zařízeních, ztratí přístup také."
 }

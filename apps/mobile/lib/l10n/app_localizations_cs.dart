@@ -103,7 +103,7 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get removeAccountQuestion =>
-      'Odstranit účet a všechna jeho místní data z tohoto zařízení? Data na serveru zůstanou zachovaná.';
+      'Odebrat účet z této aplikace? Jeho uložené koncepty a neodeslané změny se smažou. Obsah v Nextcloudu zůstane zachovaný.';
 
   @override
   String get remove => 'Odebrat';
@@ -1224,4 +1224,8 @@ class AppLocalizationsCs extends AppLocalizations {
   @override
   String get localReadError =>
       'Uložená data nelze v tomto zařízení načíst. Zkuste obrazovku otevřít znovu.';
+
+  @override
+  String get removeAccountAccessWarning =>
+      'Použité heslo pro aplikaci se zneplatní. Pokud stejné heslo používáte v dalších aplikacích či zařízeních, ztratí přístup také.';
 }

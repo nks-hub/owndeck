@@ -20,8 +20,17 @@ class AccountsScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        scrollable: true,
         title: Text(text.removeAccount),
-        content: Text(text.removeAccountQuestion),
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(text.removeAccountQuestion),
+            const SizedBox(height: 16),
+            Text(text.removeAccountAccessWarning),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
