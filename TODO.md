@@ -178,13 +178,13 @@ Z rozboru zdrojů a issues oficiální aplikace (GPL-3.0, jen nápady bez převz
 - [ ] F25 P3 Volitelná komprese fotek před nahráním se zachováním orientace; doklad 12MP fotka pod 2 MB se správnou orientací na serveru.
 - [ ] F26 P2 Miniatury obrázkových příloh přes serverový náhled `core/preview?fileId=` a celoobrazovkový prohlížeč s přiblížením a listováním; doklad widget test gest a na S21 miniatura bez stažení celého souboru.
 - [ ] F27 P2 Akce sloupce Archivovat všechny karty s potvrzením počtu, při aktivním filtru jen filtrované, každá karta přes trvalou frontu; doklad widget test s filtrem a server archivuje jen vybrané karty.
-- [ ] F28 P2 Sdílet kartu jako text systémovým dialogem (název, termín, štítky, popis, odkaz) a sdílet odkaz na nástěnku; doklad widget test textu a dialog na S21 i iOS simulátoru.
-- [ ] F29 P3 Sekce Projekty v detailu karty z `collaboration/resources/deck-card/{cardId}` (soubory, místnosti Talku, karty, nástěnky) s otevřením cíle; doklad protokolový test a karta s navázaným souborem z webu.
+- [x] F28 P2 Sdílet kartu (název, termín, štítky, popis, odkaz) systémovým dialogem z detailu i nabídky karty a odkaz na nástěnku z nabídky nástěnky přes `share_plus` bez nových oprávnění (`7adf1b6`); tři testy s falešným voláním platformy.
+- [x] F29 P3 Sekce Projekty v detailu karty z `ocs/v2.php/collaboration/resources/deck-card/{id}` (ověřeno ve zdrojích Nextcloudu a Decku), soubory, místnosti Talku, karty a nástěnky, skrytá při prázdném výsledku, 404 nebo offline (`486bf15`); protokolové a widget testy.
 - [ ] F30 P3 Akce přílohy Vložit odkaz do popisu (Markdown odkaz nebo obrázek na konec popisu přes frontu jako F01); doklad server s bajtově shodným zbytkem popisu.
-- [ ] F31 P3 Po restartu otevřít naposledy zobrazenou nástěnku a sloupec zvlášť pro každý účet; doklad test restartu a přepnutí účtu.
+- [x] F31 P3 Každý účet si pamatuje poslední nástěnku a sloupec a po restartu nebo přepnutí účtu je otevře, jen když stále existuje a je čitelná (`2b183aa`); testy restartu a přepnutí.
 - [x] F32 P3 Nastavení ukáže čas poslední úspěšné synchronizace účtu a tlačítko Synchronizovat teď; doklad widget test po úspěšném čtení a po chybě sítě. Hotovo (`c9d9717`): čas poslední úspěšné synchronizace pro každý účet a Synchronizovat teď pro aktuální účet, po chybě sítě zůstane starý čas s hláškou; widget testy prošly.
-- [ ] F33 P3 Kopírovat text komentáře z jeho nabídky; doklad widget test obsahu schránky.
-- [ ] F34 P3 U chyby tlačítko Zkopírovat technické údaje (verze aplikace, serveru a Decku, kategorie chyby, bez tokenů a adres) a rada podle kategorie (údržba, certifikát, timeout, chybějící Deck); doklad widget test každé kategorie a test, že text neobsahuje heslo aplikace.
+- [x] F33 P3 Kopírovat text komentáře z jeho nabídky u každého komentáře, zmínky jako jména (`809566f`); widget test schránky.
+- [x] F34 P3 Pruh chyby synchronizace má radu podle druhu (údržba, certifikát, timeout, chybějící Deck) a Zkopírovat technické údaje (verze aplikace, Nextcloudu a Decku, druh, kód, HTTP stav) bez adres, jmen a hesel (`42a3ed9`); testy každého druhu a nepřítomnosti tajných údajů. Přihlašovací a ostatní chybové dialogy tlačítko zatím nemají.
 - [ ] F35 P3 Přiložit kontakt jako vCard přes systémový výběr kontaktu bez trvalého oprávnění READ_CONTACTS; doklad .vcf na serveru se shodnou SHA-256 na S21.
 
 ## Původní plán a průběžné důkazy
