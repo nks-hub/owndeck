@@ -69,8 +69,9 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - name: Select Xcode with the iOS 26 SDK
-        if: matrix.platform == 'ios'
+      # connectivity_plus uses NWPath API that only the 26 SDKs provide.
+      - name: Select Xcode with the 26 SDKs
+        if: matrix.platform == 'ios' || matrix.platform == 'macos'
         run: |
           sudo xcode-select --switch /Applications/Xcode_26.3.app/Contents/Developer
           xcodebuild -version
