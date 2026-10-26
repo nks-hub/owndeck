@@ -63,6 +63,8 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] U13 Koncepty mají typ, kontext a čas (`3c56742`); zaniklý přístup odstraní kontext. Náhled komentáře ponechán správně v description, testy prošly.
 - [x] U14 Společný `StateMessage` s nejvýše jednou akcí: hledání a Moje úkoly rozlišují filtr, neúplnou cache, potvrzeně prázdný obsah a neověřenou identitu; štítky, sdílení a vazby po chybě čtení netvrdí prázdný seznam a po ztrátě přístupu nabídnou zavření; archiv má vlastní text (`6276c24`).
 - [ ] U15 Sjednotit vzhled a význam komponent napříč všemi obrazovkami při zachování rodiny OwnTalk/Notes; ověřit světlý/tmavý režim, 200% text, klávesnici a čtečku.
+- [ ] U18 Redesign vzhledu karty na nástěnce, v seznamu, hledání i kalendáři: majitel hodnotí současný vzhled karet jako nevyhovující. Nový návrh se světlým/tmavým režimem, 200% textem a čtečkou, v rozpočtu P02 (p95 ≤ 16,7 ms na S9); ověřit snímky před/po.
+- [ ] U19 Vlastní výběr barvy pro karty, nástěnky a štítky: předvolby jen jako rychlá volba, vždy možnost libovolné vlastní barvy přes ovládací prvek výběru (odstín, sytost, světlost, náhled, kontrast textu), ovladatelný čtečkou a bez gest; zachovat stávající vlastní odstíny.
 - [x] U16 Náhled Markdownu je čitelný a omezený délkou, checkboxy v kódu nezvyšují průběh (`e91c96f`); cílené parser/widget testy prošly.
 - [x] U17 Konflikty nástěnek, štítků a sdílení ukazují známá metadata a práva bez JSON/ID/bitů (`8ef69fc`); testy porovnání prošly.
 - [x] F01 Checklist mění položku přes stejnou trvalou frontu a zachová ostatní popis (`e485272`, `6465b8e`); devět parser/widget testů a zapnutí/vypnutí ve skutečném UI kandidátu `96b8662` prošly. Finální společná revize v R06.
