@@ -2311,6 +2311,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The attachment could not be read or saved on this device. Try again.'**
   String get attachmentStorageError;
+
+  /// No description provided for @noSavedContent.
+  ///
+  /// In en, this message translates to:
+  /// **'No content is saved on this device yet.'**
+  String get noSavedContent;
 }
 
 class _AppLocalizationsDelegate

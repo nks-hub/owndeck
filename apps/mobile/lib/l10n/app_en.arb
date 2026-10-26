@@ -416,5 +416,6 @@
   "itemUnavailable": "This item is no longer available. Refresh and check its current state.",
   "attachmentMissingError": "This attachment is no longer available. Refresh the attachments.",
   "unsupportedOperation": "This action is not available here.",
-  "attachmentStorageError": "The attachment could not be read or saved on this device. Try again."
+  "attachmentStorageError": "The attachment could not be read or saved on this device. Try again.",
+  "noSavedContent": "No content is saved on this device yet."
 }

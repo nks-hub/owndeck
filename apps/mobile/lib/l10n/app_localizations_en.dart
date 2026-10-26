@@ -1214,4 +1214,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get attachmentStorageError =>
       'The attachment could not be read or saved on this device. Try again.';
+
+  @override
+  String get noSavedContent => 'No content is saved on this device yet.';
 }

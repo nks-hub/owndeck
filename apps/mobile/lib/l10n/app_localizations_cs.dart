@@ -1217,4 +1217,7 @@ class AppLocalizationsCs extends AppLocalizations {
   @override
   String get attachmentStorageError =>
       'Přílohu nelze v tomto zařízení přečíst nebo uložit. Zkuste akci znovu.';
+
+  @override
+  String get noSavedContent => 'Na tomto zařízení zatím nejsou uložená data.';
 }
