@@ -11,6 +11,8 @@ ROOT = Path(__file__).resolve().parent.parent
 BRAND = ROOT / "apps/mobile/assets/brand"
 ANDROID = ROOT / "apps/mobile/android/app/src/main/res"
 IOS = ROOT / "apps/mobile/ios/Runner/Assets.xcassets/AppIcon.appiconset"
+MACOS = ROOT / "apps/mobile/macos/Runner/Assets.xcassets/AppIcon.appiconset"
+WINDOWS_ICON = ROOT / "apps/mobile/windows/runner/resources/app_icon.ico"
 SVG = "{http://www.w3.org/2000/svg}"
 
 
@@ -108,8 +110,12 @@ def main():
     for density, size in {"mdpi": 48, "hdpi": 72, "xhdpi": 96, "xxhdpi": 144, "xxxhdpi": 192}.items():
         raster(rectangles, size).save(ANDROID / f"mipmap-{density}/ic_launcher.png", optimize=True)
     raster(rectangles, 512).save(BRAND / "play-store-icon.png", optimize=True)
+    for size in (16, 32, 64, 128, 256, 512, 1024):
+        raster(rectangles, size).save(MACOS / f"app_icon_{size}.png", optimize=True)
+    raster(rectangles, 256).save(
+        WINDOWS_ICON, sizes=[(s, s) for s in (16, 24, 32, 48, 64, 128, 256)])
     adaptive(rectangles)
-    print(f"Generated {len(sizes)} iOS icons, 5 Android bitmaps and adaptive resources.")
+    print(f"Generated {len(sizes)} iOS icons, 5 Android bitmaps, macOS and Windows icons and adaptive resources.")
 
 
 if __name__ == "__main__":
