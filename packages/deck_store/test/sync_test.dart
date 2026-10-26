@@ -196,6 +196,48 @@ void main() {
     },
   );
 
+  test('draft merged during the board read is sent, not lost (B46)', () async {
+    final original = DeckCard.fromJson(cardJson());
+    await db.saveCardDraft(account, 1, 2, {'description': 'A'}, original: original);
+    var serverCard = cardJson();
+    var boardReads = 0;
+    final puts = <String>[];
+    final sync = engine((request) async {
+      if (request.url.path.endsWith('/boards/1')) {
+        if (boardReads++ == 0) {
+          await db.saveCardDraft(account, 1, 2, {
+            'description': 'B',
+          }, original: original);
+        }
+        return response(board(1, 'Board', edit: true).raw);
+      }
+      if (request.method == 'PUT') {
+        puts.add(request.body);
+        serverCard = cardJson(description: 'B');
+        return response({
+          'ocs': {
+            'meta': {'status': 'ok', 'statuscode': 200},
+            'data': serverCard,
+          },
+        });
+      }
+      if (request.url.path.endsWith('/stacks/2')) {
+        return response({
+          'id': 2,
+          'boardId': 1,
+          'title': 'Todo',
+          'order': 0,
+          'cards': [serverCard],
+        });
+      }
+      return response(serverCard);
+    });
+    await sync.run();
+    expect(puts, isNotEmpty);
+    expect(puts.last, contains('"B"'));
+    expect(await db.writesFor(account.id), isEmpty);
+  });
+
   test('restart recovers a sending operation without replaying it', () async {
     final id = await db.saveCardDraft(account, 1, 2, {'title': 'New'});
     expect(await db.acquireLease(account, 'old-worker'), isTrue);

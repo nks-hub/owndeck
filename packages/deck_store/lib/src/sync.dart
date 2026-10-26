@@ -50,6 +50,15 @@ final class DeckSync {
   bool _closed = false;
   final _cancelled = Completer<void>();
 
+  PendingWrite? _snapshot;
+
+  Future<bool> _start(String id) => database.startWrite(
+    account,
+    _owner,
+    id,
+    expected: _snapshot?.id == id ? _snapshot : null,
+  );
+
   void close() {
     _closed = true;
     if (!_cancelled.isCompleted) _cancelled.complete();
@@ -108,8 +117,9 @@ final class DeckSync {
         for (final candidate in (await database.writesFor(
           account.id,
         )).where((w) => w.state == 'queued')) {
+          _snapshot = candidate;
           if (await database.dependencyUnavailable(candidate)) {
-            if (await database.startWrite(account, _owner, candidate.id)) {
+            if (await _start(candidate.id)) {
               await database.markWrite(
                 account,
                 _owner,
@@ -160,7 +170,7 @@ final class DeckSync {
         }
         final board = DeckBoard.fromJson(object(boardResponse.data));
         if (_closed || !await database.acquireLease(account, _owner)) return;
-        if (!await database.startWrite(account, _owner, queued.id)) continue;
+        if (!await _start(queued.id)) continue;
         final allowed =
             queued.kind.endsWith('Comment') || queued.kind == 'cloneCard'
             ? board.permissions.read && board.deletedAt == 0

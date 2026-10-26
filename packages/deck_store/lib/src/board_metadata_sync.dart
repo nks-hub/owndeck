@@ -14,7 +14,7 @@ extension _BoardMetadataSync on DeckSync {
       if (_closed || !await database.acquireLease(account, _owner)) {
         return false;
       }
-      started = await database.startWrite(account, _owner, write.id);
+      started = await _start(write.id);
       if (!started) return true;
       final acl = write.kind.endsWith('Acl');
       final allowed =
@@ -169,7 +169,7 @@ extension _BoardMetadataSync on DeckSync {
     } on DeckException catch (error) {
       if (!started) {
         if (error.status != 403 && error.status != 404) rethrow;
-        started = await database.startWrite(account, _owner, write.id);
+        started = await _start(write.id);
       }
       final retry = _shouldRetry(error, mutationStarted);
       if (started) {
@@ -189,7 +189,7 @@ extension _BoardMetadataSync on DeckSync {
       return !error.uncertain;
     } on FormatException {
       if (!started) {
-        started = await database.startWrite(account, _owner, write.id);
+        started = await _start(write.id);
       }
       if (started) {
         await database.markWrite(

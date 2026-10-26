@@ -12,7 +12,7 @@ extension _BoardCloneSync on DeckSync {
       final capabilities = await client.capabilities();
       await database.saveCapabilities(account, capabilities);
       if (!capabilities.supportsBoardCloning || !capabilities.canCreateBoards) {
-        if (await database.startWrite(account, _owner, write.id)) {
+        if (await _start(write.id)) {
           await database.markWrite(
             account,
             _owner,
@@ -39,7 +39,7 @@ extension _BoardCloneSync on DeckSync {
       if (_closed || !await database.acquireLease(account, _owner)) {
         return false;
       }
-      started = await database.startWrite(account, _owner, write.id);
+      started = await _start(write.id);
       if (!started) return true;
       mutationStarted = true;
       final created = await client.cloneBoard(write.boardId, options);
@@ -60,7 +60,7 @@ extension _BoardCloneSync on DeckSync {
       final retry = _shouldRetry(error, mutationStarted);
       if (!started && retry) rethrow;
       if (!started) {
-        started = await database.startWrite(account, _owner, write.id);
+        started = await _start(write.id);
       }
       if (started) {
         await database.markWrite(
@@ -79,7 +79,7 @@ extension _BoardCloneSync on DeckSync {
       return !error.uncertain;
     } on FormatException {
       if (!started) {
-        started = await database.startWrite(account, _owner, write.id);
+        started = await _start(write.id);
       }
       if (started) {
         await database.markWrite(

@@ -211,14 +211,31 @@ extension DeckWrites on DeckDatabase {
             );
       });
 
-  Future<bool> startWrite(StoredAccount account, String owner, String id) =>
-      transaction(() async {
+  /// Claims a queued row; with [expected] it succeeds only if the row still
+  /// holds the content the caller read, so a concurrent merge is never lost.
+  Future<bool> startWrite(
+    StoredAccount account,
+    String owner,
+    String id, {
+    PendingWrite? expected,
+  }) => transaction(() async {
         if (!await ownsLease(account, owner)) return false;
         return await (update(pendingWrites)..where(
                   (w) =>
                       w.accountId.equals(account.id) &
                       w.id.equals(id) &
-                      w.state.equals('queued'),
+                      w.state.equals('queued') &
+                      (expected == null
+                          ? const Constant(true)
+                          : w.proposal.equals(expected.proposal) &
+                                w.boardId.equals(expected.boardId) &
+                                w.stackId.equals(expected.stackId) &
+                                (expected.cardId == null
+                                    ? w.cardId.isNull()
+                                    : w.cardId.equals(expected.cardId!)) &
+                                (expected.base == null
+                                    ? w.base.isNull()
+                                    : w.base.equals(expected.base!))),
                 ))
                 .write(
                   const PendingWritesCompanion(

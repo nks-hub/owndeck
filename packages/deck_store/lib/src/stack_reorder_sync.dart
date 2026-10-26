@@ -46,7 +46,7 @@ extension _StackReorderSync on DeckSync {
       if (_closed || !await database.acquireLease(account, _owner)) {
         return false;
       }
-      started = await database.startWrite(account, _owner, write.id);
+      started = await _start(write.id);
       if (!started) return true;
       if (proposal.containsKey('legacyOrder') && write.base != null) {
         final original = object(jsonDecode(write.base!))['order'];
@@ -93,7 +93,7 @@ extension _StackReorderSync on DeckSync {
       final retry = _shouldRetry(error, mutationStarted);
       if (!started && retry) rethrow;
       if (!started) {
-        started = await database.startWrite(account, _owner, write.id);
+        started = await _start(write.id);
       }
       if (started) {
         await database.markWrite(
@@ -112,7 +112,7 @@ extension _StackReorderSync on DeckSync {
       return !error.uncertain;
     } on StateError catch (error) {
       if (!started) {
-        started = await database.startWrite(account, _owner, write.id);
+        started = await _start(write.id);
       }
       if (started) {
         await database.markWrite(
@@ -128,7 +128,7 @@ extension _StackReorderSync on DeckSync {
       return true;
     } on FormatException {
       if (!started) {
-        started = await database.startWrite(account, _owner, write.id);
+        started = await _start(write.id);
       }
       if (started) {
         await database.markWrite(

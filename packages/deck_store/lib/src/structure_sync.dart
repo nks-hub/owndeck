@@ -55,7 +55,7 @@ extension _StructureSync on DeckSync {
       if (_closed || !await database.acquireLease(account, _owner)) {
         return false;
       }
-      started = await database.startWrite(account, _owner, write.id);
+      started = await _start(write.id);
       if (!started) return true;
       if (!allowed) {
         await database.markWrite(
@@ -166,7 +166,7 @@ extension _StructureSync on DeckSync {
     } on DeckException catch (error) {
       if (!started) {
         if (error.status != 403 && error.status != 404) rethrow;
-        started = await database.startWrite(account, _owner, write.id);
+        started = await _start(write.id);
       }
       if (started) {
         final retry = _shouldRetry(error, mutationStarted);
@@ -186,7 +186,7 @@ extension _StructureSync on DeckSync {
       return !error.uncertain;
     } on FormatException {
       if (!started) {
-        started = await database.startWrite(account, _owner, write.id);
+        started = await _start(write.id);
       }
       if (started) {
         await database.markWrite(
