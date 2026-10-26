@@ -13,18 +13,35 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
+    private companion object {
+        const val MAX_SHARE_LENGTH = 65536
+    }
+
     private var linkChannel: MethodChannel? = null
     private var linkReady = false
     private var pendingLink: String? = null
+    private var shareChannel: MethodChannel? = null
+    private var shareReady = false
+    private var pendingShare: Map<String, String?>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         pendingLink = savedInstanceState?.getString("pending_card_link")
-        if (savedInstanceState == null) receiveLink(intent)
+        savedInstanceState?.getString("pending_share_text")?.let {
+            pendingShare = mapOf("text" to it, "subject" to savedInstanceState.getString("pending_share_subject"))
+        }
+        if (savedInstanceState == null) {
+            receiveLink(intent)
+            receiveShare(intent)
+        }
         super.onCreate(savedInstanceState)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         pendingLink?.let { outState.putString("pending_card_link", it) }
+        pendingShare?.let {
+            outState.putString("pending_share_text", it["text"])
+            outState.putString("pending_share_subject", it["subject"])
+        }
         super.onSaveInstanceState(outState)
     }
 
@@ -32,6 +49,17 @@ class MainActivity : FlutterActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         receiveLink(intent)
+        receiveShare(intent)
+    }
+
+    // Only plain text is read from the intent; no stream or storage access is requested.
+    private fun receiveShare(intent: Intent?) {
+        if (intent?.action != Intent.ACTION_SEND || intent.type?.startsWith("text/") != true) return
+        val text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()?.take(MAX_SHARE_LENGTH)
+        val subject = intent.getStringExtra(Intent.EXTRA_SUBJECT)?.take(MAX_SHARE_LENGTH)
+        if (text.isNullOrBlank() && subject.isNullOrBlank()) return
+        val value = mapOf("text" to text, "subject" to subject)
+        if (shareReady) shareChannel?.invokeMethod("share", value) else pendingShare = value
     }
 
     private fun receiveLink(intent: Intent?) {
@@ -52,6 +80,15 @@ class MainActivity : FlutterActivity() {
                 linkReady = true
                 val value = pendingLink
                 pendingLink = null
+                result.success(value)
+            } else result.notImplemented()
+        }
+        shareChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.nkshub.nextclouddeck/share")
+        shareChannel?.setMethodCallHandler { call, result ->
+            if (call.method == "getLaunchShare") {
+                shareReady = true
+                val value = pendingShare
+                pendingShare = null
                 result.success(value)
             } else result.notImplemented()
         }
@@ -105,6 +142,9 @@ class MainActivity : FlutterActivity() {
         linkReady = false
         linkChannel?.setMethodCallHandler(null)
         linkChannel = null
+        shareReady = false
+        shareChannel?.setMethodCallHandler(null)
+        shareChannel = null
         pendingCamera?.error("cancelled", "The camera request was cancelled.", null)
         pendingCamera = null
         super.onDestroy()
