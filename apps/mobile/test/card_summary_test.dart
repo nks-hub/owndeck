@@ -442,6 +442,30 @@ void main() {
     },
   );
 
+  testWidgets(
+    'problem card changes name their state instead of a generic label',
+    (tester) async {
+      for (final entry in {
+        'conflict': 'Conflict',
+        'uncertain': 'Check the result',
+        'blocked': 'Needs a decision',
+        'sending': 'Sending',
+        'queued': 'Queued',
+      }.entries) {
+        final card = DeckCard.fromJson({...task().raw, 'syncState': entry.key});
+        await tester.pumpWidget(
+          localizedTestApp(
+            home: Scaffold(
+              body: Card(child: CardSummary(card: card)),
+            ),
+          ),
+        );
+        expect(find.text(entry.value), findsOneWidget, reason: entry.key);
+        expect(find.text('Pending changes'), findsNothing, reason: entry.key);
+      }
+    },
+  );
+
   testWidgets('accepted card changes are not labelled as queued', (
     tester,
   ) async {

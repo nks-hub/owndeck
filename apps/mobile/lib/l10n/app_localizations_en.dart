@@ -1292,4 +1292,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get allItemsCompleted => 'All items are completed';
+
+  @override
+  String get syncConflict => 'Conflict';
+
+  @override
+  String pendingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count unsent changes',
+      one: '$count unsent change',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get invalidAttachmentError =>
+      'This file cannot be uploaded. Choose it again.';
+
+  @override
+  String get identityMismatchError =>
+      'The server answered for a different item than this change targets. Discard the change or try again.';
+
+  @override
+  String get noArchivedCards => 'There are no archived cards in this column.';
+
+  @override
+  String get noServerMatches => 'The server found no cards for this search.';
+
+  @override
+  String get noCardsYet => 'There are no cards on your boards yet.';
+
+  @override
+  String get myTasksEmpty => 'No open cards are assigned to you.';
 }

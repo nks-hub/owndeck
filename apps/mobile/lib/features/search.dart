@@ -11,6 +11,8 @@ import '../l10n/app_localizations.dart';
 import 'card_detail.dart';
 import 'card_link_dialog.dart';
 import 'card_summary.dart';
+import 'quick_add_card.dart';
+import 'state_message.dart';
 
 class CardSearchScreen extends StatelessWidget {
   const CardSearchScreen({
@@ -280,7 +282,7 @@ class _CardSearchViewState extends State<CardSearchView> {
           !_remoteBusy &&
           !_queryPending &&
           _remoteError == null)
-        _empty(text.noMatchingCards, clearFilters: _filtered),
+        _empty(text.noServerMatches, clearFilters: _filtered),
       SliverList.builder(
         itemCount: entries.length,
         itemBuilder: (context, index) {
@@ -574,6 +576,13 @@ class _CardSearchViewState extends State<CardSearchView> {
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context)!;
+    return ListenableBuilder(
+      listenable: widget.session,
+      builder: (context, _) => _resultList(text),
+    );
+  }
+
+  Widget _resultList(AppLocalizations text) {
     return CustomScrollView(
       key: const Key('card-search-results'),
       slivers: [
@@ -596,26 +605,21 @@ class _CardSearchViewState extends State<CardSearchView> {
                 );
               }
               if (snapshot.hasError) {
-                return SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      children: [
-                        Text(text.loadError),
-                        TextButton(
-                          onPressed: _refresh,
-                          child: Text(text.retry),
-                        ),
-                      ],
-                    ),
-                  ),
+                return _empty(
+                  text.localReadError,
+                  actionLabel: text.retry,
+                  onAction: _refresh,
                 );
               }
               if (result == null || !result.accountAvailable) {
                 return _empty(text.accountSearchUnavailable);
               }
               if (_mineOnly && !result.identityKnown) {
-                return _empty(text.myTasksIdentityRequired);
+                return _empty(
+                  text.myTasksIdentityRequired,
+                  actionLabel: text.retry,
+                  onAction: widget.session.refreshBoards,
+                );
               }
               final now = DateTime.now();
               final tomorrow = DateTime(now.year, now.month, now.day + 1);
@@ -627,9 +631,7 @@ class _CardSearchViewState extends State<CardSearchView> {
                         )
                         .toList()
                   : result.hits;
-              if (hits.isEmpty) {
-                return _empty(text.noMatchingCards, clearFilters: _filtered);
-              }
+              if (hits.isEmpty) return _emptyLocal(text);
               return SliverList.builder(
                 itemCount: hits.length,
                 itemBuilder: (context, index) {
@@ -666,20 +668,38 @@ class _CardSearchViewState extends State<CardSearchView> {
     );
   }
 
-  Widget _empty(String message, {bool clearFilters = false}) =>
-      SliverToBoxAdapter(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              Text(message),
-              if (clearFilters)
-                TextButton(
-                  onPressed: _clearFilters,
-                  child: Text(AppLocalizations.of(context)!.clearFilters),
-                ),
-            ],
-          ),
-        ),
+  Widget _empty(
+    String message, {
+    bool clearFilters = false,
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) => SliverToBoxAdapter(
+    child: StateMessage(
+      message: message,
+      actionLabel: clearFilters
+          ? AppLocalizations.of(context)!.clearFilters
+          : actionLabel,
+      onAction: clearFilters ? _clearFilters : onAction,
+    ),
+  );
+
+  /// Distinguishes a filtered-out result, an unfinished first sync and a
+  /// confirmed empty account for the local search.
+  Widget _emptyLocal(AppLocalizations text) {
+    if (_filtered) {
+      return _empty(text.noMatchingCards, clearFilters: true);
+    }
+    if (widget.session.error('boards') != null) {
+      return _empty(
+        text.noSavedContent,
+        actionLabel: text.retry,
+        onAction: widget.session.refreshBoards,
       );
+    }
+    return _empty(
+      _mineOnly ? text.myTasksEmpty : text.noCardsYet,
+      actionLabel: text.addCard,
+      onAction: () => showQuickAddCard(context, widget.session),
+    );
+  }
 }

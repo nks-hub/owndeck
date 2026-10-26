@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../core/markdown_tasks.dart';
 import '../core/markdown_preview.dart';
 import '../l10n/app_localizations.dart';
+import 'sync_state.dart';
 
 Iterable<JsonObject> cardObjects(Object? value) => switch (value) {
   List values => values.whereType<JsonObject>(),
@@ -317,15 +318,6 @@ class _CardMetadataState extends State<CardMetadata> {
         !overdue &&
         due.isBefore(now.add(const Duration(hours: 24)));
     final local = MaterialLocalizations.of(context);
-    final syncText = switch (sync) {
-      'sending' => text.sending,
-      'applied' => text.awaitingReadback,
-      'conflict' => text.conflict,
-      'uncertain' => text.uncertain,
-      'blocked' => text.blocked,
-      null => null,
-      _ => text.savedLocally,
-    };
     return Wrap(
       spacing: 8,
       runSpacing: 6,
@@ -405,20 +397,11 @@ class _CardMetadataState extends State<CardMetadata> {
             label: '$attachments',
             semanticLabel: '${text.attachments}: $attachments',
           ),
-        if (syncText != null)
+        if (sync != null)
           _MetadataBadge(
-            icon: switch (sync) {
-              'conflict' || 'blocked' || 'uncertain' => Icons.error_outline,
-              'applied' => Icons.sync,
-              _ => Icons.cloud_upload_outlined,
-            },
-            label: switch (sync) {
-              'sending' => text.sending,
-              'applied' => text.changeAccepted,
-              'conflict' || 'blocked' || 'uncertain' => text.pendingChanges,
-              _ => text.queued,
-            },
-            semanticLabel: syncText,
+            icon: syncStateIcon(sync),
+            label: syncStateLabel(sync, text),
+            semanticLabel: syncStateDetail(sync, text),
           ),
       ],
     );

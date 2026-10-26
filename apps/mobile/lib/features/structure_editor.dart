@@ -9,6 +9,8 @@ import '../core/errors.dart';
 import '../l10n/app_localizations.dart';
 import 'sharing.dart';
 import 'sync_notice.dart';
+import 'sync_state.dart';
+import 'state_message.dart';
 import 'board_clone_dialog.dart';
 import 'color_choices.dart';
 

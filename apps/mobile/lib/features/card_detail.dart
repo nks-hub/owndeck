@@ -19,6 +19,7 @@ import 'card_selection_sheet.dart';
 import 'color_choices.dart';
 import '../core/errors.dart';
 import 'pending.dart';
+import 'sync_state.dart';
 import 'comments.dart';
 import 'attachments.dart';
 import 'card_links.dart';
@@ -81,6 +82,9 @@ class _CardScreenState extends State<_CardContent> {
     widget.session.account.id,
     widget.board.id,
     widget.card.id,
+  );
+  late final _writes = widget.session.database.watchWrites(
+    widget.session.account.id,
   );
   late final _board = widget.session.database.watchBoard(
     widget.session.account.id,
@@ -266,8 +270,27 @@ class _CardScreenState extends State<_CardContent> {
               children: [
                 if (card.raw['syncState'] != null)
                   ListTile(
-                    title: Text(text.pendingChanges),
-                    leading: const Icon(Icons.cloud_upload_outlined),
+                    title: Text(syncStateLabel(card.raw['syncState'], text)),
+                    subtitle: StreamBuilder<List<PendingWrite>>(
+                      stream: _writes,
+                      builder: (context, writes) {
+                        final count =
+                            writes.data
+                                ?.where((write) => write.cardId == card.id)
+                                .length ??
+                            0;
+                        final detail = syncStateDetail(
+                          card.raw['syncState'],
+                          text,
+                        );
+                        return Text(
+                          count > 1
+                              ? '${text.pendingCount(count)}. $detail'
+                              : detail,
+                        );
+                      },
+                    ),
+                    leading: Icon(syncStateIcon(card.raw['syncState'])),
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
                         settings: const RouteSettings(name: '/sync'),

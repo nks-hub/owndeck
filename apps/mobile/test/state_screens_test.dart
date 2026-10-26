@@ -15,6 +15,7 @@ import 'package:nextclouddeck/core/app_preferences.dart';
 import 'package:nextclouddeck/data/session.dart';
 import 'package:nextclouddeck/features/drafts.dart';
 import 'package:nextclouddeck/features/boards.dart';
+import 'package:nextclouddeck/features/card_detail.dart';
 import 'package:nextclouddeck/features/pending.dart';
 import 'package:nextclouddeck/features/settings.dart';
 import 'package:nextclouddeck/l10n/app_localizations.dart';
@@ -254,6 +255,9 @@ void main() {
         'This attachment is no longer available. Refresh the attachments.',
     'invalid_response':
         'The server returned a response this app cannot safely use.',
+    'invalid_attachment': 'This file cannot be uploaded. Choose it again.',
+    'identity_mismatch':
+        'The server answered for a different item than this change targets. Discard the change or try again.',
     'server_private_payload':
         'This change cannot be sent. Check access and content.',
   }.entries) {
@@ -397,6 +401,88 @@ void main() {
     },
   );
 
+  testWidgets('pending screen counts unsent changes in both languages', (
+    tester,
+  ) async {
+    await _using(tester, (fixture) async {
+      await tester.runAsync(() async {
+        await fixture.write('queued');
+        await fixture.database
+            .into(fixture.database.pendingWrites)
+            .insert(
+              PendingWritesCompanion.insert(
+                id: 'second-write',
+                accountId: fixture.account.id,
+                kind: 'updateBoard',
+                boardId: 1,
+                stackId: 0,
+                state: const Value('conflict'),
+                proposal: jsonEncode({'title': 'New title'}),
+              ),
+            );
+      });
+      await tester.pumpWidget(_app(PendingScreen(session: fixture.session)));
+      await _until(tester, () => find.text('My task').evaluate().isNotEmpty);
+      expect(find.text('2 unsent changes'), findsOneWidget);
+      await tester.pumpWidget(
+        _app(PendingScreen(session: fixture.session), language: 'cs'),
+      );
+      await _until(
+        tester,
+        () => find.text('2 neodeslané změny').evaluate().isNotEmpty,
+      );
+    });
+  });
+
+  testWidgets('card detail names the state and counts pending changes', (
+    tester,
+  ) async {
+    await _using(tester, (fixture) async {
+      await tester.runAsync(() async {
+        await fixture.write('uncertain');
+        await fixture.database
+            .into(fixture.database.pendingWrites)
+            .insert(
+              PendingWritesCompanion.insert(
+                id: 'second-card-write',
+                accountId: fixture.account.id,
+                kind: 'archiveCard',
+                boardId: 1,
+                stackId: 2,
+                cardId: const Value(8),
+                state: const Value('uncertain'),
+                proposal: jsonEncode({}),
+              ),
+            );
+      });
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            appPreferencesProvider.overrideWith(
+              (ref) => AppPreferences(store: _Preferences()),
+            ),
+          ],
+          child: _app(
+            CardScreen(
+              session: fixture.session,
+              board: fixture.board,
+              card: fixture.card,
+            ),
+          ),
+        ),
+      );
+      await _until(
+        tester,
+        () => find.text('Check the result').evaluate().isNotEmpty,
+      );
+      await _until(
+        tester,
+        () => find.textContaining('2 unsent changes.').evaluate().isNotEmpty,
+      );
+      expect(find.text('Pending changes'), findsNothing);
+    });
+  });
+
   testWidgets('empty group does not claim other queued work was confirmed', (
     tester,
   ) async {
@@ -408,7 +494,7 @@ void main() {
       await tester.pump();
       expect(find.text('There are no changes in this group.'), findsOneWidget);
       expect(find.text('All changes have been confirmed.'), findsNothing);
-      await tester.tap(find.widgetWithText(TextButton, 'All changes'));
+      await tester.tap(find.widgetWithText(OutlinedButton, 'All changes'));
       await tester.pump();
       expect(find.text('My task'), findsOneWidget);
     });

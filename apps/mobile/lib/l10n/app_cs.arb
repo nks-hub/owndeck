@@ -479,5 +479,20 @@
   "addChecklistItemsHelp": "Jedna položka na řádek",
   "addItems": "Přidat",
   "hideCompletedItems": "Skrýt hotové",
-  "allItemsCompleted": "Všechny položky jsou hotové"
+  "allItemsCompleted": "Všechny položky jsou hotové",
+  "syncConflict": "Konflikt",
+  "pendingCount": "{count, plural, one{{count} neodeslaná změna} few{{count} neodeslané změny} many{{count} neodeslané změny} other{{count} neodeslaných změn}}",
+  "@pendingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "invalidAttachmentError": "Tento soubor nelze nahrát. Vyberte ho znovu.",
+  "identityMismatchError": "Server odpověděl pro jinou položku, než kterou tato změna upravuje. Zahoďte změnu nebo to zkuste znovu.",
+  "noArchivedCards": "V tomto sloupci nejsou žádné archivované karty.",
+  "noServerMatches": "Server pro toto hledání nenašel žádné karty.",
+  "noCardsYet": "Na vašich nástěnkách zatím nejsou žádné karty.",
+  "myTasksEmpty": "Nejsou vám přiřazeny žádné otevřené karty."
 }

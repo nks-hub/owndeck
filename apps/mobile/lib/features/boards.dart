@@ -14,6 +14,7 @@ import 'drafts.dart';
 import 'pending.dart';
 import 'sync_notice.dart';
 import 'structure_editor.dart';
+import 'sync_state.dart';
 import 'search.dart';
 import 'notifications.dart';
 import 'settings.dart';
@@ -432,7 +433,12 @@ class _BoardsScreenState extends State<BoardsScreen> {
                             ),
                             title: Text(board.title),
                             subtitle: board.raw['syncState'] != null
-                                ? Text(text.pendingChanges)
+                                ? Text(
+                                    syncStateLabel(
+                                      board.raw['syncState'],
+                                      text,
+                                    ),
+                                  )
                                 : board.permissions.edit
                                 ? null
                                 : Text(text.readOnly),

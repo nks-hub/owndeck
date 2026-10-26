@@ -15,6 +15,7 @@ import '../l10n/app_localizations.dart';
 import 'cloud_files.dart';
 import 'pending.dart';
 import 'sync_notice.dart';
+import 'sync_state.dart';
 
 class AttachmentsScreen extends StatefulWidget {
   const AttachmentsScreen({
@@ -334,21 +335,14 @@ class _AttachmentListState extends State<_AttachmentList> {
                     ),
                   for (final write in pending)
                     ListTile(
-                      leading: const Icon(Icons.sync),
+                      leading: Icon(syncStateIcon(write.state)),
                       title: Text(
                         object(
                               jsonDecode(write.proposal),
                             )['name']?.toString() ??
                             text.attachments,
                       ),
-                      subtitle: Text(switch (write.state) {
-                        'queued' => text.queued,
-                        'sending' => text.sending,
-                        'applied' => text.awaitingReadback,
-                        'uncertain' => text.uncertain,
-                        'conflict' => text.conflict,
-                        _ => text.blocked,
-                      }),
+                      subtitle: Text(syncStateLabel(write.state, text)),
                       onTap: _pending,
                     ),
                   if (items.isEmpty &&

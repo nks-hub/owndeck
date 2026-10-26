@@ -9,6 +9,8 @@ import '../data/session.dart';
 import '../l10n/app_localizations.dart';
 import 'share_permissions.dart';
 import 'sync_notice.dart';
+import 'state_message.dart';
+import 'sync_state.dart';
 
 String shareParticipantId(Object? participant) => participant is JsonObject
     ? (participant['uid'] ??
@@ -159,7 +161,13 @@ class _SharingScreenState extends State<SharingScreen> {
               return const Center(child: CircularProgressIndicator());
             }
             if (!snapshot.hasData || snapshot.data!.deletedAt != 0) {
-              return Center(child: Text(text.permissionError));
+              return Center(
+                child: StateMessage(
+                  message: text.permissionError,
+                  actionLabel: text.close,
+                  onAction: () => Navigator.maybePop(context),
+                ),
+              );
             }
             final board = snapshot.requireData!;
             final acl = objects(board.raw['acl'] ?? <Object?>[]);
@@ -183,7 +191,7 @@ class _SharingScreenState extends State<SharingScreen> {
                   session: widget.session,
                   scope: 'board:${widget.boardId}',
                   retry: () => widget.session.refreshStacks(widget.boardId),
-                  hasData: true,
+                  hasData: acl.isNotEmpty,
                 ),
                 if (board.permissions.share) ...[
                   TextField(
@@ -228,9 +236,11 @@ class _SharingScreenState extends State<SharingScreen> {
                   const Divider(),
                 ],
                 if (acl.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Text(text.noShares),
+                  StateMessage(
+                    message:
+                        widget.session.error('board:${widget.boardId}') == null
+                        ? text.noShares
+                        : text.noSavedContent,
                   ),
                 for (final entry in acl)
                   ListTile(
@@ -249,7 +259,8 @@ class _SharingScreenState extends State<SharingScreen> {
                           text.permissionShare,
                         if (entry['permissionManage'] == true)
                           text.permissionManage,
-                        if (entry['syncState'] != null) text.pendingChanges,
+                        if (entry['syncState'] != null)
+                          syncStateLabel(entry['syncState'], text),
                       ].join(' · '),
                     ),
                     trailing:

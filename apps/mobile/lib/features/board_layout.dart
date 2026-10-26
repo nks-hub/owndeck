@@ -300,6 +300,7 @@ class _BoardLayoutState extends State<BoardLayout> {
                         empty: row.column.cards.isEmpty,
                         editable: _editable(row.column),
                         filtered: row.column.filtered,
+                        archived: widget.archivedView,
                       )
                     : BoardCardTile(
                         key: ValueKey((

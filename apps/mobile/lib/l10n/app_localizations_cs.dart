@@ -1296,4 +1296,41 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get allItemsCompleted => 'Všechny položky jsou hotové';
+
+  @override
+  String get syncConflict => 'Konflikt';
+
+  @override
+  String pendingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count neodeslaných změn',
+      many: '$count neodeslané změny',
+      few: '$count neodeslané změny',
+      one: '$count neodeslaná změna',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get invalidAttachmentError =>
+      'Tento soubor nelze nahrát. Vyberte ho znovu.';
+
+  @override
+  String get identityMismatchError =>
+      'Server odpověděl pro jinou položku, než kterou tato změna upravuje. Zahoďte změnu nebo to zkuste znovu.';
+
+  @override
+  String get noArchivedCards =>
+      'V tomto sloupci nejsou žádné archivované karty.';
+
+  @override
+  String get noServerMatches => 'Server pro toto hledání nenašel žádné karty.';
+
+  @override
+  String get noCardsYet => 'Na vašich nástěnkách zatím nejsou žádné karty.';
+
+  @override
+  String get myTasksEmpty => 'Nejsou vám přiřazeny žádné otevřené karty.';
 }

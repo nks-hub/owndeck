@@ -10,6 +10,7 @@ import 'board_drag.dart';
 import 'board_moves.dart';
 import 'quick_add_card.dart';
 import 'structure_editor.dart';
+import 'sync_state.dart';
 
 class CardColumn extends StatefulWidget {
   const CardColumn({
@@ -114,6 +115,7 @@ class _CardColumnState extends State<CardColumn> {
                         empty: cards.isEmpty,
                         editable: editable,
                         filtered: widget.filtered,
+                        archived: widget.archivedView,
                       )
                     : BoardCardTile(
                         key: ValueKey((
@@ -197,6 +199,7 @@ class BoardColumnFooter extends StatelessWidget {
     required this.empty,
     required this.editable,
     this.filtered = false,
+    this.archived = false,
   });
   final DeckSession session;
   final DeckBoard board;
@@ -204,6 +207,7 @@ class BoardColumnFooter extends StatelessWidget {
   final bool empty;
   final bool editable;
   final bool filtered;
+  final bool archived;
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context)!;
@@ -211,12 +215,17 @@ class BoardColumnFooter extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Column(
         children: [
-          if (stack.raw['syncState'] != null) Text(text.pendingChanges),
+          if (stack.raw['syncState'] != null)
+            Text(syncStateLabel(stack.raw['syncState'], text)),
           if (empty)
             Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                filtered ? text.boardNoMatchingCards : text.emptyStack,
+                filtered
+                    ? text.boardNoMatchingCards
+                    : archived
+                    ? text.noArchivedCards
+                    : text.emptyStack,
               ),
             ),
           if (editable)

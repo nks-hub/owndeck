@@ -479,5 +479,20 @@
   "addChecklistItemsHelp": "One item per line",
   "addItems": "Add",
   "hideCompletedItems": "Hide completed",
-  "allItemsCompleted": "All items are completed"
+  "allItemsCompleted": "All items are completed",
+  "syncConflict": "Conflict",
+  "pendingCount": "{count, plural, one{{count} unsent change} other{{count} unsent changes}}",
+  "@pendingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "invalidAttachmentError": "This file cannot be uploaded. Choose it again.",
+  "identityMismatchError": "The server answered for a different item than this change targets. Discard the change or try again.",
+  "noArchivedCards": "There are no archived cards in this column.",
+  "noServerMatches": "The server found no cards for this search.",
+  "noCardsYet": "There are no cards on your boards yet.",
+  "myTasksEmpty": "No open cards are assigned to you."
 }

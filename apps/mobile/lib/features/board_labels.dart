@@ -81,7 +81,13 @@ class _BoardLabelsScreenState extends State<BoardLabelsScreen> {
             }
             final board = snapshot.data;
             if (board == null || board.deletedAt != 0) {
-              return Center(child: Text(text.permissionError));
+              return Center(
+                child: StateMessage(
+                  message: text.permissionError,
+                  actionLabel: text.close,
+                  onAction: () => Navigator.maybePop(context),
+                ),
+              );
             }
             final labels = objects(board.raw['labels'] ?? <Object?>[]);
             final editable = board.permissions.manage && !board.archived;
@@ -92,7 +98,7 @@ class _BoardLabelsScreenState extends State<BoardLabelsScreen> {
                   session: widget.session,
                   scope: 'board:${widget.boardId}',
                   retry: () => widget.session.refreshStacks(widget.boardId),
-                  hasData: true,
+                  hasData: labels.isNotEmpty,
                 ),
                 if (editable)
                   FilledButton.icon(
@@ -106,16 +112,18 @@ class _BoardLabelsScreenState extends State<BoardLabelsScreen> {
                     label: Text(text.addLabel),
                   ),
                 if (labels.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Text(text.noLabels),
+                  StateMessage(
+                    message:
+                        widget.session.error('board:${widget.boardId}') == null
+                        ? text.noLabels
+                        : text.noSavedContent,
                   ),
                 for (final label in labels)
                   ListTile(
                     title: Text(stringField(label, 'title')),
                     subtitle: label['syncState'] == null
                         ? null
-                        : Text(text.pendingChanges),
+                        : Text(syncStateLabel(label['syncState'], text)),
                     leading: Icon(
                       Icons.label_outline,
                       color: Color(

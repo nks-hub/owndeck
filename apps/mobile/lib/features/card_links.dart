@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import '../data/session.dart';
 import '../l10n/app_localizations.dart';
 import 'card_detail.dart';
+import 'state_message.dart';
+import 'sync_state.dart';
 
 class CardLinksScreen extends StatefulWidget {
   const CardLinksScreen({
@@ -103,7 +105,7 @@ class _CardLinksScreenState extends State<CardLinksScreen> {
             stream: _candidates,
             builder: (context, candidates) {
               if (board.hasError || card.hasError || candidates.hasError) {
-                return Center(child: Text(text.loadError));
+                return Center(child: Text(text.localReadError));
               }
               if (!board.hasData || !card.hasData || !candidates.hasData) {
                 final waiting = [
@@ -114,7 +116,11 @@ class _CardLinksScreenState extends State<CardLinksScreen> {
                 return Center(
                   child: waiting
                       ? const CircularProgressIndicator()
-                      : Text(text.cardUnavailable),
+                      : StateMessage(
+                          message: text.cardUnavailable,
+                          actionLabel: text.close,
+                          onAction: () => Navigator.maybePop(context),
+                        ),
                 );
               }
               final source = card.requireData!;
@@ -122,7 +128,13 @@ class _CardLinksScreenState extends State<CardLinksScreen> {
               if (!parent.permissions.read ||
                   parent.deletedAt != 0 ||
                   !candidates.requireData.accountAvailable) {
-                return Center(child: Text(text.cardUnavailable));
+                return Center(
+                  child: StateMessage(
+                    message: text.cardUnavailable,
+                    actionLabel: text.close,
+                    onAction: () => Navigator.maybePop(context),
+                  ),
+                );
               }
               final canEdit =
                   parent.permissions.edit &&
@@ -142,7 +154,9 @@ class _CardLinksScreenState extends State<CardLinksScreen> {
                   if (source.raw['syncState'] != null)
                     Padding(
                       padding: const EdgeInsets.all(16),
-                      child: Text(text.pendingChanges),
+                      child: Text(
+                        syncStateLabel(source.raw['syncState'], text),
+                      ),
                     ),
                   if (canEdit)
                     Padding(

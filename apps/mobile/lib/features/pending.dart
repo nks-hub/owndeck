@@ -9,6 +9,8 @@ import '../data/session.dart';
 import '../core/errors.dart';
 import '../l10n/app_localizations.dart';
 import 'drafts.dart';
+import 'state_message.dart';
+import 'sync_state.dart';
 import 'color_choices.dart';
 
 class PendingScreen extends StatefulWidget {
@@ -271,28 +273,17 @@ class _PendingScreenState extends State<PendingScreen> {
     }
     if (write.error == 'permission_denied') return text.permissionError;
     if (write.error == 'card_moved') return text.invalidDestination;
-    return switch (write.state) {
-      'queued' => text.savedLocally,
-      'sending' => text.sending,
-      'conflict' => text.pendingConflictHelp,
-      _ =>
-        write.error == null
-            ? text.blocked
-            : errorMessage(
-                StateError(write.error!),
-                text,
-                fallback: text.blocked,
-              ),
-    };
+    if (write.state == 'blocked' && write.error != null) {
+      return errorMessage(
+        StateError(write.error!),
+        text,
+        fallback: text.blocked,
+      );
+    }
+    return syncStateDetail(write.state, text);
   }
 
-  IconData _stateIcon(PendingWrite write) => switch (write.state) {
-    'queued' => Icons.cloud_upload_outlined,
-    'sending' || 'applied' => Icons.sync,
-    'conflict' => Icons.compare_arrows,
-    'uncertain' => Icons.help_outline,
-    _ => Icons.error_outline,
-  };
+  IconData _stateIcon(PendingWrite write) => syncStateIcon(write.state);
 
   Widget _version(
     String title,
@@ -789,24 +780,21 @@ class _PendingScreenState extends State<PendingScreen> {
                         ],
                       ),
                     ),
-                    if (writes.isEmpty)
+                    if (all.isNotEmpty)
                       Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          children: [
-                            Text(
-                              all.isEmpty
-                                  ? text.noPending
-                                  : text.pendingEmptyGroup,
-                            ),
-                            if (all.isNotEmpty)
-                              TextButton(
-                                onPressed: () =>
-                                    setState(() => _filter = 'all'),
-                                child: Text(text.allChanges),
-                              ),
-                          ],
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          text.pendingCount(all.length),
+                          style: Theme.of(context).textTheme.labelLarge,
                         ),
+                      ),
+                    if (writes.isEmpty)
+                      StateMessage(
+                        message: all.isEmpty
+                            ? text.noPending
+                            : text.pendingEmptyGroup,
+                        actionLabel: all.isEmpty ? null : text.allChanges,
+                        onAction: () => setState(() => _filter = 'all'),
                       ),
                   ],
                 );

@@ -2443,6 +2443,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All items are completed'**
   String get allItemsCompleted;
+
+  /// No description provided for @syncConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'Conflict'**
+  String get syncConflict;
+
+  /// No description provided for @pendingCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} unsent change} other{{count} unsent changes}}'**
+  String pendingCount(int count);
+
+  /// No description provided for @invalidAttachmentError.
+  ///
+  /// In en, this message translates to:
+  /// **'This file cannot be uploaded. Choose it again.'**
+  String get invalidAttachmentError;
+
+  /// No description provided for @identityMismatchError.
+  ///
+  /// In en, this message translates to:
+  /// **'The server answered for a different item than this change targets. Discard the change or try again.'**
+  String get identityMismatchError;
+
+  /// No description provided for @noArchivedCards.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no archived cards in this column.'**
+  String get noArchivedCards;
+
+  /// No description provided for @noServerMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'The server found no cards for this search.'**
+  String get noServerMatches;
+
+  /// No description provided for @noCardsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no cards on your boards yet.'**
+  String get noCardsYet;
+
+  /// No description provided for @myTasksEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No open cards are assigned to you.'**
+  String get myTasksEmpty;
 }
 
 class _AppLocalizationsDelegate

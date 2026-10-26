@@ -9,6 +9,7 @@ import '../l10n/app_localizations.dart';
 import 'comment_editor.dart';
 import 'pending.dart';
 import 'sync_notice.dart';
+import 'sync_state.dart';
 
 class CommentsScreen extends StatefulWidget {
   const CommentsScreen({
@@ -263,10 +264,17 @@ class _CommentsScreenState extends State<CommentsScreen> {
                                     ),
                                     if (comment.raw['syncState'] != null)
                                       TextButton.icon(
-                                        icon: const Icon(
-                                          Icons.cloud_upload_outlined,
+                                        icon: Icon(
+                                          syncStateIcon(
+                                            comment.raw['syncState'],
+                                          ),
                                         ),
-                                        label: Text(text.pendingChanges),
+                                        label: Text(
+                                          syncStateLabel(
+                                            comment.raw['syncState'],
+                                            text,
+                                          ),
+                                        ),
                                         onPressed: () =>
                                             Navigator.of(context).push(
                                               MaterialPageRoute<void>(
