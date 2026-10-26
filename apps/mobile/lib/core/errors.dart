@@ -45,5 +45,6 @@ String localWriteErrorMessage(
 }) => switch (_errorCode(error)) {
   'permission_denied' => text.writePermissionError,
   'pending_decision' => pendingMessage ?? text.pendingDecision,
+  _ when error is FormatException => text.localSaveError,
   _ => errorMessage(error, text, fallback: text.localSaveError),
 };

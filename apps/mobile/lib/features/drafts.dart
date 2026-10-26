@@ -10,6 +10,7 @@ import '../l10n/app_localizations.dart';
 import 'card_editor.dart';
 import 'comment_editor.dart';
 import 'quick_add_card.dart';
+import 'state_message.dart';
 
 class DraftsScreen extends StatefulWidget {
   const DraftsScreen({super.key, required this.session});
@@ -19,7 +20,7 @@ class DraftsScreen extends StatefulWidget {
 }
 
 class _DraftsScreenState extends State<DraftsScreen> {
-  late final _drafts = widget.session.database.watchEditorDrafts(
+  late var _drafts = widget.session.database.watchEditorDrafts(
     widget.session.account.id,
   );
   late final _boards = widget.session.watchBoards();
@@ -125,7 +126,17 @@ class _DraftsScreenState extends State<DraftsScreen> {
           stream: _drafts,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              return Center(child: Text(text.localReadError));
+              return Center(
+                child: StateMessage(
+                  message: text.localReadError,
+                  actionLabel: text.retry,
+                  onAction: () => setState(
+                    () => _drafts = widget.session.database.watchEditorDrafts(
+                      widget.session.account.id,
+                    ),
+                  ),
+                ),
+              );
             }
             if (!snapshot.hasData) {
               return const Center(child: CircularProgressIndicator());
@@ -133,21 +144,10 @@ class _DraftsScreenState extends State<DraftsScreen> {
             final drafts = snapshot.requireData;
             if (drafts.isEmpty) {
               return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.drafts_outlined, size: 40),
-                      const SizedBox(height: 12),
-                      Text(text.noDrafts),
-                      const SizedBox(height: 12),
-                      TextButton(
-                        onPressed: () => Navigator.maybePop(context),
-                        child: Text(text.close),
-                      ),
-                    ],
-                  ),
+                child: StateMessage(
+                  message: text.noDrafts,
+                  actionLabel: text.close,
+                  onAction: () => Navigator.maybePop(context),
                 ),
               );
             }

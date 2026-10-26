@@ -389,7 +389,7 @@ void main() {
       await settleBoard(tester);
       expect(find.text('Result per card'), findsOneWidget);
       expect(
-        find.text('Saved: 1, failed: 1, no permission: 1.'),
+        find.text('Saved on this device: 1, failed: 1, no permission: 1.'),
         findsOneWidget,
       );
       expect(find.text('No permission, nothing changed'), findsOneWidget);
@@ -448,5 +448,58 @@ void main() {
           .height,
       greaterThanOrEqualTo(48),
     );
+  });
+
+  testWidgets('a running bulk action shows progress and blocks a second run', (
+    tester,
+  ) async {
+    final fixture = (await tester.runAsync(
+      () => BoardFixture.create(counts: [2]),
+    ))!;
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(500, 1000);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    try {
+      await tester.pumpWidget(
+        boardTestApp(
+          BoardScreen(session: fixture.session, board: fixture.board),
+          preferences: AppPreferences(store: MemoryBoardPreferences()),
+        ),
+      );
+      await settleBoard(tester);
+      await tester.tap(
+        find.descendant(
+          of: boardTile(100),
+          matching: find.byTooltip('Card actions'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Select card'));
+      await settleBoard(tester);
+      await tester.tap(find.byTooltip('Select all shown cards'));
+      await settleBoard(tester);
+      await tester.tap(find.byTooltip('Archive selected cards'));
+      await tester.pump();
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      expect(
+        tester
+            .widget<IconButton>(
+              find.widgetWithIcon(IconButton, Icons.archive_outlined),
+            )
+            .onPressed,
+        isNull,
+      );
+      await settleBoard(tester);
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+      final writes = await boardModel(
+        tester,
+        fixture.db.writesFor(fixture.account.id),
+      );
+      expect(writes.map((w) => w.kind), ['archiveCard', 'archiveCard']);
+    } finally {
+      await tester.pumpWidget(const SizedBox());
+      await boardModel(tester, fixture.close());
+    }
   });
 }

@@ -44,7 +44,9 @@ class _BoardCardTileState extends State<BoardCardTile> {
       if (mounted && widget.session == session) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(errorMessage(error, AppLocalizations.of(context)!)),
+            content: Text(
+              localWriteErrorMessage(error, AppLocalizations.of(context)!),
+            ),
           ),
         );
       }

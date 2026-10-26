@@ -68,7 +68,9 @@ class _CardDescriptionState extends State<CardDescription> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(errorMessage(error, AppLocalizations.of(context)!)),
+            content: Text(
+              localWriteErrorMessage(error, AppLocalizations.of(context)!),
+            ),
           ),
         );
       }

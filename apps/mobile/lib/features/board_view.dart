@@ -15,6 +15,7 @@ import 'board_moves.dart';
 import 'board_presence.dart';
 import 'board_filters.dart';
 import 'quick_add_card.dart';
+import 'state_message.dart';
 import 'structure_editor.dart';
 import 'sync_notice.dart';
 
@@ -31,6 +32,7 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
   final _selection = BoardSelection();
   bool _unavailable = false;
   bool _showArchived = false;
+  bool _bulkBusy = false;
   StreamSubscription<DeckBoard?>? _boardChanges;
   late Stream<List<DeckStack>> _stacks;
   List<DeckStack>? _input;
@@ -156,7 +158,22 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
     if (value != null && mounted) _setFilter(value);
   }
 
-  Future<void> _bulkMove() async {
+  /// Runs one bulk action at a time; the actions stay disabled meanwhile.
+  Future<void> _guardBulk(Future<void> Function() run) async {
+    if (_bulkBusy) return;
+    setState(() => _bulkBusy = true);
+    try {
+      await run();
+    } finally {
+      if (mounted) setState(() => _bulkBusy = false);
+    }
+  }
+
+  Future<void> _bulkMove() => _guardBulk(_runBulkMove);
+
+  Future<void> _bulkArchive() => _guardBulk(_runBulkArchive);
+
+  Future<void> _runBulkMove() async {
     final text = AppLocalizations.of(context)!;
     try {
       _selection.refresh(_input?.expand((stack) => stack.cards) ?? const []);
@@ -182,7 +199,7 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
     }
   }
 
-  Future<void> _bulkArchive() async {
+  Future<void> _runBulkArchive() async {
     _selection.refresh(_input?.expand((stack) => stack.cards) ?? const []);
     if (!_selection.active) return;
     await runBulkAction(
@@ -241,7 +258,13 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
             ? IconButton(
                 tooltip: text.cancelSelection,
                 icon: const Icon(Icons.close),
-                onPressed: _selection.clear,
+                onPressed: _bulkBusy ? null : _selection.clear,
+              )
+            : null,
+        bottom: _bulkBusy
+            ? const PreferredSize(
+                preferredSize: Size.fromHeight(4),
+                child: LinearProgressIndicator(),
               )
             : null,
         title: Text(
@@ -256,13 +279,13 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
             IconButton(
               tooltip: text.selectAllVisibleCards,
               icon: const Icon(Icons.select_all),
-              onPressed: _selectAllVisible,
+              onPressed: _bulkBusy ? null : _selectAllVisible,
             ),
             if (!_showArchived)
               IconButton(
                 tooltip: text.moveSelectedCards,
                 icon: const Icon(Icons.drive_file_move_outlined),
-                onPressed: _bulkMove,
+                onPressed: _bulkBusy ? null : _bulkMove,
               ),
             IconButton(
               tooltip: _showArchived
@@ -273,7 +296,7 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
                     ? Icons.unarchive_outlined
                     : Icons.archive_outlined,
               ),
-              onPressed: _bulkArchive,
+              onPressed: _bulkBusy ? null : _bulkArchive,
             ),
           ] else
             BoardActions(
@@ -342,7 +365,16 @@ class _BoardScreenState extends ConsumerState<BoardScreen> {
           stream: _stacks,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              return Center(child: Text(text.localReadError));
+              return Center(
+                child: StateMessage(
+                  message: text.localReadError,
+                  actionLabel: text.retry,
+                  onAction: () => setState(() {
+                    _input = null;
+                    _stacks = session.watchStacks(widget.board.id);
+                  }),
+                ),
+              );
             }
             final columns = _visible(snapshot.data);
             final scope = 'board:${widget.board.id}';

@@ -149,7 +149,9 @@ Future<void> moveBoardCard(
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(errorMessage(error, AppLocalizations.of(context)!)),
+          content: Text(
+            localWriteErrorMessage(error, AppLocalizations.of(context)!),
+          ),
         ),
       );
     }
@@ -311,7 +313,7 @@ Future<void> showBoardCardMove(
     if (context.mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(errorMessage(error, text))));
+      ).showSnackBar(SnackBar(content: Text(localWriteErrorMessage(error, text))));
     }
   }
 }

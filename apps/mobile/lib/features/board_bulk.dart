@@ -199,7 +199,7 @@ class BulkResultDialog extends StatelessWidget {
               subtitle: Text(switch (outcome.status) {
                 BulkStatus.queued => text.bulkStatusQueued,
                 BulkStatus.failed => text.bulkStatusFailed(
-                  errorMessage(outcome.error!, text),
+                  localWriteErrorMessage(outcome.error!, text),
                 ),
                 BulkStatus.blocked => text.bulkStatusBlocked,
               }),

@@ -7,6 +7,7 @@ import '../data/card_reads.dart';
 import '../data/session.dart';
 import '../l10n/app_localizations.dart';
 import 'card_detail.dart';
+import 'state_message.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key, required this.session, this.openLink});
@@ -98,29 +99,23 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           }
           if (snapshot.hasError) {
             return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(errorMessage(snapshot.error!, text)),
-                    TextButton(onPressed: _refresh, child: Text(text.retry)),
-                  ],
-                ),
+              child: StateMessage(
+                message: errorMessage(snapshot.error!, text),
+                actionLabel: text.retry,
+                onAction: _refresh,
               ),
             );
           }
           final result = snapshot.requireData;
           if (!result.supported) {
             return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(text.notificationsUnavailable),
-              ),
+              child: StateMessage(message: text.notificationsUnavailable),
             );
           }
           if (result.items.isEmpty) {
-            return Center(child: Text(text.noDeckNotifications));
+            return Center(
+              child: StateMessage(message: text.noDeckNotifications),
+            );
           }
           return ListView.builder(
             itemCount: result.items.length,
