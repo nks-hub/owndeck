@@ -62,10 +62,10 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] U12 Čekající změny rozlišují čekání, konflikt, nejistý výsledek a koncepty (`3c56742`); přijatý přenos ukáže zbývající umístění bez opakování celé operace (`d9d7644`), šest nových regresí prošlo.
 - [x] U13 Koncepty mají typ, kontext a čas (`3c56742`); zaniklý přístup odstraní kontext. Náhled komentáře ponechán správně v description, testy prošly.
 - [x] U14 Společný `StateMessage` s nejvýše jednou akcí: hledání a Moje úkoly rozlišují filtr, neúplnou cache, potvrzeně prázdný obsah a neověřenou identitu; štítky, sdílení a vazby po chybě čtení netvrdí prázdný seznam a po ztrátě přístupu nabídnou zavření; archiv má vlastní text (`6276c24`).
-- [ ] U15 Sjednotit vzhled a význam komponent napříč všemi obrazovkami při zachování rodiny OwnTalk/Notes; ověřit světlý/tmavý režim, 200% text, klávesnici a čtečku.
+- [x] U15 Devět obrazovek, editory, koncepty, kalendář, nástěnka, oznámení i hledání používají společný `StateMessage`, `IncompleteDataNotice` a `CompletionBox`; ikony stejného významu sjednocené (`f7d959a`). Sdílené prvky ověřené ve světlém/tmavém režimu a při 200% textu; plné nativní ověření v R06.
 - [ ] U18 Redesign vzhledu karty na nástěnce, v seznamu, hledání i kalendáři: majitel hodnotí současný vzhled karet jako nevyhovující. Nový návrh se světlým/tmavým režimem, 200% textem a čtečkou, v rozpočtu P02 (p95 ≤ 16,7 ms na S9); ověřit snímky před/po.
-- [ ] U19 Vlastní výběr barvy pro karty, nástěnky a štítky: předvolby jen jako rychlá volba, vždy možnost libovolné vlastní barvy přes ovládací prvek výběru (odstín, sytost, světlost, náhled, kontrast textu), ovladatelný čtečkou a bez gest; zachovat stávající vlastní odstíny.
-- [ ] U20 Ovládání nad nástěnkou (hlavička, pruh offline, hledání, přepínač pohledu, záložky sloupců, Přidat kartu) zabírá na 360×750 dp asi 330 dp, takže první karta začíná pod polovinou obrazovky; při 200% textu se karta skoro nevejde. Zhustit nebo sbalit při posunu. Nález z vykreslení karet pro U18.
+- [x] U19 Předvolby jako mřížka kulatých vzorků s názvem v tooltipu a pro čtečku, trvalý duhový vzorek pro vlastní barvu a dialog s odstínem, sytostí, světlostí, tlačítky +/−, náhledem kontrastu a volitelným kódem (`084db94`, `fd26ffe`). Vybraná vlastní barva zůstává jako samostatný vzorek; 43 testů barev a formulářů prošlo, vzhled ověřen vykreslením ve světlém i tmavém režimu.
+- [x] U20 Přepínač Sloupce/Seznam přesunut do horní lišty jako ikona, vyhledávání zhuštěné a řádek s archivem/filtrem jen při aktivním stavu (`158f7be`); 47 testů nástěnky prošlo.
 - [x] U16 Náhled Markdownu je čitelný a omezený délkou, checkboxy v kódu nezvyšují průběh (`e91c96f`); cílené parser/widget testy prošly.
 - [x] U17 Konflikty nástěnek, štítků a sdílení ukazují známá metadata a práva bez JSON/ID/bitů (`8ef69fc`); testy porovnání prošly.
 - [x] F01 Checklist mění položku přes stejnou trvalou frontu a zachová ostatní popis (`e485272`, `6465b8e`); devět parser/widget testů a zapnutí/vypnutí ve skutečném UI kandidátu `96b8662` prošly. Finální společná revize v R06.
@@ -81,17 +81,17 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [ ] B45 Dvě sdílení těsně po sobě se přepíšou na Androidu i iOS, zachová se jen poslední; nález z implementace F04.
 - [x] B46 P1 R03: odesílač zabral řádek jen podle stavu a poslal starý snímek návrhu; `startWrite` nově ověří shodu návrhu, nástěnky, sloupce, karty i základu a při změně zápis znovu načte. Platí pro karty, komentáře, akce, přílohy, strukturu, řazení sloupců, metadata i kopii nástěnky (`4f6ac01`); reprodukce odeslala A místo B, po opravě B.
 - [ ] B47 P2 R03: iOS `ncdeck://share` přes UIScene nikdy nedojde do sdílení (`SceneDelegate` posílá URL jen do odkazů karet) a `CardLinkDelivery` přijímá libovolný host `ncdeck`.
-- [ ] B48 P2 R03: Seznam Mých úkolů hlásí potvrzeně prázdný výsledek i bez uložených karet nástěnek; ignoruje `uncachedBoards`, které používá jen kalendář.
+- [x] B48 P2 R03: Moje úkoly ukazují upozornění na neuložené nástěnky s akcí Načíst karty a netvrdí prázdný seznam (`3c2b3ca`).
 - [x] B49 P2 R03: přerušený komentář se při zavření synchronizace nebo ztrátě zámku vrátí do fronty místo stavu `sending` (`df07496`); reprodukce selhala před opravou.
 - [ ] B50 P2 R03: iOS Keychain používá výchozí `unlocked` místo `*_this_device`, app password tak může přejít zálohou na jiné zařízení; přepsat i existující položky.
 - [x] B51 P2 R03: tělo migrace běží v transakci; selhání vrátí změny a po odstranění kolize se databáze otevře ve verzi 9 (`5701467`). Osm migračních testů B01 dál prochází.
 - [x] B52 P2 R03: 404 bez JSON (proxy, vypnutý Deck) vrací `deck_unavailable`, zápis zůstává ve frontě a cache se nemění; JSON 404 dál odvolá přístup (`7493201`). Chování Nextcloudu pro vypnutou aplikaci ve zdroji nedohledáno, použito konzervativní pravidlo. Store 207, protokol 125 a mobil 339 testů prošlo.
-- [ ] B53 P3 R03: kalendář ukazuje Dokončeno v den a čas termínu; hotová karta bez termínu chybí, i když `done` nese čas dokončení.
-- [ ] B54 P3 R03: dokončení karty nejde z Mých úkolů, hledání ani kalendáře a odkaz na kartu Decku v popisu otevírá prohlížeč místo nativní karty jako oznámení.
-- [ ] B55 P3 R03: hromadné akce nemají stav čekání ani ochranu proti dvojímu spuštění; souhrn Uloženo nezmiňuje uložení jen v telefonu.
+- [x] B53 P3 R03: kalendář řadí hotovou kartu ke dni a času dokončení, i bez termínu (`3c2b3ca`).
+- [x] B54 P3 R03: dokončení jde z Mých úkolů, hledání i agendy kalendáře se stejnou kontrolou práv; odkaz na kartu Decku v popisu se otevře nativně (`3c2b3ca`).
+- [x] B55 P3 R03: hromadné akce mají průběh, vypnutá tlačítka a ochranu proti druhému spuštění; souhrn říká Uloženo v telefonu (`37cb274`).
 - [ ] B56 P3 R03: sdílený text se ztratí, když rychlé přidání nemá zapisovatelný cíl nebo selže čtení sloupců; koncept uložit hned.
 - [ ] B57 P3 R03 (ověřit na zařízení): Android po návratu z Nedávných znovu doručí původní SEND/VIEW intent (`FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY`).
-- [ ] B58 P3 R03 (U15): kalendář, nástěnka a koncepty mají chybové stavy bez StateMessage a obnovy; místní zápisy hlásí chybu jako chybu čtení; chyba checklistu se hlásí jako chyba serveru; buňka kalendáře je při 360 dp pod 48 dp.
+- [x] B58 P3 R03 (U15): chybové stavy se společnou obnovou, chyby místního zápisu hlášené jako zápis, chyba checklistu jako místní, buňka kalendáře 49 dp (`37cb274`). Dvanáct nových testů B48–B58 selhalo na starém kódu, 350 mobilních testů prošlo na `f7d959a`.
 - [ ] R09 Před vydáním iOS zaregistrovat App Group `group.com.nkshub.nextclouddeck` a identifikátor `com.nkshub.nextclouddeck.ShareExtension` v Apple účtu a ověřit podepsaný build; nález z implementace F04.
 - [x] F08 Archivované karty lze vybrat a hromadně obnovit (bez přesunu), výběr všech zobrazených karet respektuje filtr (`d42f12b`); dva nové widget testy prošly.
 - [x] B44 Skrytý seznam Mých úkolů při přepnutí na kalendář znovu spouštěl stejný dotaz a do jeho dokončení animoval indikátor; StreamBuilder je nově klíčovaný dotazem (`50cd2fa`). Nález z testu F03, reprodukce selhala před opravou a 22 navazujících testů prošlo.
