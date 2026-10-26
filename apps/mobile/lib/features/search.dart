@@ -15,6 +15,59 @@ import 'card_summary.dart';
 import 'quick_add_card.dart';
 import 'state_message.dart';
 
+enum DueGroup { overdue, today, tomorrow, thisWeek, later, none }
+
+DueGroup dueGroupOf(DateTime? due, DateTime now) {
+  if (due == null) return DueGroup.none;
+  if (due.isBefore(now)) return DueGroup.overdue;
+  final tomorrow = DateTime(now.year, now.month, now.day + 1);
+  if (due.isBefore(tomorrow)) return DueGroup.today;
+  if (due.isBefore(DateTime(now.year, now.month, now.day + 2))) {
+    return DueGroup.tomorrow;
+  }
+  // The week runs Monday to Sunday.
+  final nextWeek = DateTime(
+    now.year,
+    now.month,
+    now.day + DateTime.sunday + 1 - now.weekday,
+  );
+  return due.isBefore(nextWeek) ? DueGroup.thisWeek : DueGroup.later;
+}
+
+/// Orders [hits] by due group and date, inserting a [DueGroup] header before each group.
+List<Object> groupByDue(List<CardSearchHit> hits, DateTime now) {
+  final ordered = [
+    for (var i = 0; i < hits.length; i++) (hits[i], i),
+  ]..sort((a, b) {
+    final byGroup = dueGroupOf(
+      a.$1.due,
+      now,
+    ).index.compareTo(dueGroupOf(b.$1.due, now).index);
+    if (byGroup != 0) return byGroup;
+    final byDue = a.$1.due != null && b.$1.due != null
+        ? a.$1.due!.compareTo(b.$1.due!)
+        : 0;
+    return byDue != 0 ? byDue : a.$2.compareTo(b.$2);
+  });
+  final rows = <Object>[];
+  DueGroup? current;
+  for (final (hit, _) in ordered) {
+    final group = dueGroupOf(hit.due, now);
+    if (group != current) rows.add(current = group);
+    rows.add(hit);
+  }
+  return rows;
+}
+
+String dueGroupLabel(AppLocalizations text, DueGroup group) => switch (group) {
+  DueGroup.overdue => text.overdueTasks,
+  DueGroup.today => text.dueToday,
+  DueGroup.tomorrow => text.dueTomorrow,
+  DueGroup.thisWeek => text.dueThisWeek,
+  DueGroup.later => text.dueLater,
+  DueGroup.none => text.withoutDueDate,
+};
+
 class CardSearchScreen extends StatelessWidget {
   const CardSearchScreen({
     super.key,
@@ -47,7 +100,9 @@ class CardSearchView extends StatefulWidget {
     this.initiallyMineOnly = false,
     this.fixedMineOnly = false,
     this.active = true,
+    this.clock = DateTime.now,
   });
+  final DateTime Function() clock;
   final DeckSession session;
   final bool initiallyMineOnly;
   final bool fixedMineOnly;
@@ -617,7 +672,7 @@ class _CardSearchViewState extends State<CardSearchView> {
                   onAction: widget.session.refreshBoards,
                 );
               }
-              final now = DateTime.now();
+              final now = widget.clock();
               final tomorrow = DateTime(now.year, now.month, now.day + 1);
               final hits = _upcoming
                   ? result.hits
@@ -627,6 +682,7 @@ class _CardSearchViewState extends State<CardSearchView> {
                         )
                         .toList()
                   : result.hits;
+              final rows = _mineOnly ? groupByDue(hits, now) : [...hits];
               final incomplete = result.uncachedBoards > 0;
               return SliverMainAxisGroup(
                 slivers: [
@@ -647,9 +703,22 @@ class _CardSearchViewState extends State<CardSearchView> {
                     // Never claim a confirmed-empty account over unloaded boards.
                     if (!incomplete || _filtered) _emptyLocal(text),
                   SliverList.builder(
-                    itemCount: hits.length,
+                    itemCount: rows.length,
                     itemBuilder: (context, index) {
-                      final hit = hits[index];
+                      final row = rows[index];
+                      if (row is DueGroup) {
+                        return Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                          child: Semantics(
+                            header: true,
+                            child: Text(
+                              dueGroupLabel(text, row),
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                          ),
+                        );
+                      }
+                      final hit = row as CardSearchHit;
                       return Card(
                         semanticContainer: false,
                         key: ValueKey('search:${hit.board.id}:${hit.card.id}'),

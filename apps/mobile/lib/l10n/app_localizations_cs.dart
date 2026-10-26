@@ -1522,4 +1522,28 @@ class AppLocalizationsCs extends AppLocalizations {
   String colorCustomNamed(String description) {
     return 'Vlastní barva: $description';
   }
+
+  @override
+  String get dueTomorrow => 'Zítra';
+
+  @override
+  String get dueNextWeek => 'Příští týden';
+
+  @override
+  String get dueThisWeek => 'Tento týden';
+
+  @override
+  String get dueLater => 'Později';
+
+  @override
+  String get formatBold => 'Tučně';
+
+  @override
+  String get formatList => 'Seznam';
+
+  @override
+  String get formatChecklist => 'Checklist';
+
+  @override
+  String get formatLink => 'Odkaz';
 }

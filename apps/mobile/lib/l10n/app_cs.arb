@@ -631,5 +631,13 @@
         "type": "String"
       }
     }
-  }
+  },
+  "dueTomorrow": "Zítra",
+  "dueNextWeek": "Příští týden",
+  "dueThisWeek": "Tento týden",
+  "dueLater": "Později",
+  "formatBold": "Tučně",
+  "formatList": "Seznam",
+  "formatChecklist": "Checklist",
+  "formatLink": "Odkaz"
 }

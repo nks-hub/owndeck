@@ -631,5 +631,13 @@
         "type": "String"
       }
     }
-  }
+  },
+  "dueTomorrow": "Tomorrow",
+  "dueNextWeek": "Next week",
+  "dueThisWeek": "This week",
+  "dueLater": "Later",
+  "formatBold": "Bold",
+  "formatList": "List",
+  "formatChecklist": "Checklist",
+  "formatLink": "Link"
 }

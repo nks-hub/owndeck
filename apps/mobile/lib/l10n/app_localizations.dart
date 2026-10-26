@@ -2773,6 +2773,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Custom color: {description}'**
   String colorCustomNamed(String description);
+
+  /// No description provided for @dueTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get dueTomorrow;
+
+  /// No description provided for @dueNextWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Next week'**
+  String get dueNextWeek;
+
+  /// No description provided for @dueThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get dueThisWeek;
+
+  /// No description provided for @dueLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get dueLater;
+
+  /// No description provided for @formatBold.
+  ///
+  /// In en, this message translates to:
+  /// **'Bold'**
+  String get formatBold;
+
+  /// No description provided for @formatList.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get formatList;
+
+  /// No description provided for @formatChecklist.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist'**
+  String get formatChecklist;
+
+  /// No description provided for @formatLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get formatLink;
 }
 
 class _AppLocalizationsDelegate

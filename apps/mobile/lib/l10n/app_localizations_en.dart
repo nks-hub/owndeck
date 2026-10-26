@@ -1512,4 +1512,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String colorCustomNamed(String description) {
     return 'Custom color: $description';
   }
+
+  @override
+  String get dueTomorrow => 'Tomorrow';
+
+  @override
+  String get dueNextWeek => 'Next week';
+
+  @override
+  String get dueThisWeek => 'This week';
+
+  @override
+  String get dueLater => 'Later';
+
+  @override
+  String get formatBold => 'Bold';
+
+  @override
+  String get formatList => 'List';
+
+  @override
+  String get formatChecklist => 'Checklist';
+
+  @override
+  String get formatLink => 'Link';
 }
