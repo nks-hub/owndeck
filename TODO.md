@@ -78,13 +78,13 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] B42 Sdílený text bez účtu se ukládá do `share.pending`, přežije restart a nabídne se po přihlášení; poškozená hodnota start neblokuje (`dfc5ed2`), pět testů úložiště a tři testy toku prošly.
 - [x] B43 Odkaz na kartu a sdílený text se zachovají oba, nejdřív se otevře karta a pak nabídne text (`dfc5ed2`); reprodukce ztráty textu selhala před opravou.
 - [ ] B45 Dvě sdílení těsně po sobě se přepíšou na Androidu i iOS, zachová se jen poslední; nález z implementace F04.
-- [ ] B46 P1 R03: odesílač pošle snímek návrhu a potvrdí řádek, do kterého se během čtení `GET boards/{id}` sloučila další změna (`sync.dart` run/startWrite, `writes.dart` saveCardDraft); druhá změna se ztratí. Stejný vzor ověřit v queueStructure, structure_sync a board_metadata_sync.
+- [x] B46 P1 R03: odesílač zabral řádek jen podle stavu a poslal starý snímek návrhu; `startWrite` nově ověří shodu návrhu, nástěnky, sloupce, karty i základu a při změně zápis znovu načte. Platí pro karty, komentáře, akce, přílohy, strukturu, řazení sloupců, metadata i kopii nástěnky (`4f6ac01`); reprodukce odeslala A místo B, po opravě B.
 - [ ] B47 P2 R03: iOS `ncdeck://share` přes UIScene nikdy nedojde do sdílení (`SceneDelegate` posílá URL jen do odkazů karet) a `CardLinkDelivery` přijímá libovolný host `ncdeck`.
 - [ ] B48 P2 R03: Seznam Mých úkolů hlásí potvrzeně prázdný výsledek i bez uložených karet nástěnek; ignoruje `uncachedBoards`, které používá jen kalendář.
-- [ ] B49 P2 R03: přerušený komentář (`comments_sync.dart` návrat bez `markWrite queued`) zůstane `sending` a po restartu se z něj stane nejistý POST.
+- [x] B49 P2 R03: přerušený komentář se při zavření synchronizace nebo ztrátě zámku vrátí do fronty místo stavu `sending` (`df07496`); reprodukce selhala před opravou.
 - [ ] B50 P2 R03: iOS Keychain používá výchozí `unlocked` místo `*_this_device`, app password tak může přejít zálohou na jiné zařízení; přepsat i existující položky.
-- [ ] B51 P2 R03: migrace databáze neběží v transakci; pád po prvním `addColumn` trvale znemožní otevření databáze.
-- [ ] B52 P2 R03 (ověřit): každá 404 při odesílání odvolá přístup k nástěnce, i HTML 404 z proxy nebo vypnutého Decku; revokovat jen 403 nebo JSON 404 od Decku.
+- [x] B51 P2 R03: tělo migrace běží v transakci; selhání vrátí změny a po odstranění kolize se databáze otevře ve verzi 9 (`5701467`). Osm migračních testů B01 dál prochází.
+- [x] B52 P2 R03: 404 bez JSON (proxy, vypnutý Deck) vrací `deck_unavailable`, zápis zůstává ve frontě a cache se nemění; JSON 404 dál odvolá přístup (`7493201`). Chování Nextcloudu pro vypnutou aplikaci ve zdroji nedohledáno, použito konzervativní pravidlo. Store 207, protokol 125 a mobil 339 testů prošlo.
 - [ ] B53 P3 R03: kalendář ukazuje Dokončeno v den a čas termínu; hotová karta bez termínu chybí, i když `done` nese čas dokončení.
 - [ ] B54 P3 R03: dokončení karty nejde z Mých úkolů, hledání ani kalendáře a odkaz na kartu Decku v popisu otevírá prohlížeč místo nativní karty jako oznámení.
 - [ ] B55 P3 R03: hromadné akce nemají stav čekání ani ochranu proti dvojímu spuštění; souhrn Uloženo nezmiňuje uložení jen v telefonu.
