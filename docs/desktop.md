@@ -42,4 +42,4 @@ Runner pro Windows (jedna instance, předání odkazu, poloha okna, autostart), 
 
 ## Externí překážky
 
-Certifikát pro podpis kódu na Windows nemá ani OwnTalk. Podpis a notarizace pro macOS, klíče Sparkle a E2E na Macu s obrazovkou závisí na přístupu vlastníka k Apple účtu a Macu; nativní Linux pro E2E zatím není k dispozici.
+Certifikát pro podpis kódu na Windows nemá ani OwnTalk. Podpis Developer ID je k dispozici; přístup k notarizaci a vlastní klíče Sparkle pro OwnDeck je potřeba nastavit a ověřit. E2E na Macu s obrazovkou a nativním Linuxu zatím není k dispozici.

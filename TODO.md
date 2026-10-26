@@ -109,8 +109,8 @@ Rozpad z auditu desktopového režimu OwnTalku, souhrn a nálezy v `docs/desktop
 - [ ] DK20 Kontrola a instalace aktualizací převzaté z OwnTalku s repem nks-hub/owndeck, ve výchozím stavu vypnuté; doklad převzaté testy a dotaz na skutečný release.
 - [ ] DK21 Windows instalátor Inno Setup pro jednoho uživatele s novým AppId; doklad smoke test instalace, upgradu za běhu, zamítnutí downgradu a odinstalace se zachováním dat.
 - [ ] DK22 Podpis instalátoru Authenticode a signtool v CI. BLOKOVÁNO: chybí certifikát pro podpis kódu na Windows. Doklad `Get-AuthenticodeSignature` = Valid.
-- [ ] DK23 Skript vydání macOS v `tool/` (build, podpis Sparkle, podpis zevnitř ven, notarytool, stapler, ZIP `owndeck-macos-<verze>-<build>.zip`). BLOKOVÁNO: Developer ID a přístupy k notarizaci drží majitel. Doklad spctl „Notarized Developer ID“ a stapler validate.
-- [ ] DK24 Sparkle pro OwnDeck: vlastní pár klíčů EdDSA, SUFeedURL na nks-hub/owndeck, appcast u každého tagu. BLOKOVÁNO: generování klíčů v klíčence build-mac. Doklad aktualizace N na N+1 se sandboxem.
+- [ ] DK23 Skript vydání macOS v `tool/` (build, podpis Sparkle, podpis zevnitř ven, notarytool, stapler, ZIP `owndeck-macos-<verze>-<build>.zip`). Podepisovací identita Developer ID existuje, přístup k notarizaci je potřeba nastavit a ověřit. Doklad spctl „Notarized Developer ID“ a stapler validate.
+- [ ] DK24 Sparkle pro OwnDeck: vlastní pár klíčů EdDSA, SUFeedURL na nks-hub/owndeck, appcast u každého tagu. Pro OwnDeck vygenerovat vlastní klíče. Doklad aktualizace N na N+1 se sandboxem.
 - [ ] DK25 Linux balíček (tarball s bundlem, `.desktop` a ikonou) a výměna složky z OwnTalku; doklad aktualizace na reálném Linuxu a návrat při selhání.
 - [ ] DK26 CI joby linux, windows (testy a instalátor) a release se SHA256SUMS podle OwnTalku; doklad zelený workflow_dispatch se všemi artefakty.
 - [ ] DK27 Desktopové testy (layout, zkratky, myš, přetažení, aktualizace) a integrační test na Windows; doklad `flutter test` a `flutter test integration_test -d windows`.
