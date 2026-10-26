@@ -65,6 +65,7 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [ ] U15 Sjednotit vzhled a význam komponent napříč všemi obrazovkami při zachování rodiny OwnTalk/Notes; ověřit světlý/tmavý režim, 200% text, klávesnici a čtečku.
 - [ ] U18 Redesign vzhledu karty na nástěnce, v seznamu, hledání i kalendáři: majitel hodnotí současný vzhled karet jako nevyhovující. Nový návrh se světlým/tmavým režimem, 200% textem a čtečkou, v rozpočtu P02 (p95 ≤ 16,7 ms na S9); ověřit snímky před/po.
 - [ ] U19 Vlastní výběr barvy pro karty, nástěnky a štítky: předvolby jen jako rychlá volba, vždy možnost libovolné vlastní barvy přes ovládací prvek výběru (odstín, sytost, světlost, náhled, kontrast textu), ovladatelný čtečkou a bez gest; zachovat stávající vlastní odstíny.
+- [ ] U20 Ovládání nad nástěnkou (hlavička, pruh offline, hledání, přepínač pohledu, záložky sloupců, Přidat kartu) zabírá na 360×750 dp asi 330 dp, takže první karta začíná pod polovinou obrazovky; při 200% textu se karta skoro nevejde. Zhustit nebo sbalit při posunu. Nález z vykreslení karet pro U18.
 - [x] U16 Náhled Markdownu je čitelný a omezený délkou, checkboxy v kódu nezvyšují průběh (`e91c96f`); cílené parser/widget testy prošly.
 - [x] U17 Konflikty nástěnek, štítků a sdílení ukazují známá metadata a práva bez JSON/ID/bitů (`8ef69fc`); testy porovnání prošly.
 - [x] F01 Checklist mění položku přes stejnou trvalou frontu a zachová ostatní popis (`e485272`, `6465b8e`); devět parser/widget testů a zapnutí/vypnutí ve skutečném UI kandidátu `96b8662` prošly. Finální společná revize v R06.
