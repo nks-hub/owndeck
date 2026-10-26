@@ -184,13 +184,18 @@ void main() {
     expect(find.text('Team chat'), findsOneWidget);
     expect(find.text('Project: Task'), findsNothing);
 
+    await tester.ensureVisible(find.text('Linked board'));
+    await tester.pump();
     await tester.tap(find.text('Linked board'));
-    await tester.pumpAndSettle();
+    for (var i = 0; i < 10; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+    }
     expect(find.byType(BoardScreen), findsOneWidget);
     await tester.pumpWidget(const SizedBox.shrink());
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 100)),
-    );
+    await tester.pumpAndSettle();
   });
 
   testWidgets('the section is hidden when empty or when the server says 404', (
@@ -199,14 +204,13 @@ void main() {
     await open(tester);
     expect(find.text('Projects'), findsNothing);
     await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
 
     projects = () => _json(<Object>[], 404);
     await open(tester);
     expect(find.text('Projects'), findsNothing);
     expect(paths.where((p) => p.contains('collaboration')), hasLength(2));
     await tester.pumpWidget(const SizedBox.shrink());
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 100)),
-    );
+    await tester.pumpAndSettle();
   });
 }

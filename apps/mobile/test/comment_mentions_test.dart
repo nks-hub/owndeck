@@ -225,9 +225,8 @@ void main() {
     await tester.pump();
     expect(copied, 'Ping @Alice A');
     expect(find.text('Comment text copied.'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 6));
     await tester.pumpWidget(const SizedBox.shrink());
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 100)),
-    );
+    await tester.pumpAndSettle();
   });
 }

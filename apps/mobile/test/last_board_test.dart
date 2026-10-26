@@ -69,6 +69,8 @@ void main() {
       await tester.tap(find.text('Column 1 (3)'));
       await settleBoard(tester);
       expect(_selectedColumn(tester), 0);
+      await settleBoard(tester);
+      await settleBoard(tester);
       final saved = await tester.runAsync(
         () => AppPreferences(store: store).lastBoard(fixture.account.id),
       );
@@ -111,6 +113,7 @@ void main() {
       expect(_selectedColumn(tester), 0);
 
       Navigator.of(tester.element(find.byType(BoardScreen))).pop();
+      await tester.pump(const Duration(seconds: 1));
       await settleBoard(tester);
       expect(find.byType(BoardScreen), findsNothing);
       session.value = second.session;

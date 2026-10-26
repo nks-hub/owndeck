@@ -120,7 +120,6 @@ void main() {
           canCreateBoards: true,
           serverVersion: '31.0.2',
         );
-      addTearDown(session.dispose);
       await tester.runAsync(session.refreshBoards);
       await tester.pumpWidget(
         MaterialApp(
@@ -158,6 +157,10 @@ void main() {
       ]) {
         expect(details, isNot(contains(secret)));
       }
+      await tester.pump(const Duration(seconds: 6));
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+      session.dispose();
     });
   }
 
