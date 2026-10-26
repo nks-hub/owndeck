@@ -28,8 +28,9 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] B21 Viditelný detail i přehled obnovují data po návratu a změně sítě bez nového čtení zakrytých tras (`1d058b4`, `ed41e58`); 25 testů prošlo, analyzer čistý.
 - [x] B22 Správa sloupce je v nabídce bez přetečení (`e7d07c2`); reprodukce selhala před opravou, po opravě osm testů prošlo včetně správce a 200% textu. Opravené APK ještě ověřit na S21.
 - [x] B23 Rychlé přidání respektuje spodní systémový okraj i klávesnici (`b5ba90b`); reprodukce selhala před opravou, po opravě osm testů prošlo. Opravený dotykový cíl ještě ověřit na S21.
-- [x] B24 Přesuny uchovávají začátek/konec/kotvu a vyhodnocují je proti čerstvému sloupci (`e68650c`, `cdb05f0`); zaniklá kotva blokuje zápis, starší číselná fronta zůstává čitelná. Devět position-intent testů prošlo.
-- [ ] B25 Systémové Zpět místo návratu opustí aplikaci; reprodukováno na S21/Android 15 v detailu i S9/Android 10 v účtech, kandidát `96b8662`, bez opakovaného spuštění aktivity. Ověřit příčinu a návrat i z komentářů/editorů.
+- [x] B24 Přesuny uchovávají začátek/konec/kotvu a vyhodnocují je proti čerstvému sloupci (`e68650c`, `cdb05f0`); zaniklá kotva blokuje zápis, starší číselná fronta zůstává čitelná. Devět position-intent testů prošlo; `9fce5e8` navíc předá záměr serveru i při shodné místní pozici, reprodukce a 32 navazujících UI testů prošly.
+- [x] B25 Vnořená navigace nyní předává systémové Zpět aktivnímu účtu (`e9f06ac`) a respektuje ochranu konceptů; tři reprodukce před opravou selhaly, po opravě deset testů prošlo. Nové APK ověřit na S9/S21 v R06.
+- [ ] B26 Čekající přesun musí po potvrzení místního cíle stále ukazovat název nástěnky/sloupce přes aliasy a po opakování/zahození zbývající pozice obnovit zdroj i cíl; opravit Pending bez nového přenosu karty.
 - [x] T04 E2E používá oddělené testovací identity a evidenci vlastních záznamů; úklid odstraňuje pouze testem vytvořená data a přístupy, ověřuje jejich stav a zachovává ostatní účty.
 - [x] U01 Společný souhrn karty zobrazuje štítky, termíny, dokončení, známé počty a přiřazení (`5514cc7`, `3b82d66`, `ea667cd`); widget testy metadat prošly. E2E všech cest zůstává v R06.
 - [x] U02 Rychlé přidání z přehledu a sloupce uchová cíl podle účtu i koncept (`1a58735`, `b5ba90b`); osm cílených testů prošlo. Opravený bezpečný okraj ověřit v R06.
@@ -49,7 +50,7 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] U16 Náhled Markdownu je čitelný a omezený délkou, checkboxy v kódu nezvyšují průběh (`e91c96f`); cílené parser/widget testy prošly.
 - [x] U17 Konflikty nástěnek, štítků a sdílení ukazují známá metadata a práva bez JSON/ID/bitů (`8ef69fc`); testy porovnání prošly.
 - [x] F01 Checklist mění položku přes stejnou trvalou frontu a zachová ostatní popis (`e485272`, `6465b8e`); devět parser/widget testů a zapnutí/vypnutí ve skutečném UI kandidátu `96b8662` prošly. Finální společná revize v R06.
-- [ ] F06 Doplnit přesun karty mezi nástěnkami stejného účtu po vzoru Trella a oficiálního Decku; plná zachovaná aktualizace kvůli migraci štítků, navazující trvalé řazení, jasná pravidla dokončení a ověření práv/příloh/komentářů na 1.18.5 i 1.19.1.
+- [ ] F06 Přesun mezi nástěnkami implementován (`e68650c`, `cdb05f0`); skutečné API 1.18.5 ověřilo identitu, obsah, metadata, komentáře, štítky podle práv a kotvu. Zbývá příloha (testovací účet nemá dostupnou kapacitu), API 1.19.1 a nativní UI obou systémů v R06.
 
 ## Navazující funkce z konkurenční analýzy
 
