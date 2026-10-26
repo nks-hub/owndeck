@@ -291,6 +291,8 @@
   "cardLinkAccountRequired": "Add an account for this server",
   "chooseCardLinkAccount": "Choose an account to open the card",
   "copyCardLink": "Copy card link",
+  "copyComment": "Copy comment text",
+  "commentCopied": "Comment text copied.",
   "cardLinkCopied": "Card link copied.",
   "localSearchMode": "Saved cards",
   "serverSearchMode": "Search on server",

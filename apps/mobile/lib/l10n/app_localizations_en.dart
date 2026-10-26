@@ -867,6 +867,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get copyCardLink => 'Copy card link';
 
   @override
+  String get copyComment => 'Copy comment text';
+
+  @override
+  String get commentCopied => 'Comment text copied.';
+
+  @override
   String get cardLinkCopied => 'Card link copied.';
 
   @override

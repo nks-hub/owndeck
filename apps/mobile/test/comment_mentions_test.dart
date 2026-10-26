@@ -163,4 +163,71 @@ void main() {
       'Ping @Alice A, not me@example.com',
     );
   });
+
+  testWidgets('comment menu copies the displayed text and confirms', (
+    tester,
+  ) async {
+    String? copied;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(SystemChannels.platform, (call) async {
+          if (call.method == 'Clipboard.setData') {
+            copied = (call.arguments as Map)['text'] as String;
+          }
+          return null;
+        });
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, null),
+    );
+    await tester.runAsync(() async {
+      await database.saveBoards(account.id, account.generation, [
+        DeckBoard.fromJson({
+          'id': 1,
+          'title': 'Project',
+          'color': '008080',
+          'archived': false,
+          'deletedAt': 0,
+          'permissions': {'PERMISSION_READ': true},
+        }),
+      ], null);
+      await database.saveComments(account, 3, [
+        DeckComment.fromJson({
+          'id': 1,
+          'objectId': 3,
+          'message': 'Ping @alice',
+          'actorId': 'bob',
+          'actorType': 'users',
+          'actorDisplayName': 'Bob B',
+          'creationDateTime': '2026-10-24T12:00:00Z',
+          'mentions': [
+            {
+              'mentionId': 'alice',
+              'mentionType': 'user',
+              'mentionDisplayName': 'Alice A',
+            },
+          ],
+        }),
+      ], 0);
+    });
+    await tester.pumpWidget(
+      app(CommentsScreen(session: session, boardId: 1, stackId: 2, cardId: 3)),
+    );
+    for (var i = 0; i < 20 && find.byType(PopupMenuButton<String>).evaluate().isEmpty; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await tester.pump();
+    }
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+    expect(find.text('Edit comment'), findsNothing);
+    await tester.tap(find.text('Copy comment text'));
+    await tester.pump();
+    expect(copied, 'Ping @Alice A');
+    expect(find.text('Comment text copied.'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+  });
 }

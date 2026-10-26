@@ -1682,6 +1682,18 @@ abstract class AppLocalizations {
   /// **'Copy card link'**
   String get copyCardLink;
 
+  /// No description provided for @copyComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy comment text'**
+  String get copyComment;
+
+  /// No description provided for @commentCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Comment text copied.'**
+  String get commentCopied;
+
   /// No description provided for @cardLinkCopied.
   ///
   /// In en, this message translates to:

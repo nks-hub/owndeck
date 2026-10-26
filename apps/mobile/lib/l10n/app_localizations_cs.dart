@@ -869,6 +869,12 @@ class AppLocalizationsCs extends AppLocalizations {
   String get copyCardLink => 'Kopírovat odkaz na kartu';
 
   @override
+  String get copyComment => 'Kopírovat text komentáře';
+
+  @override
+  String get commentCopied => 'Text komentáře byl zkopírován.';
+
+  @override
   String get cardLinkCopied => 'Odkaz na kartu byl zkopírován.';
 
   @override

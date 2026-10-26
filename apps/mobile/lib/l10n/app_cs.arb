@@ -291,6 +291,8 @@
   "cardLinkAccountRequired": "Přidejte účet pro tento server",
   "chooseCardLinkAccount": "Vyberte účet pro otevření karty",
   "copyCardLink": "Kopírovat odkaz na kartu",
+  "copyComment": "Kopírovat text komentáře",
+  "commentCopied": "Text komentáře byl zkopírován.",
   "cardLinkCopied": "Odkaz na kartu byl zkopírován.",
   "localSearchMode": "Uložené karty",
   "serverSearchMode": "Hledat na serveru",

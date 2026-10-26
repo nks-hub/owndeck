@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:deck_protocol/deck_protocol.dart';
 import 'package:deck_store/deck_store.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../data/session.dart';
 import '../l10n/app_localizations.dart';
@@ -76,6 +77,17 @@ class _CommentsScreenState extends State<CommentsScreen> {
         original: original,
         replyTo: replyTo,
       );
+
+  Future<void> _copy(DeckComment comment) async {
+    await Clipboard.setData(
+      ClipboardData(text: mentionSpan(context, comment).toPlainText()),
+    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.commentCopied)),
+      );
+    }
+  }
 
   Future<void> _delete(DeckComment comment) async {
     final text = AppLocalizations.of(context)!;
@@ -213,19 +225,24 @@ class _CommentsScreenState extends State<CommentsScreen> {
                                         ).textTheme.titleSmall,
                                       ),
                                     ),
-                                    if (own)
-                                      PopupMenuButton<String>(
-                                        onSelected: (action) {
-                                          if (action == 'edit') {
-                                            unawaited(
-                                              _compose(original: comment),
-                                            );
-                                          }
-                                          if (action == 'delete') {
-                                            unawaited(_delete(comment));
-                                          }
-                                        },
-                                        itemBuilder: (_) => [
+                                    PopupMenuButton<String>(
+                                      onSelected: (action) {
+                                        if (action == 'copy') {
+                                          unawaited(_copy(comment));
+                                        }
+                                        if (action == 'edit') {
+                                          unawaited(_compose(original: comment));
+                                        }
+                                        if (action == 'delete') {
+                                          unawaited(_delete(comment));
+                                        }
+                                      },
+                                      itemBuilder: (_) => [
+                                        PopupMenuItem(
+                                          value: 'copy',
+                                          child: Text(text.copyComment),
+                                        ),
+                                        if (own) ...[
                                           PopupMenuItem(
                                             value: 'edit',
                                             child: Text(text.editComment),
@@ -235,7 +252,8 @@ class _CommentsScreenState extends State<CommentsScreen> {
                                             child: Text(text.deleteComment),
                                           ),
                                         ],
-                                      ),
+                                      ],
+                                    ),
                                   ],
                                 ),
                                 Text(
