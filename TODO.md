@@ -126,13 +126,13 @@ Rozpad z auditu desktopového režimu OwnTalku, souhrn a nálezy v `docs/desktop
 - [x] B56 P3 R03: koncept `share:` se uloží před otevřením rychlého přidání, takže přežije i bez zapisovatelného cíle (`1c2a798`).
 - [ ] B57 P3 R03: Android ignoruje intenty s `FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY` pro sdílení i odkazy (`b21d5fb`); zatím jen kompilace, ověření návratu z Nedávných na S9/S21 zbývá.
 - [x] B58 P3 R03 (U15): chybové stavy se společnou obnovou, chyby místního zápisu hlášené jako zápis, chyba checklistu jako místní, buňka kalendáře 49 dp (`37cb274`). Dvanáct nových testů B48–B58 selhalo na starém kódu, 350 mobilních testů prošlo na `f7d959a`.
-- [ ] B59 P2 R03b: u přijaté změny (`applied`) jde v čekajících změnách použít Zahodit (`pending.dart:665-681`, `writes.dart:325`); místní ID pak nejde převést a komentáře, přílohy či obsah offline nástěnky se trvale zablokují jako `dependency_unavailable`.
-- [ ] B60 P2 R03b: nejistá změna nemá akci Zkontrolovat server, kterou vyžaduje architektura; varování před duplicitou se ukazuje i u PUT/DELETE. Doplnit kontrolu podle typu (příloha, komentář, karta) a u idempotentních změn opakovat bez varování.
-- [ ] B61 P2 R03b: upload, smazání i obnovení přílohy se zablokuje jako `card_unavailable`, když karta mezitím změní sloupec (`attachments_sync.dart:20-31`); použít aktuální kontext karty jako ostatní zápisy.
-- [ ] B62 P3 R03b: opakování nejistého přesunu mezi nástěnkami, který server už provedl, skončí `invalid_destination` a ztratí umístění podle kotvy (`card_transfer_sync.dart:87-118`).
-- [ ] B63 P3 R03b: cizí přesun karty zbytečně zablokuje komentáře (`blocked card_moved`) a úpravy ve stejné nástěnce (`concurrent_edit`) ve frontě (`card_snapshots.dart:145-171`); u komentářů, příloh a úprav jen přepsat umístění.
-- [ ] B64 P3 R03b: po zabití aplikace během odesílání drží zámek `sync_leases` mrtvého vlastníka dvě minuty a nic se neodešle ani neobnoví (`writes.dart:148-167`); při otevření databáze zámky uvolnit.
-- [ ] B65 P3 R03b: změna bez odeslaného požadavku (zastaralá epocha, ztracený zámek) zůstane `sending` a po restartu se tváří jako nejistá (`card_move_sync.dart:36-42`, `attachments_sync.dart:99-101`).
+- [x] B59 P2 R03b: `decideWrite` u přijaté změny vyhazuje `already_applied` a UI Zahodit nenabízí (výjimka: přijatý přesun mezi nástěnkami s volbou verze serveru), závislé komentáře zůstávají ve frontě (`fdbab6d`).
+- [x] B60 P2 R03b: akce Zkontrolovat server hledá jedinou shodu vzniklou po odeslání (karta, komentář, nahrání a sdílení přílohy) a při shodě pokračuje načtením výsledku; varování před duplicitou jen u POST. Čas odeslání ve sloupci `sent_at`, schéma 10 s migrací (`fdbab6d`). Ověřeno proti mock transportu, živý server v R06.
+- [x] B61 P2 R03b: přílohy používají aktuální kontext karty a posílají do aktuálního sloupce; blokuje jen archivace nebo změna nástěnky (`5a8902f`).
+- [x] B62 P3 R03b: opakovaný přesun, který server už provedl, zapíše výsledek přenosu a pošle jen řazení (`fc0bff1`).
+- [x] B63 P3 R03b: cizí přesun karty přepíše u komentářů, příloh a úprav ve stejné nástěnce jen umístění; konflikt zůstává pro přesuny a změnu nástěnky (`5a8902f`).
+- [x] B64 P3 R03b: otevření databáze uvolní zámky `sync_leases`, fronta se po zabití aplikace odešle hned (`fdbab6d`).
+- [x] B65 P3 R03b: neodeslané změny se přes `requeueUnsent` vrací do fronty se `stale_response` (`5a8902f`). Osm nových testů B59–B65 před opravou padalo; store 225, protokol 125 a mobil 376 testů prošlo.
 - [x] B66 P3 R03b: konflikt přesunu mezi nástěnkami ukazuje řádek Teď na serveru s nástěnkou a sloupcem (`a6ce685`).
 - [x] B67 P3 R03b: sdílení mapuje chyby společným `errorMessage`, čekající rozhodnutí a nedostupný účet mají vlastní text (`a6ce685`).
 - [x] B68 P3 R03b: chyba ve sdílení je live region, nabídky příloh a sdílení mají tooltip s názvem položky, rozhodování ukazuje indikátor s popiskem (`a6ce685`); guidelines tap target a kontrastu na přílohách, sdílení a čekajících změnách prošly, celá sada 376 testů.
