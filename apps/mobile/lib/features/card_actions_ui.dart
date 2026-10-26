@@ -15,6 +15,33 @@ extension _CardDialogs on _CardScreenState {
     }
   }
 
+  Future<void> _share(DeckBoard board, DeckCard card) async {
+    final text = AppLocalizations.of(context)!;
+    final locale = MaterialLocalizations.of(context);
+    final link = DeckCardLink(
+      server: widget.session.client.base,
+      boardId: board.id,
+      cardId: card.id,
+    );
+    try {
+      await textSharer(
+        cardShareText(
+          card: card,
+          link: link.webUri,
+          text: text,
+          locale: locale,
+        ),
+        subject: card.title,
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(text.shareError)));
+      }
+    }
+  }
+
   Future<void> _copy(DeckCard card) async {
     if (_copying) return;
     _setCopyState(active: true);

@@ -1694,6 +1694,36 @@ abstract class AppLocalizations {
   /// **'Comment text copied.'**
   String get commentCopied;
 
+  /// No description provided for @shareCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Share card'**
+  String get shareCard;
+
+  /// No description provided for @shareBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Share board link'**
+  String get shareBoard;
+
+  /// No description provided for @shareDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Due: {date}'**
+  String shareDue(String date);
+
+  /// No description provided for @shareLabels.
+  ///
+  /// In en, this message translates to:
+  /// **'Labels: {labels}'**
+  String shareLabels(String labels);
+
+  /// No description provided for @shareError.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing failed.'**
+  String get shareError;
+
   /// No description provided for @cardLinkCopied.
   ///
   /// In en, this message translates to:

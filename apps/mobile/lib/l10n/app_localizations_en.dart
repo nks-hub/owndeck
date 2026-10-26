@@ -873,6 +873,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commentCopied => 'Comment text copied.';
 
   @override
+  String get shareCard => 'Share card';
+
+  @override
+  String get shareBoard => 'Share board link';
+
+  @override
+  String shareDue(String date) {
+    return 'Due: $date';
+  }
+
+  @override
+  String shareLabels(String labels) {
+    return 'Labels: $labels';
+  }
+
+  @override
+  String get shareError => 'Sharing failed.';
+
+  @override
   String get cardLinkCopied => 'Card link copied.';
 
   @override

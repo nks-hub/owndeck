@@ -875,6 +875,25 @@ class AppLocalizationsCs extends AppLocalizations {
   String get commentCopied => 'Text komentáře byl zkopírován.';
 
   @override
+  String get shareCard => 'Sdílet kartu';
+
+  @override
+  String get shareBoard => 'Sdílet odkaz na nástěnku';
+
+  @override
+  String shareDue(String date) {
+    return 'Termín: $date';
+  }
+
+  @override
+  String shareLabels(String labels) {
+    return 'Štítky: $labels';
+  }
+
+  @override
+  String get shareError => 'Sdílení se nepodařilo.';
+
+  @override
   String get cardLinkCopied => 'Odkaz na kartu byl zkopírován.';
 
   @override

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import '../data/session.dart';
 import '../core/errors.dart';
 import '../l10n/app_localizations.dart';
+import 'share_text.dart';
 import 'sharing.dart';
 import 'sync_notice.dart';
 import 'sync_state.dart';
@@ -37,7 +38,10 @@ class BoardActions extends StatelessWidget {
         board.permissions.read &&
         board.deletedAt == 0 &&
         session.capabilities?.canCreateBoards == true;
-    if (!board.permissions.manage &&
+    final canShareLink =
+        board.id > 0 && board.permissions.read && board.deletedAt == 0;
+    if (!canShareLink &&
+        !board.permissions.manage &&
         (!board.permissions.share || board.deletedAt != 0) &&
         !canCopy &&
         extraItems.isEmpty) {
@@ -48,6 +52,19 @@ class BoardActions extends StatelessWidget {
       tooltip: text.boardActions,
       onSelected: (action) {
         switch (action) {
+          case 'share-link':
+            unawaited(
+              textSharer(
+                boardWebUri(session.client.base, board.id).toString(),
+                subject: board.title,
+              ).catchError((Object _) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text(text.shareError)));
+                }
+              }),
+            );
           case 'copy':
             unawaited(showBoardClone(context, session, board));
           case 'sharing':
@@ -95,6 +112,8 @@ class BoardActions extends StatelessWidget {
         if (board.deletedAt != 0 && board.permissions.manage)
           PopupMenuItem(value: 'restore', child: Text(text.restoreBoard)),
         if (board.deletedAt == 0) ...[
+          if (canShareLink)
+            PopupMenuItem(value: 'share-link', child: Text(text.shareBoard)),
           if (canCopy)
             PopupMenuItem(value: 'copy', child: Text(text.copyBoard)),
           if (board.permissions.share || board.permissions.manage)

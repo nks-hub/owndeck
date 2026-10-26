@@ -29,6 +29,7 @@ import 'comments.dart';
 import 'attachments.dart';
 import 'card_links.dart';
 import 'sharing.dart' show shareParticipantId;
+import 'share_text.dart';
 import 'state_message.dart';
 
 part 'card_actions_ui.dart';
@@ -240,6 +241,8 @@ class _CardScreenState extends State<_CardContent> {
                         switch (action) {
                           case 'copy-link':
                             unawaited(_copyLink(board, card));
+                          case 'share':
+                            unawaited(_share(board, card));
                           case 'copy':
                             unawaited(_copy(card));
                           case 'move':
@@ -265,6 +268,11 @@ class _CardScreenState extends State<_CardContent> {
                           value: 'copy',
                           child: Text(text.copyCard),
                         ),
+                        if (board.id > 0 && card.id > 0)
+                          PopupMenuItem(
+                            value: 'share',
+                            child: Text(text.shareCard),
+                          ),
                         if (board.id > 0 && card.id > 0)
                           PopupMenuItem(
                             value: 'copy-link',
