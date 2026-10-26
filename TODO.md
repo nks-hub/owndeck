@@ -76,6 +76,19 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] B42 Sdílený text bez účtu se ukládá do `share.pending`, přežije restart a nabídne se po přihlášení; poškozená hodnota start neblokuje (`dfc5ed2`), pět testů úložiště a tři testy toku prošly.
 - [x] B43 Odkaz na kartu a sdílený text se zachovají oba, nejdřív se otevře karta a pak nabídne text (`dfc5ed2`); reprodukce ztráty textu selhala před opravou.
 - [ ] B45 Dvě sdílení těsně po sobě se přepíšou na Androidu i iOS, zachová se jen poslední; nález z implementace F04.
+- [ ] B46 P1 R03: odesílač pošle snímek návrhu a potvrdí řádek, do kterého se během čtení `GET boards/{id}` sloučila další změna (`sync.dart` run/startWrite, `writes.dart` saveCardDraft); druhá změna se ztratí. Stejný vzor ověřit v queueStructure, structure_sync a board_metadata_sync.
+- [ ] B47 P2 R03: iOS `ncdeck://share` přes UIScene nikdy nedojde do sdílení (`SceneDelegate` posílá URL jen do odkazů karet) a `CardLinkDelivery` přijímá libovolný host `ncdeck`.
+- [ ] B48 P2 R03: Seznam Mých úkolů hlásí potvrzeně prázdný výsledek i bez uložených karet nástěnek; ignoruje `uncachedBoards`, které používá jen kalendář.
+- [ ] B49 P2 R03: přerušený komentář (`comments_sync.dart` návrat bez `markWrite queued`) zůstane `sending` a po restartu se z něj stane nejistý POST.
+- [ ] B50 P2 R03: iOS Keychain používá výchozí `unlocked` místo `*_this_device`, app password tak může přejít zálohou na jiné zařízení; přepsat i existující položky.
+- [ ] B51 P2 R03: migrace databáze neběží v transakci; pád po prvním `addColumn` trvale znemožní otevření databáze.
+- [ ] B52 P2 R03 (ověřit): každá 404 při odesílání odvolá přístup k nástěnce, i HTML 404 z proxy nebo vypnutého Decku; revokovat jen 403 nebo JSON 404 od Decku.
+- [ ] B53 P3 R03: kalendář ukazuje Dokončeno v den a čas termínu; hotová karta bez termínu chybí, i když `done` nese čas dokončení.
+- [ ] B54 P3 R03: dokončení karty nejde z Mých úkolů, hledání ani kalendáře a odkaz na kartu Decku v popisu otevírá prohlížeč místo nativní karty jako oznámení.
+- [ ] B55 P3 R03: hromadné akce nemají stav čekání ani ochranu proti dvojímu spuštění; souhrn Uloženo nezmiňuje uložení jen v telefonu.
+- [ ] B56 P3 R03: sdílený text se ztratí, když rychlé přidání nemá zapisovatelný cíl nebo selže čtení sloupců; koncept uložit hned.
+- [ ] B57 P3 R03 (ověřit na zařízení): Android po návratu z Nedávných znovu doručí původní SEND/VIEW intent (`FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY`).
+- [ ] B58 P3 R03 (U15): kalendář, nástěnka a koncepty mají chybové stavy bez StateMessage a obnovy; místní zápisy hlásí chybu jako chybu čtení; chyba checklistu se hlásí jako chyba serveru; buňka kalendáře je při 360 dp pod 48 dp.
 - [ ] R09 Před vydáním iOS zaregistrovat App Group `group.com.nkshub.nextclouddeck` a identifikátor `com.nkshub.nextclouddeck.ShareExtension` v Apple účtu a ověřit podepsaný build; nález z implementace F04.
 - [x] F08 Archivované karty lze vybrat a hromadně obnovit (bez přesunu), výběr všech zobrazených karet respektuje filtr (`d42f12b`); dva nové widget testy prošly.
 - [x] B44 Skrytý seznam Mých úkolů při přepnutí na kalendář znovu spouštěl stejný dotaz a do jeho dokončení animoval indikátor; StreamBuilder je nově klíčovaný dotazem (`50cd2fa`). Nález z testu F03, reprodukce selhala před opravou a 22 navazujících testů prošlo.
