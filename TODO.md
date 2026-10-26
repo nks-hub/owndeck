@@ -190,6 +190,7 @@ Z rozboru zdrojů a issues oficiální aplikace (GPL-3.0, jen nápady bez převz
 
 - [x] R07 `0.1.1+4` nahráno přes API do Google Play alpha ze zdroje `e6b54b8`; celé CI `40387820624` prošlo. API ověřilo shodu podepsaného AAB, zachování tří skupin testerů a grafiky. Stav je IN_REVIEW, nikoli publikováno; úplné E2E a výkon S9 zůstávají otevřené.
 - [x] R08 `0.1.1+4` schváleno: Publishing API 26. 10. 2026 vrací pro alpha `0.1.1 (4)` ve stavu RELEASE_LIFECYCLE_STATE_PUBLISHED.
+- [ ] R10 Po dokončení rozpracované práce a testů vydat další verzi do uzavřeného testu Google Play (pokyn majitele 26. 10. 2026): zvýšit verzi, podepsaný AAB, upload přes API a ověření stavu.
 
 - [x] P03 Repozitář `nks-hub/owndeck` je veřejný; anonymní přístup ověřen, README, licence a štítky zkontrolované, aplikace doplněna do profilu organizace.
 
