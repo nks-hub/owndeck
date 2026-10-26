@@ -12,7 +12,10 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:nextclouddeck/core/app_preferences.dart';
 import 'package:nextclouddeck/data/session.dart';
+import 'package:nextclouddeck/data/attachment_files.dart';
 import 'package:nextclouddeck/features/boards.dart';
+import 'package:nextclouddeck/features/comments.dart';
+import 'package:nextclouddeck/features/attachments.dart';
 
 import 'board_test_support.dart' show MemoryBoardPreferences, boardTestApp;
 
@@ -36,10 +39,13 @@ class _Fixture {
     this.offline = true,
     this.cachedBoard = false,
     this.cachedColumn = false,
+    this.attachmentFiles = false,
   });
   final database = DeckDatabase(NativeDatabase.memory());
   final bool cachedBoard;
   final bool cachedColumn;
+  final bool attachmentFiles;
+  Directory? directory;
   bool offline;
   Completer<void>? gate;
   final requests = <String>[];
@@ -78,6 +84,11 @@ class _Fixture {
   });
 
   Future<void> initialize() async {
+    if (attachmentFiles) {
+      directory = await Directory.systemTemp.createTemp(
+        'owndeck-empty-content-',
+      );
+    }
     account = await AccountRepository(database, _Vault()).add(
       LoginCredentials(
         server: ServerBase.parse('https://cloud.example.com'),
@@ -119,6 +130,8 @@ class _Fixture {
           }
           if (path.endsWith('/boards')) return _reply([]);
           if (path.endsWith('/boards/1')) return _reply(board.raw);
+          if (path.endsWith('/comments')) return _ocs([]);
+          if (path.endsWith('/attachments')) return _reply([]);
           if (path.endsWith('/stacks') || path.endsWith('/stacks/archived')) {
             return _reply([]);
           }
@@ -126,6 +139,7 @@ class _Fixture {
         }),
       ),
       pollInterval: const Duration(hours: 1),
+      files: attachmentFiles ? () async => AttachmentFiles(directory!) : null,
     );
   }
 
@@ -175,6 +189,9 @@ Future<void> _using(
     if (fixture.gate?.isCompleted == false) fixture.gate!.complete();
     await tester.pumpAndSettle();
     await tester.runAsync(fixture.database.close);
+    if (fixture.directory != null) {
+      await tester.runAsync(() => fixture.directory!.delete(recursive: true));
+    }
     messenger.setMockMethodCallHandler(channel, null);
     tester.view.resetPhysicalSize();
     tester.view.resetDevicePixelRatio();
@@ -197,6 +214,69 @@ Future<void> _mount(
 }
 
 void main() {
+  for (final attachments in [false, true]) {
+    testWidgets(
+      'offline empty ${attachments ? 'attachments' : 'comments'} do not claim the server is empty',
+      (tester) async {
+        final fixture = _Fixture(
+          cachedBoard: true,
+          cachedColumn: true,
+          attachmentFiles: attachments,
+        );
+        await _using(tester, fixture, () async {
+          final scope = attachments ? 'attachments:8' : 'comments:8';
+          await tester.pumpWidget(
+            boardTestApp(
+              attachments
+                  ? AttachmentsScreen(
+                      session: fixture.session,
+                      boardId: 1,
+                      cardId: 8,
+                    )
+                  : CommentsScreen(
+                      session: fixture.session,
+                      boardId: 1,
+                      stackId: 2,
+                      cardId: 8,
+                    ),
+            ),
+          );
+          await _until(
+            tester,
+            () =>
+                fixture.session.error(scope) != null &&
+                !fixture.session.loading(scope) &&
+                find.byTooltip('Retry').evaluate().isNotEmpty,
+          );
+          expect(
+            find.text(attachments ? 'No attachments yet.' : 'No comments yet.'),
+            findsNothing,
+          );
+          expect(find.text(_noSavedContent), findsOneWidget);
+          expect(find.byTooltip('Retry'), findsOneWidget);
+          fixture.offline = false;
+          fixture.gate = Completer<void>();
+          await tester.tap(find.byTooltip('Retry'));
+          await _until(tester, () => fixture.session.loading(scope));
+          expect(
+            find.text(attachments ? 'No attachments yet.' : 'No comments yet.'),
+            findsNothing,
+          );
+          expect(find.text(_noSavedContent), findsNothing);
+          expect(find.byType(LinearProgressIndicator), findsOneWidget);
+          fixture.gate!.complete();
+          await _until(tester, () => !fixture.session.loading(scope));
+          expect(fixture.session.error(scope), isNull);
+          expect(
+            find.text(attachments ? 'No attachments yet.' : 'No comments yet.'),
+            findsOneWidget,
+          );
+          expect(find.text(_noSavedContent), findsNothing);
+        });
+      },
+    );
+  }
+
   for (final detail in [false, true]) {
     final scope = detail ? 'board:1' : 'boards';
     testWidgets(

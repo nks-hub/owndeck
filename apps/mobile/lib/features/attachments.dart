@@ -285,6 +285,13 @@ class _AttachmentListState extends State<_AttachmentList> {
               if (snapshot.hasError || writes.hasError) {
                 return Center(child: Text(text.loadError));
               }
+              if ((snapshot.connectionState == ConnectionState.waiting &&
+                      !snapshot.hasData) ||
+                  (writes.connectionState == ConnectionState.waiting &&
+                      !writes.hasData)) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              final scope = 'attachments:${widget.card.id}';
               final items = snapshot.data ?? [];
               final pending = (writes.data ?? []).where(
                 (write) =>
@@ -296,7 +303,7 @@ class _AttachmentListState extends State<_AttachmentList> {
                 children: [
                   SyncNotice(
                     session: widget.session,
-                    scope: 'attachments:${widget.card.id}',
+                    scope: scope,
                     retry: _refresh,
                     hasData: items.isNotEmpty,
                   ),
@@ -342,10 +349,14 @@ class _AttachmentListState extends State<_AttachmentList> {
                     ),
                   if (items.isEmpty &&
                       pending.isEmpty &&
-                      !widget.session.loading('attachments:${widget.card.id}'))
+                      !widget.session.loading(scope))
                     Padding(
                       padding: const EdgeInsets.all(24),
-                      child: Text(text.noAttachments),
+                      child: Text(
+                        widget.session.error(scope) == null
+                            ? text.noAttachments
+                            : text.noSavedContent,
+                      ),
                     ),
                   for (final attachment in items)
                     ListTile(

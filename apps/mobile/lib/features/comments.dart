@@ -147,12 +147,17 @@ class _CommentsScreenState extends State<CommentsScreen> {
             if (snapshot.hasError) {
               return Center(child: Text(text.localReadError));
             }
+            if (snapshot.connectionState == ConnectionState.waiting &&
+                !snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final scope = 'comments:${widget.cardId}';
             final comments = snapshot.data ?? [];
             return Column(
               children: [
                 SyncNotice(
                   session: widget.session,
-                  scope: 'comments:${widget.cardId}',
+                  scope: scope,
                   retry: _refresh,
                   hasData: comments.isNotEmpty,
                 ),
@@ -165,9 +170,16 @@ class _CommentsScreenState extends State<CommentsScreen> {
                       itemCount: comments.isEmpty ? 1 : comments.length,
                       itemBuilder: (context, index) {
                         if (comments.isEmpty) {
+                          if (widget.session.loading(scope)) {
+                            return const SizedBox.shrink();
+                          }
                           return Padding(
                             padding: const EdgeInsets.all(24),
-                            child: Text(text.noComments),
+                            child: Text(
+                              widget.session.error(scope) == null
+                                  ? text.noComments
+                                  : text.noSavedContent,
+                            ),
                           );
                         }
                         final comment = comments[index];
