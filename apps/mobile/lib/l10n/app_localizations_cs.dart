@@ -1532,4 +1532,37 @@ class AppLocalizationsCs extends AppLocalizations {
   @override
   String get loginNote =>
       'Přihlásíte se v prohlížeči na svém serveru. Heslo aplikace zůstane jen v tomto zařízení.';
+
+  @override
+  String get backgroundSyncTitle => 'Synchronizace na pozadí';
+
+  @override
+  String get backgroundSyncInterval => 'Interval';
+
+  @override
+  String get backgroundSyncOff => 'Vypnuto';
+
+  @override
+  String get backgroundSync15Minutes => '15 minut';
+
+  @override
+  String get backgroundSync1Hour => '1 hodina';
+
+  @override
+  String get backgroundSync6Hours => '6 hodin';
+
+  @override
+  String get backgroundSyncWifiOnly => 'Jen přes Wi-Fi';
+
+  @override
+  String get backgroundSyncWifiOnlyHint =>
+      'Na mobilních datech a měřených sítích se běh přeskočí.';
+
+  @override
+  String get backgroundSyncHelpAndroid =>
+      'Odešle změny z fronty a obnoví místní kopii, i když je aplikace zavřená. Přesný čas určuje Android a úspora baterie ho může odložit.';
+
+  @override
+  String get backgroundSyncHelpIos =>
+      'iOS rozhoduje, kdy úlohu spustí, a může ji vynechat, zvlášť když aplikaci málo otvíráte nebo je zapnutý spořič baterie. Interval je jen nejdřívější možný začátek. Aby se změny odeslaly jistě, otevřete aplikaci.';
 }

@@ -8,6 +8,7 @@ import '../core/app_preferences.dart';
 import '../data/session.dart';
 import '../l10n/app_localizations.dart';
 import 'accounts.dart';
+import 'background_sync_settings.dart';
 import 'telemetry_settings.dart';
 import 'server_tools.dart';
 
@@ -152,6 +153,7 @@ class SettingsView extends ConsumerWidget {
             ),
           ),
         ),
+        const BackgroundSyncSettingsTile(),
         ListTile(
           leading: const Icon(Icons.analytics_outlined),
           title: Text(text.telemetryTitle),

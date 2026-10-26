@@ -2797,6 +2797,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You sign in on your server in the browser. The app password stays on this device.'**
   String get loginNote;
+
+  /// No description provided for @backgroundSyncTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Background sync'**
+  String get backgroundSyncTitle;
+
+  /// No description provided for @backgroundSyncInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Interval'**
+  String get backgroundSyncInterval;
+
+  /// No description provided for @backgroundSyncOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get backgroundSyncOff;
+
+  /// No description provided for @backgroundSync15Minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'15 minutes'**
+  String get backgroundSync15Minutes;
+
+  /// No description provided for @backgroundSync1Hour.
+  ///
+  /// In en, this message translates to:
+  /// **'1 hour'**
+  String get backgroundSync1Hour;
+
+  /// No description provided for @backgroundSync6Hours.
+  ///
+  /// In en, this message translates to:
+  /// **'6 hours'**
+  String get backgroundSync6Hours;
+
+  /// No description provided for @backgroundSyncWifiOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Wi-Fi only'**
+  String get backgroundSyncWifiOnly;
+
+  /// No description provided for @backgroundSyncWifiOnlyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip runs on mobile data and metered networks.'**
+  String get backgroundSyncWifiOnlyHint;
+
+  /// No description provided for @backgroundSyncHelpAndroid.
+  ///
+  /// In en, this message translates to:
+  /// **'Sends queued changes and refreshes the local copy while the app is closed. Android chooses the exact time, and battery saver can delay it.'**
+  String get backgroundSyncHelpAndroid;
+
+  /// No description provided for @backgroundSyncHelpIos.
+  ///
+  /// In en, this message translates to:
+  /// **'iOS decides when to run this and may skip runs, especially if you rarely open the app or Low Power Mode is on. The interval is only the earliest start. Open the app to be sure changes are sent.'**
+  String get backgroundSyncHelpIos;
 }
 
 class _AppLocalizationsDelegate

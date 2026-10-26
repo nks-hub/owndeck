@@ -644,5 +644,15 @@
   "formatChecklist": "Checklist",
   "formatLink": "Odkaz",
   "loginTagline": "Úkoly a nástěnky z vašeho Nextcloudu",
-  "loginNote": "Přihlásíte se v prohlížeči na svém serveru. Heslo aplikace zůstane jen v tomto zařízení."
+  "loginNote": "Přihlásíte se v prohlížeči na svém serveru. Heslo aplikace zůstane jen v tomto zařízení.",
+  "backgroundSyncTitle": "Synchronizace na pozadí",
+  "backgroundSyncInterval": "Interval",
+  "backgroundSyncOff": "Vypnuto",
+  "backgroundSync15Minutes": "15 minut",
+  "backgroundSync1Hour": "1 hodina",
+  "backgroundSync6Hours": "6 hodin",
+  "backgroundSyncWifiOnly": "Jen přes Wi-Fi",
+  "backgroundSyncWifiOnlyHint": "Na mobilních datech a měřených sítích se běh přeskočí.",
+  "backgroundSyncHelpAndroid": "Odešle změny z fronty a obnoví místní kopii, i když je aplikace zavřená. Přesný čas určuje Android a úspora baterie ho může odložit.",
+  "backgroundSyncHelpIos": "iOS rozhoduje, kdy úlohu spustí, a může ji vynechat, zvlášť když aplikaci málo otvíráte nebo je zapnutý spořič baterie. Interval je jen nejdřívější možný začátek. Aby se změny odeslaly jistě, otevřete aplikaci."
 }

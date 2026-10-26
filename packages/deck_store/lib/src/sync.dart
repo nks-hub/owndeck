@@ -41,12 +41,18 @@ final class AttachmentUploadSource {
 }
 
 final class DeckSync {
-  DeckSync(this.database, this.account, this.client, {this.readUpload});
+  DeckSync(
+    this.database,
+    this.account,
+    this.client, {
+    this.readUpload,
+    String? owner,
+  }) : _owner = owner ?? const Uuid().v4();
   final Future<AttachmentUploadSource> Function(String id)? readUpload;
   final DeckDatabase database;
   final StoredAccount account;
   final DeckClient client;
-  final String _owner = const Uuid().v4();
+  final String _owner;
   Future<void>? _running;
   bool _closed = false;
   final _cancelled = Completer<void>();

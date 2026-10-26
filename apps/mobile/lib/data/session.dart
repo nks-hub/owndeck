@@ -6,6 +6,8 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:deck_protocol/deck_protocol.dart';
 import 'package:deck_store/deck_store.dart';
 import 'package:flutter/widgets.dart';
+import 'package:uuid/uuid.dart';
+
 import 'attachment_files.dart';
 
 part 'session_attachments.dart';
@@ -18,6 +20,7 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
     Future<AttachmentFiles> Function()? files,
     this.onAuthenticationRequired,
     Duration pollInterval = const Duration(seconds: 30),
+    this.background = false,
   }) : _files = files {
     if (pollInterval <= Duration.zero) {
       throw ArgumentError('invalid_poll_interval');
@@ -26,6 +29,9 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
       database,
       account,
       client,
+      owner: background
+          ? '${DeckDatabase.backgroundOwnerPrefix}${const Uuid().v4()}'
+          : null,
       readUpload: files == null
           ? null
           : (id) async => (await files()).readUpload(account.id, id),
@@ -75,6 +81,10 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
   final Future<AttachmentFiles> Function()? _files;
   final Future<void> Function()? onAuthenticationRequired;
 
+  /// A session run by the OS in the background: it takes a distinguishable
+  /// lease and leaves attachment file cleanup to the foreground app.
+  final bool background;
+
   Future<void> _prepareRequest() async {
     final current = await database.account(account.id);
     if (_disposed ||
@@ -105,7 +115,7 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
       boardId,
       reason: error.code,
     );
-    if (changed && _files != null && !_disposed) {
+    if (changed && _files != null && !_disposed && !background) {
       await _cleanAttachmentFiles();
     }
   }
@@ -382,6 +392,25 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
         );
       });
 
+  /// Sends the outbox, then refreshes the board list and the boards that can
+  /// be read. Returns false if any step failed; stops early after [budget].
+  Future<bool> syncNow({Duration? budget}) async {
+    final started = Stopwatch()..start();
+    await refreshBoards();
+    var ok = error('boards') == null;
+    if (!ok) return false;
+    for (final board in await database.boardView(account.id)) {
+      if (_disposed) return false;
+      if (budget != null && started.elapsed > budget) return false;
+      if (!board.permissions.read || board.deletedAt != 0 || board.archived) {
+        continue;
+      }
+      await refreshStacks(board.id);
+      ok = ok && error('board:${board.id}') == null;
+    }
+    return ok;
+  }
+
   Future<void> _refresh(String scope, Future<void> Function() operation) {
     if (_disposed) return Future.value();
     final existing = _running[scope];
@@ -397,7 +426,9 @@ final class DeckSession extends ChangeNotifier with WidgetsBindingObserver {
     try {
       await _prepareRequest();
       await operation();
-      if (_files != null && !_disposed) await _cleanAttachmentFiles();
+      if (_files != null && !_disposed && !background) {
+        await _cleanAttachmentFiles();
+      }
     } catch (error) {
       // The view displays the error beside cached content, never raw exception text.
       _errors[scope] = error;

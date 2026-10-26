@@ -1522,4 +1522,37 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get loginNote =>
       'You sign in on your server in the browser. The app password stays on this device.';
+
+  @override
+  String get backgroundSyncTitle => 'Background sync';
+
+  @override
+  String get backgroundSyncInterval => 'Interval';
+
+  @override
+  String get backgroundSyncOff => 'Off';
+
+  @override
+  String get backgroundSync15Minutes => '15 minutes';
+
+  @override
+  String get backgroundSync1Hour => '1 hour';
+
+  @override
+  String get backgroundSync6Hours => '6 hours';
+
+  @override
+  String get backgroundSyncWifiOnly => 'Wi-Fi only';
+
+  @override
+  String get backgroundSyncWifiOnlyHint =>
+      'Skip runs on mobile data and metered networks.';
+
+  @override
+  String get backgroundSyncHelpAndroid =>
+      'Sends queued changes and refreshes the local copy while the app is closed. Android chooses the exact time, and battery saver can delay it.';
+
+  @override
+  String get backgroundSyncHelpIos =>
+      'iOS decides when to run this and may skip runs, especially if you rarely open the app or Low Power Mode is on. The interval is only the earliest start. Open the app to be sure changes are sent.';
 }

@@ -200,6 +200,10 @@ void main() {
   testWidgets('settings changes preserve navigator and unsent editor text', (
     tester,
   ) async {
+    // The version row sits below the sync settings; a tall surface keeps it built.
+    tester.view.physicalSize = const Size(800, 1800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     final preferences = AppPreferences(store: _Store());
     await preferences.load();
     await preferences.setLanguage(AppLanguage.en);
@@ -256,6 +260,10 @@ void main() {
   testWidgets('missing plugins show safe errors without blocking settings', (
     tester,
   ) async {
+    // The version row sits below the sync settings; a tall surface keeps it built.
+    tester.view.physicalSize = const Size(800, 1800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     final preferences = AppPreferences(
       store: _Store()
         ..failReads = true

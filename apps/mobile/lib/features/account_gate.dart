@@ -10,6 +10,7 @@ import '../core/app_preferences.dart';
 import '../core/errors.dart';
 import '../core/telemetry_bootstrap.dart';
 import '../data/accounts.dart';
+import '../data/background_sync.dart';
 import '../data/card_link_inbox.dart';
 import '../data/card_reads.dart';
 import '../data/session.dart';
@@ -42,6 +43,7 @@ class _DeckAccountGateState extends ConsumerState<DeckAccountGate> {
   bool _sharing = false;
   bool _shareSheetOpen = false;
   int? _authenticationRetry;
+  bool? _hadAccounts;
 
   @override
   void initState() {
@@ -59,6 +61,19 @@ class _DeckAccountGateState extends ConsumerState<DeckAccountGate> {
     }
     _schedule();
     _scheduleShare();
+    unawaited(
+      ref.read(accountsProvider).ready.then((_) {
+        if (mounted) _applySchedule(ref.read(accountsProvider));
+      }),
+    );
+  }
+
+  /// Keeps the OS background job in step with whether any account exists.
+  void _applySchedule(Accounts accounts) {
+    final has = accounts.items.isNotEmpty;
+    if (has == _hadAccounts) return;
+    _hadAccounts = has;
+    unawaited(ref.read(backgroundSchedulerProvider).apply(hasAccounts: has));
   }
 
   @override
@@ -438,6 +453,7 @@ class _DeckAccountGateState extends ConsumerState<DeckAccountGate> {
   @override
   Widget build(BuildContext context) {
     final accounts = ref.watch(accountsProvider);
+    ref.listen(accountsProvider, (_, changed) => _applySchedule(changed));
     final text = AppLocalizations.of(context)!;
     final current = ModalRoute.of(context)?.isCurrent != false;
     if (current) {

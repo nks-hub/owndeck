@@ -1,5 +1,6 @@
 import Flutter
 import UIKit
+import workmanager_apple
 
 final class CardLinkDelivery {
   private var pending: String?
@@ -77,6 +78,12 @@ final class ShareDelivery {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    // Background refresh starts a headless engine that needs the plugins registered.
+    WorkmanagerPlugin.setPluginRegistrantCallback { registry in
+      GeneratedPluginRegistrant.register(with: registry)
+    }
+    // With UIScene the plugin registers late, so BGTaskScheduler handlers are restored here.
+    WorkmanagerPlugin.registerLaunchHandlers()
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 

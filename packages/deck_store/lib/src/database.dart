@@ -179,7 +179,13 @@ class StoredAttachments extends Table {
   ],
 )
 class DeckDatabase extends _$DeckDatabase {
-  DeckDatabase(super.executor);
+  /// A [background] connection (WorkManager / BGTask isolate) never clears
+  /// leases on open: the foreground app may be sending right now.
+  DeckDatabase(super.executor, {this.background = false});
+
+  /// Lease owner prefix of a background sender, kept alive across foreground opens.
+  static const backgroundOwnerPrefix = 'background:';
+  final bool background;
 
   @override
   int get schemaVersion => 10;
@@ -222,8 +228,16 @@ class DeckDatabase extends _$DeckDatabase {
     }),
     beforeOpen: (_) async {
       await customStatement('PRAGMA foreign_keys = ON');
-      // One process owns the database, so any lease left here is from a dead run.
-      await customStatement('DELETE FROM sync_leases');
+      // A foreground open clears leases of dead runs; a live background
+      // sender keeps its lease until it expires or is released.
+      if (!background) {
+        await (delete(syncLeases)..where(
+              (l) =>
+                  l.owner.like('$backgroundOwnerPrefix%').not() |
+                  l.expires.isSmallerThanValue(DateTime.now().toUtc()),
+            ))
+            .go();
+      }
     },
   );
 
