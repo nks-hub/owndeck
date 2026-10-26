@@ -40,8 +40,7 @@ class BoardActions extends StatelessWidget {
         session.capabilities?.canCreateBoards == true;
     final canShareLink =
         board.id > 0 && board.permissions.read && board.deletedAt == 0;
-    if (!canShareLink &&
-        !board.permissions.manage &&
+    if (!board.permissions.manage &&
         (!board.permissions.share || board.deletedAt != 0) &&
         !canCopy &&
         extraItems.isEmpty) {

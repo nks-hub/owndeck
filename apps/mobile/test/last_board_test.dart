@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nextclouddeck/core/app_preferences.dart';
 import 'package:nextclouddeck/data/session.dart';
-import 'package:nextclouddeck/features/board_view.dart';
 import 'package:nextclouddeck/features/boards.dart';
 import 'board_test_support.dart';
 
