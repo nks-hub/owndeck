@@ -133,9 +133,9 @@ Rozpad z auditu desktopového režimu OwnTalku, souhrn a nálezy v `docs/desktop
 - [ ] B63 P3 R03b: cizí přesun karty zbytečně zablokuje komentáře (`blocked card_moved`) a úpravy ve stejné nástěnce (`concurrent_edit`) ve frontě (`card_snapshots.dart:145-171`); u komentářů, příloh a úprav jen přepsat umístění.
 - [ ] B64 P3 R03b: po zabití aplikace během odesílání drží zámek `sync_leases` mrtvého vlastníka dvě minuty a nic se neodešle ani neobnoví (`writes.dart:148-167`); při otevření databáze zámky uvolnit.
 - [ ] B65 P3 R03b: změna bez odeslaného požadavku (zastaralá epocha, ztracený zámek) zůstane `sending` a po restartu se tváří jako nejistá (`card_move_sync.dart:36-42`, `attachments_sync.dart:99-101`).
-- [ ] B66 P3 R03b: konflikt přesunu mezi nástěnkami neukazuje, kde karta na serveru je teď (`pending.dart:603-604`).
-- [ ] B67 P3 R03b: sdílení hlásí každou chybu, i čekající rozhodnutí nebo nedostupný účet, jako chybějící oprávnění (`share_permissions.dart:110-116`, `sharing.dart:120-125`).
-- [ ] B68 P3 R03b: přístupnost: chyba ve sdílení se čtečce neohlásí (liveRegion), nabídky příloh a sdílení mají obecný tooltip bez jména položky, rozhodování v čekajících změnách nemá indikátor ani ohlášení.
+- [x] B66 P3 R03b: konflikt přesunu mezi nástěnkami ukazuje řádek Teď na serveru s nástěnkou a sloupcem (`a6ce685`).
+- [x] B67 P3 R03b: sdílení mapuje chyby společným `errorMessage`, čekající rozhodnutí a nedostupný účet mají vlastní text (`a6ce685`).
+- [x] B68 P3 R03b: chyba ve sdílení je live region, nabídky příloh a sdílení mají tooltip s názvem položky, rozhodování ukazuje indikátor s popiskem (`a6ce685`); guidelines tap target a kontrastu na přílohách, sdílení a čekajících změnách prošly, celá sada 376 testů.
 - [ ] R09 Před vydáním iOS zaregistrovat App Group `group.com.nkshub.nextclouddeck` a identifikátor `com.nkshub.nextclouddeck.ShareExtension` v Apple účtu a ověřit podepsaný build; nález z implementace F04.
 - [x] F08 Archivované karty lze vybrat a hromadně obnovit (bez přesunu), výběr všech zobrazených karet respektuje filtr (`d42f12b`); dva nové widget testy prošly.
 - [x] B44 Skrytý seznam Mých úkolů při přepnutí na kalendář znovu spouštěl stejný dotaz a do jeho dokončení animoval indikátor; StreamBuilder je nově klíčovaný dotazem (`50cd2fa`). Nález z testu F03, reprodukce selhala před opravou a 22 navazujících testů prošlo.
