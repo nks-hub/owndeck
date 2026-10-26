@@ -442,6 +442,36 @@ void main() {
     },
   );
 
+  testWidgets('accepted card changes are not labelled as queued', (
+    tester,
+  ) async {
+    final card = DeckCard.fromJson({...task().raw, 'syncState': 'applied'});
+    final semantics = tester.ensureSemantics();
+    try {
+      await tester.pumpWidget(
+        localizedTestApp(
+          home: Scaffold(
+            body: Card(child: CardSummary(card: card)),
+          ),
+        ),
+      );
+      expect(find.text('Accepted'), findsOneWidget);
+      expect(find.text('Queued'), findsNothing);
+      expect(
+        find.bySemanticsLabel(
+          RegExp(
+            RegExp.escape(
+              'The server accepted this change. Waiting to read the result.',
+            ),
+          ),
+        ),
+        findsOneWidget,
+      );
+    } finally {
+      semantics.dispose();
+    }
+  });
+
   testWidgets(
     'checklist summary ignores fenced examples and follows edited text',
     (tester) async {

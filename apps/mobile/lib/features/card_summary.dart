@@ -407,11 +407,14 @@ class _CardMetadataState extends State<CardMetadata> {
           ),
         if (syncText != null)
           _MetadataBadge(
-            icon: sync == 'conflict' || sync == 'blocked' || sync == 'uncertain'
-                ? Icons.error_outline
-                : Icons.cloud_upload_outlined,
+            icon: switch (sync) {
+              'conflict' || 'blocked' || 'uncertain' => Icons.error_outline,
+              'applied' => Icons.sync,
+              _ => Icons.cloud_upload_outlined,
+            },
             label: switch (sync) {
               'sending' => text.sending,
+              'applied' => text.changeAccepted,
               'conflict' || 'blocked' || 'uncertain' => text.pendingChanges,
               _ => text.queued,
             },

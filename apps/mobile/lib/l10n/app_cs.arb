@@ -93,6 +93,7 @@
   "stackActions": "Akce sloupce",
   "dependencyUnavailable": "Nadřazená nástěnka nebo sloupec byly zrušeny. Místní obsah zůstal zachovaný.",
   "awaitingReadback": "Server změnu přijal. Čeká se na načtení výsledku.",
+  "changeAccepted": "Přijato",
   "moveCard": "Přesunout kartu",
   "destinationColumn": "Cílový sloupec",
   "deleteCard": "Smazat kartu",

@@ -305,6 +305,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'The server accepted this change. Waiting to read the result.';
 
   @override
+  String get changeAccepted => 'Accepted';
+
+  @override
   String get moveCard => 'Move card';
 
   @override

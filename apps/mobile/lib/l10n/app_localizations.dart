@@ -656,6 +656,12 @@ abstract class AppLocalizations {
   /// **'The server accepted this change. Waiting to read the result.'**
   String get awaitingReadback;
 
+  /// No description provided for @changeAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get changeAccepted;
+
   /// No description provided for @moveCard.
   ///
   /// In en, this message translates to:

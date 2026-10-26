@@ -42,6 +42,7 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] B34 Profil S9 ukázal zbytečné výjimky při čtení chybějícího termínu a rozbor prostých vět jako Markdown; obě práce odstraněny bez změny náhledu. Osmnáct testů včetně prázdných číslovaných seznamů prošlo, analyzer čistý; přínos na telefonu a cílové časy zůstávají v P02.
 - [x] B35 Komentáře a přílohy rozlišují načítání, chybu bez místních dat a potvrzeně prázdný seznam. Dvě reprodukce před opravou selhaly; devět testů včetně opakovaného načtení prošlo, analyzer a nezávislé review bez nálezu. Nativní ověření zůstává v R06.
 - [x] B36 Komentáře a přílohy rozlišují chybu místního čtení od ztráty přístupu a nedostupné karty; dvě reprodukce nad selhávajícím SQLite čtením před opravou selhaly. Po opravě všech jedenáct souvisejících testů prošlo, analyzer a nezávislé review bez nálezu.
+- [x] B37 Přijatá změna má na kartě štítek Přijato a ikonu synchronizace; podrobné vysvětlení zůstává pro čtečku i tooltip. Původní reprodukce selhala, oprava a 35 souvisejících testů karet/fronty/konfliktů prošly, analyzer i nezávislé review bez nálezu.
 - [x] T04 E2E používá oddělené testovací identity a evidenci vlastních záznamů; úklid odstraňuje pouze testem vytvořená data a přístupy, ověřuje jejich stav a zachovává ostatní účty.
 - [x] U01 Společný souhrn karty zobrazuje štítky, termíny, dokončení, známé počty a přiřazení (`5514cc7`, `3b82d66`, `ea667cd`); widget testy metadat prošly. E2E všech cest zůstává v R06.
 - [x] U02 Rychlé přidání z přehledu a sloupce uchová cíl podle účtu i koncept (`1a58735`, `b5ba90b`); osm cílených testů prošlo. Opravený bezpečný okraj ověřit v R06.
@@ -51,7 +52,7 @@ Tento seznam je průběžný zdroj další práce. Po dokončení celku zapsat v
 - [x] U06 Moje úkoly mají rychlé termínové volby a panel podrobných filtrů, nástěnky kombinované filtry se zrušením (`5514cc7`); widget scénáře prošly.
 - [ ] U07 Sjednotit význam a zobrazení místního uložení, odesílání, potvrzení a problému; počet čekajících změn a srozumitelné konkrétní chyby místo obecné hlášky.
 - [x] U08 Uložit/Odeslat je v horním pruhu, autosave a chybové kategorie zachované (`ba77d62`, `36352f9`); scénáře dlouhého textu, klávesnice a chyb místního uložení prošly.
-- [ ] U09 Barvy vybírat vizuálně podle názvu; nikde v běžném UI nevypisovat hex, serverová ID, nulové indexy ani syrové chyby. Platí pro karty, nástěnky, štítky i konflikty; stávající vlastní barvu zachovat.
+- [x] U09 Karty, nástěnky, štítky i konflikty používají pojmenované barvy a zachovávají vlastní odstín; metadata a umístění mají textové názvy místo ID, nulových indexů či JSON. Formulářové a stavové testy v CI `943a7b9` prošly včetně nezobrazení hexu a zachování vlastní barvy; úplné nativní ověření zůstává v R06.
 - [x] U10 Vícečetný výběr drží panel až do Hotovo a předá změny atomicky; při ukládání nejde zahodit tažením (`ba77d62`, `43a16e2`); šest widget/SQLite scénářů prošlo.
 - [x] U11 Hlavní záložky uchovají stav podle účtu, skryté neobnovují data (`ba77d62`, `ed41e58`); testy navigace a viditelnosti prošly.
 - [x] U12 Čekající změny rozlišují čekání, konflikt, nejistý výsledek a koncepty (`3c56742`); přijatý přenos ukáže zbývající umístění bez opakování celé operace (`d9d7644`), šest nových regresí prošlo.

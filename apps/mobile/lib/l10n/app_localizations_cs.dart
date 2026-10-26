@@ -306,6 +306,9 @@ class AppLocalizationsCs extends AppLocalizations {
       'Server změnu přijal. Čeká se na načtení výsledku.';
 
   @override
+  String get changeAccepted => 'Přijato';
+
+  @override
   String get moveCard => 'Přesunout kartu';
 
   @override

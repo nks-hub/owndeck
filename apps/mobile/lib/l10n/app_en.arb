@@ -93,6 +93,7 @@
   "stackActions": "Column actions",
   "dependencyUnavailable": "The parent board or column was discarded. Your local content has been preserved.",
   "awaitingReadback": "The server accepted this change. Waiting to read the result.",
+  "changeAccepted": "Accepted",
   "moveCard": "Move card",
   "destinationColumn": "Destination column",
   "deleteCard": "Delete card",
