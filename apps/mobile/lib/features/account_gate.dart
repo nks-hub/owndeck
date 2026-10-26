@@ -214,11 +214,18 @@ class _DeckAccountGateState extends ConsumerState<DeckAccountGate> {
       } catch (_) {
         // The sheet keeps its own draft once a destination is known.
       }
+      final sheetNavigator = _navigation?.currentState;
+      if (!mounted ||
+          !_shares.contains(request) ||
+          !identical(_shown, session) ||
+          sheetNavigator == null) {
+        return;
+      }
       _shares.complete(request);
       _shareSheetOpen = true;
       unawaited(
         showQuickAddCard(
-          navigator.context,
+          sheetNavigator.context,
           session,
           shared: content,
           draftKey: draftKey,
