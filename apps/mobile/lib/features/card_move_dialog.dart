@@ -41,6 +41,7 @@ class CardMoveDialog extends StatefulWidget {
 }
 
 class _CardMoveDialogState extends State<CardMoveDialog> {
+  final _scroll = ScrollController();
   late DeckBoard _board = widget.source;
   late List<DeckBoard> _boards = widget.boards;
   late int _sourceId = widget.source.id;
@@ -223,6 +224,7 @@ class _CardMoveDialogState extends State<CardMoveDialog> {
   @override
   void dispose() {
     _request++;
+    _scroll.dispose();
     super.dispose();
   }
 
@@ -245,206 +247,254 @@ class _CardMoveDialogState extends State<CardMoveDialog> {
     final sourceStack = widget.stacks
         .where((s) => s.id == widget.card.stackId)
         .firstOrNull;
-    return AlertDialog(
-      scrollable: true,
-      title: Row(
-        children: [
-          Expanded(child: Text(text.moveCard)),
-          IconButton(
-            onPressed: _loading ? null : _refreshChoices,
-            tooltip: text.refresh,
-            icon: const Icon(Icons.refresh),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Destination hints must not shift the dialog's accessibility targets.
+        final height =
+            (constraints.maxHeight -
+                    MediaQuery.viewInsetsOf(context).vertical -
+                    48)
+                .clamp(0.0, 640.0)
+                .toDouble();
+        return AlertDialog(
+          insetPadding: const EdgeInsets.all(24),
+          constraints: BoxConstraints(maxHeight: height, maxWidth: 480),
+          title: Row(
+            children: [
+              Expanded(child: Text(text.moveCard)),
+              IconButton(
+                onPressed: _loading ? null : _refreshChoices,
+                tooltip: text.refresh,
+                icon: const Icon(Icons.refresh),
+              ),
+            ],
           ),
-        ],
-      ),
-      content: SizedBox(
-        width: 420,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              _sourceAllowed ? widget.card.title : text.permissionError,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<int>(
-              key: ValueKey((
-                'move-board',
-                _boards.any((b) => b.id == _board.id) ? _board.id : null,
-              )),
-              initialValue: _boards.any((board) => board.id == _board.id)
-                  ? _board.id
-                  : null,
-              isExpanded: true,
-              decoration: InputDecoration(labelText: text.destinationBoard),
-              items: [
-                for (final board in _boards)
-                  DropdownMenuItem(
-                    value: board.id,
-                    child: Text(board.title, overflow: TextOverflow.ellipsis),
-                  ),
-              ],
-              onChanged: !_sourceAllowed
-                  ? null
-                  : (value) {
-                      final board = _boards
-                          .where((b) => b.id == value)
-                          .firstOrNull;
-                      if (board != null && board.id != _board.id) {
-                        unawaited(_loadBoard(board));
-                      }
-                    },
-            ),
-            const SizedBox(height: 16),
-            if (_loading) const LinearProgressIndicator(),
-            if (_stacks.isNotEmpty)
-              DropdownButtonFormField<int>(
-                key: ValueKey(('move-column', _board.id, _stackId)),
-                initialValue: _stackId,
-                isExpanded: true,
-                decoration: InputDecoration(labelText: text.destinationColumn),
-                items: [
-                  for (final column in _stacks)
-                    DropdownMenuItem(
-                      value: column.id,
-                      child: Text(
-                        column.title,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+          content: SizedBox(
+            width: 420,
+            height: height,
+            child: Scrollbar(
+              controller: _scroll,
+              child: SingleChildScrollView(
+                controller: _scroll,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      _sourceAllowed ? widget.card.title : text.permissionError,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                ],
-                onChanged: (value) => setState(() {
-                  _stackId = value;
-                  _placement = 'end';
-                  _anchor = null;
-                  _error = null;
-                  _selectionRequested = true;
-                }),
-              )
-            else if (!_loading)
-              Text(text.noStacks),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              key: ValueKey((
-                'move-placement',
-                _board.id,
-                _stackId,
-                _placement,
-              )),
-              initialValue: _placement,
-              isExpanded: true,
-              decoration: InputDecoration(labelText: text.position),
-              items: [
-                DropdownMenuItem(value: 'start', child: Text(text.moveToTop)),
-                DropdownMenuItem(value: 'end', child: Text(text.moveToBottom)),
-                if (cards.isNotEmpty || relative) ...[
-                  DropdownMenuItem(
-                    value: 'before',
-                    child: Text(text.moveBefore),
-                  ),
-                  DropdownMenuItem(value: 'after', child: Text(text.moveAfter)),
-                ],
-              ],
-              onChanged: stack == null
-                  ? null
-                  : (value) {
-                      if (value != null) {
-                        setState(() {
-                          _placement = value;
-                          _anchor ??= cards.firstOrNull?.id;
-                        });
-                      }
-                    },
-            ),
-            if (relative)
-              Padding(
-                padding: const EdgeInsets.only(top: 16),
-                child: DropdownButtonFormField<int>(
-                  key: ValueKey(('move-anchor', _board.id, _stackId, _anchor)),
-                  initialValue: cards.any((card) => card.id == _anchor)
-                      ? _anchor
-                      : null,
-                  isExpanded: true,
-                  decoration: InputDecoration(labelText: text.moveRelativeCard),
-                  items: [
-                    for (final card in cards)
-                      DropdownMenuItem(
-                        value: card.id,
-                        child: Text(
-                          card.title,
-                          overflow: TextOverflow.ellipsis,
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<int>(
+                      key: ValueKey((
+                        'move-board',
+                        _boards.any((b) => b.id == _board.id)
+                            ? _board.id
+                            : null,
+                      )),
+                      initialValue:
+                          _boards.any((board) => board.id == _board.id)
+                          ? _board.id
+                          : null,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        labelText: text.destinationBoard,
+                      ),
+                      items: [
+                        for (final board in _boards)
+                          DropdownMenuItem(
+                            value: board.id,
+                            child: Text(
+                              board.title,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                      ],
+                      onChanged: !_sourceAllowed
+                          ? null
+                          : (value) {
+                              final board = _boards
+                                  .where((b) => b.id == value)
+                                  .firstOrNull;
+                              if (board != null && board.id != _board.id) {
+                                unawaited(_loadBoard(board));
+                              }
+                            },
+                    ),
+                    const SizedBox(height: 16),
+                    if (_loading) const LinearProgressIndicator(),
+                    if (_stacks.isNotEmpty)
+                      DropdownButtonFormField<int>(
+                        key: ValueKey(('move-column', _board.id, _stackId)),
+                        initialValue: _stackId,
+                        isExpanded: true,
+                        decoration: InputDecoration(
+                          labelText: text.destinationColumn,
+                        ),
+                        items: [
+                          for (final column in _stacks)
+                            DropdownMenuItem(
+                              value: column.id,
+                              child: Text(
+                                column.title,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                        ],
+                        onChanged: (value) => setState(() {
+                          _stackId = value;
+                          _placement = 'end';
+                          _anchor = null;
+                          _error = null;
+                          _selectionRequested = true;
+                        }),
+                      )
+                    else if (!_loading)
+                      Text(text.noStacks),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      key: ValueKey((
+                        'move-placement',
+                        _board.id,
+                        _stackId,
+                        _placement,
+                      )),
+                      initialValue: _placement,
+                      isExpanded: true,
+                      decoration: InputDecoration(labelText: text.position),
+                      items: [
+                        DropdownMenuItem(
+                          value: 'start',
+                          child: Text(text.moveToTop),
+                        ),
+                        DropdownMenuItem(
+                          value: 'end',
+                          child: Text(text.moveToBottom),
+                        ),
+                        if (cards.isNotEmpty || relative) ...[
+                          DropdownMenuItem(
+                            value: 'before',
+                            child: Text(text.moveBefore),
+                          ),
+                          DropdownMenuItem(
+                            value: 'after',
+                            child: Text(text.moveAfter),
+                          ),
+                        ],
+                      ],
+                      onChanged: stack == null
+                          ? null
+                          : (value) {
+                              if (value != null) {
+                                setState(() {
+                                  _placement = value;
+                                  _anchor ??= cards.firstOrNull?.id;
+                                });
+                              }
+                            },
+                    ),
+                    if (relative)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: DropdownButtonFormField<int>(
+                          key: ValueKey((
+                            'move-anchor',
+                            _board.id,
+                            _stackId,
+                            _anchor,
+                          )),
+                          initialValue: cards.any((card) => card.id == _anchor)
+                              ? _anchor
+                              : null,
+                          isExpanded: true,
+                          decoration: InputDecoration(
+                            labelText: text.moveRelativeCard,
+                          ),
+                          items: [
+                            for (final card in cards)
+                              DropdownMenuItem(
+                                value: card.id,
+                                child: Text(
+                                  card.title,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                          ],
+                          onChanged: (value) => setState(() => _anchor = value),
                         ),
                       ),
-                  ],
-                  onChanged: (value) => setState(() => _anchor = value),
-                ),
-              ),
-            if (_transfer)
-              Padding(
-                padding: const EdgeInsets.only(top: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(text.transferCardHint),
-                    const SizedBox(height: 8),
-                    Text(text.transferAccessHint),
-                    if (lostLabels.isNotEmpty)
+                    if (_transfer)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(text.transferCardHint),
+                            const SizedBox(height: 8),
+                            Text(text.transferAccessHint),
+                            if (lostLabels.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Text(
+                                  text.transferLabelLoss(lostLabels.join(', ')),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    if (stack?.isDoneColumn == true)
                       Padding(
                         padding: const EdgeInsets.only(top: 8),
+                        child: Text(text.transferToDone),
+                      ),
+                    if (stack != null &&
+                        !stack.isDoneColumn &&
+                        sourceStack?.isDoneColumn == true)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(text.transferFromDone),
+                      ),
+                    if (_sourceAllowed &&
+                        (_error != null || _boardsError != null))
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
                         child: Text(
-                          text.transferLabelLoss(lostLabels.join(', ')),
+                          errorMessage((_error ?? _boardsError)!, text),
                         ),
                       ),
                   ],
                 ),
               ),
-            if (stack?.isDoneColumn == true)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(text.transferToDone),
-              ),
-            if (stack != null &&
-                !stack.isDoneColumn &&
-                sourceStack?.isDoneColumn == true)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(text.transferFromDone),
-              ),
-            if (_sourceAllowed && (_error != null || _boardsError != null))
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: Text(errorMessage((_error ?? _boardsError)!, text)),
-              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(text.cancel),
+            ),
+            FilledButton(
+              onPressed:
+                  _loading ||
+                      !_sourceAllowed ||
+                      !_boards.any((b) => b.id == _board.id) ||
+                      stack == null ||
+                      relative && !cards.any((c) => c.id == _anchor)
+                  ? null
+                  : () => Navigator.pop(
+                      context,
+                      CardMoveDestination(
+                        board: _board,
+                        stack: stack,
+                        anchorCardId: relative ? _anchor : null,
+                        before: _placement == 'start' || _placement == 'before',
+                      ),
+                    ),
+              child: Text(text.moveCard),
+            ),
           ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(text.cancel),
-        ),
-        FilledButton(
-          onPressed:
-              _loading ||
-                  !_sourceAllowed ||
-                  !_boards.any((b) => b.id == _board.id) ||
-                  stack == null ||
-                  relative && !cards.any((c) => c.id == _anchor)
-              ? null
-              : () => Navigator.pop(
-                  context,
-                  CardMoveDestination(
-                    board: _board,
-                    stack: stack,
-                    anchorCardId: relative ? _anchor : null,
-                    before: _placement == 'start' || _placement == 'before',
-                  ),
-                ),
-          child: Text(text.moveCard),
-        ),
-      ],
+        );
+      },
     );
   }
 }
