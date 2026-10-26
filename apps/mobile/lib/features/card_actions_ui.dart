@@ -154,27 +154,12 @@ extension _CardDialogs on _CardScreenState {
     }
   }
 
-  Future<void> _delete(DeckCard card) async {
-    final text = AppLocalizations.of(context)!;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(text.deleteCard),
-        content: Text(text.deleteCardQuestion),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(text.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(text.remove),
-          ),
-        ],
-      ),
-    );
-    if (confirmed == true && mounted) await _action(card, 'deleteCard', {});
-  }
+  Future<void> _delete(DeckCard card) => deleteCardWithConfirmation(
+    context,
+    widget.session,
+    widget.board.id,
+    card,
+  );
 
   Future<void> _move(DeckBoard board, DeckCard card) => showBoardCardMove(
     context,
@@ -182,54 +167,12 @@ extension _CardDialogs on _CardScreenState {
     board,
     card,
     onTransferred: () {
-      if (mounted) Navigator.of(context).maybePop();
+      if (mounted) closeCard(context);
     },
   );
 
-  Future<void> _labels(DeckBoard board, DeckCard card) async {
-    final text = AppLocalizations.of(context)!;
-    final boardLabels = _items(
-      board.raw['labels'],
-    ).where((label) => label['id'] is int).toList();
-    final cardLabels = _items(
-      card.raw['labels'],
-    ).where((label) => label['id'] is int).toList();
-    final byId = {for (final label in boardLabels) label['id']: label};
-    for (final label in cardLabels) {
-      byId.putIfAbsent(label['id'], () => label);
-    }
-    final labels = byId.values.toList();
-    final assigned = cardLabels.map((label) => '${label['id']}').toSet();
-    await showCardSelection(
-      context,
-      title: text.labels,
-      emptyMessage: text.noLabels,
-      options: {
-        for (final label in labels)
-          '${label['id']}': switch (label['title']) {
-            String title when title.trim().isNotEmpty => title,
-            _ => text.unnamedLabel,
-          },
-      },
-      selected: assigned,
-      onSave: (selected) async {
-        await widget.session.database.transaction(() async {
-          for (final label in labels) {
-            final id = '${label['id']}';
-            if (assigned.contains(id) == selected.contains(id)) continue;
-            await widget.session.database.queueCardAction(
-              widget.session.account,
-              board.id,
-              card,
-              selected.contains(id) ? 'assignLabel' : 'removeLabel',
-              {'labelId': label['id'], 'label': label},
-            );
-          }
-        });
-        unawaited(widget.session.refreshStacks(board.id));
-      },
-    );
-  }
+  Future<void> _labels(DeckBoard board, DeckCard card) =>
+      chooseCardLabels(context, widget.session, board, card);
 
   Future<void> _users(DeckBoard board, DeckCard card) async {
     final text = AppLocalizations.of(context)!;

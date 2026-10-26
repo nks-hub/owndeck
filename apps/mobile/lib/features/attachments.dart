@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:deck_protocol/deck_protocol.dart';
 import 'package:deck_store/deck_store.dart';
@@ -8,11 +7,13 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:mime/mime.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../data/attachment_files.dart';
 import '../data/session.dart';
 import '../l10n/app_localizations.dart';
 import 'cloud_files.dart';
+import 'desktop_platform.dart';
 import 'pending.dart';
 import 'sync_notice.dart';
 import 'sync_state.dart';
@@ -212,11 +213,11 @@ class _AttachmentListState extends State<_AttachmentList> {
           );
           if (result != null) _message(text.fileSaved);
         } else {
-          if (!Platform.isAndroid && !Platform.isIOS) {
-            throw UnsupportedError('mobile_file_viewer_required');
-          }
-          final result = await OpenFilex.open(downloaded.file.path, type: mime);
-          if (result.type != ResultType.done) _message(text.fileOpenFailed);
+          final opened = isDesktopPlatform
+              ? await launchUrl(Uri.file(downloaded.file.path))
+              : (await OpenFilex.open(downloaded.file.path, type: mime)).type ==
+                    ResultType.done;
+          if (!opened) _message(text.fileOpenFailed);
         }
       });
 
@@ -289,7 +290,9 @@ class _AttachmentListState extends State<_AttachmentList> {
             stream: _writes,
             builder: (context, writes) {
               if (snapshot.hasError || writes.hasError) {
-                return Center(child: StateMessage(message: text.localReadError));
+                return Center(
+                  child: StateMessage(message: text.localReadError),
+                );
               }
               if ((snapshot.connectionState == ConnectionState.waiting &&
                       !snapshot.hasData) ||

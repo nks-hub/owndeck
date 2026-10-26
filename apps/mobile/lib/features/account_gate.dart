@@ -19,6 +19,7 @@ import '../platform/card_links.dart';
 import '../platform/shared_text.dart';
 import 'boards.dart';
 import 'card_detail.dart';
+import 'card_pane.dart';
 import 'login.dart';
 import 'quick_add_card.dart';
 
@@ -386,13 +387,21 @@ class _DeckAccountGateState extends ConsumerState<DeckAccountGate> {
         deferred = true;
         return;
       }
-      _navigation?.currentState?.push(
-        MaterialPageRoute<void>(
-          settings: const RouteSettings(name: '/card'),
-          builder: (_) =>
-              CardScreen(session: session, board: card.board, card: card.card),
-        ),
-      );
+      final pane = CardPaneController.active;
+      if (pane != null && pane.wide) {
+        pane.show(session, card.board, card.card);
+      } else {
+        _navigation?.currentState?.push(
+          MaterialPageRoute<void>(
+            settings: const RouteSettings(name: '/card'),
+            builder: (_) => CardScreen(
+              session: session,
+              board: card.board,
+              card: card.card,
+            ),
+          ),
+        );
+      }
     } catch (error) {
       if (mounted && _links.contains(request)) {
         if (error is DeckException &&

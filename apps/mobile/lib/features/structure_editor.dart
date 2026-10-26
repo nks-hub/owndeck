@@ -133,44 +133,74 @@ class StackActions extends StatelessWidget {
     }
     return PopupMenuButton<String>(
       tooltip: text.stackActions,
-      onSelected: (action) {
-        switch (action) {
-          case 'done':
-            unawaited(_changeDoneStack(context, session, board, stack));
-          case 'edit':
-            unawaited(
-              editStructure(
-                context,
-                session,
-                board: board,
-                stack: stack,
-                column: true,
-              ),
-            );
-          case 'delete':
-            unawaited(
-              changeStructure(
-                context,
-                session,
-                'deleteStack',
-                board,
-                stack: stack,
-              ),
-            );
-        }
-      },
-      itemBuilder: (_) => [
-        if (stack.supportsDoneColumn)
-          PopupMenuItem(
-            value: 'done',
-            child: Text(
-              stack.isDoneColumn ? text.unsetDoneColumn : text.setDoneColumn,
-            ),
-          ),
-        PopupMenuItem(value: 'edit', child: Text(text.editStack)),
-        PopupMenuItem(value: 'delete', child: Text(text.deleteStack)),
-      ],
+      onSelected: (action) =>
+          _stackAction(context, session, board, stack, action),
+      itemBuilder: (_) => _stackItems(text, stack),
     );
+  }
+}
+
+List<PopupMenuEntry<String>> _stackItems(
+  AppLocalizations text,
+  DeckStack stack,
+) => [
+  if (stack.supportsDoneColumn)
+    PopupMenuItem(
+      value: 'done',
+      child: Text(
+        stack.isDoneColumn ? text.unsetDoneColumn : text.setDoneColumn,
+      ),
+    ),
+  PopupMenuItem(value: 'edit', child: Text(text.editStack)),
+  PopupMenuItem(value: 'delete', child: Text(text.deleteStack)),
+];
+
+void _stackAction(
+  BuildContext context,
+  DeckSession session,
+  DeckBoard board,
+  DeckStack stack,
+  String action,
+) {
+  switch (action) {
+    case 'done':
+      unawaited(_changeDoneStack(context, session, board, stack));
+    case 'edit':
+      unawaited(
+        editStructure(
+          context,
+          session,
+          board: board,
+          stack: stack,
+          column: true,
+        ),
+      );
+    case 'delete':
+      unawaited(
+        changeStructure(context, session, 'deleteStack', board, stack: stack),
+      );
+  }
+}
+
+/// Opens the column actions at [at], the pointer position of a right click.
+Future<void> showStackContextMenu(
+  BuildContext context,
+  DeckSession session,
+  DeckBoard board,
+  DeckStack stack,
+  Offset at,
+) async {
+  if (!board.permissions.manage || board.archived || board.deletedAt != 0) {
+    return;
+  }
+  final overlay = Overlay.of(context).context.findRenderObject()! as RenderBox;
+  final action = await showMenu<String>(
+    context: context,
+    position: RelativeRect.fromRect(at & Size.zero, Offset.zero & overlay.size),
+    items: _stackItems(AppLocalizations.of(context)!, stack),
+  );
+  if (action != null && context.mounted) {
+    _stackAction(context, session, board, stack, action);
   }
 }
 

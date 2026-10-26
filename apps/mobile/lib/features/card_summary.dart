@@ -121,6 +121,7 @@ class CardSummary extends StatelessWidget {
     required this.card,
     this.contextLabel,
     this.onOpen,
+    this.focusNode,
     this.trailing,
     this.showDescription = true,
     this.onCompletedChanged,
@@ -130,6 +131,7 @@ class CardSummary extends StatelessWidget {
   final DeckCard card;
   final String? contextLabel;
   final VoidCallback? onOpen;
+  final FocusNode? focusNode;
   final Widget? trailing;
   final bool showDescription;
   final ValueChanged<bool>? onCompletedChanged;
@@ -214,6 +216,8 @@ class CardSummary extends StatelessWidget {
         ? content
         : InkWell(
             onTap: onOpen,
+            focusNode: focusNode,
+            mouseCursor: SystemMouseCursors.click,
             borderRadius: BorderRadius.circular(DeckTheme.cardRadius),
             child: content,
           );

@@ -9,7 +9,7 @@ import '../data/card_reads.dart';
 import '../core/errors.dart';
 import '../l10n/app_localizations.dart';
 import 'card_completion.dart';
-import 'card_detail.dart';
+import 'card_pane.dart';
 import 'card_link_dialog.dart';
 import 'card_summary.dart';
 import 'quick_add_card.dart';
@@ -291,16 +291,7 @@ class _CardSearchViewState extends State<CardSearchView> {
         stackId: entry.card.stackId,
       );
       if (!mounted || request != _request) return;
-      await Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          settings: const RouteSettings(name: '/card'),
-          builder: (_) => CardScreen(
-            session: widget.session,
-            board: result.board,
-            card: result.card,
-          ),
-        ),
-      );
+      await openCard(context, widget.session, result.board, result.card);
     } catch (error) {
       if (mounted && request == _request) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -737,15 +728,11 @@ class _CardSearchViewState extends State<CardSearchView> {
                                 '${hit.board.title} · ${hit.stack.title}',
                             onCompletedChanged: onChanged,
                             changingCompletion: saving,
-                            onOpen: () => Navigator.of(context).push(
-                              MaterialPageRoute<void>(
-                                settings: const RouteSettings(name: '/card'),
-                                builder: (_) => CardScreen(
-                                  session: widget.session,
-                                  board: hit.board,
-                                  card: hit.card,
-                                ),
-                              ),
+                            onOpen: () => openCard(
+                              context,
+                              widget.session,
+                              hit.board,
+                              hit.card,
                             ),
                           ),
                         ),

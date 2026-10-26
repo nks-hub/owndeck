@@ -114,46 +114,57 @@ class _BoardLayoutState extends State<BoardLayout> {
     child: child,
   );
 
-  Widget _heading(BoardColumnView column) => Padding(
-    padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-    child: Row(
-      children: [
-        if (column.stack.isDoneColumn)
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: Icon(
-              Icons.check_circle_outline,
-              semanticLabel: AppLocalizations.of(context)!.doneColumn,
+  Widget _heading(BoardColumnView column) => GestureDetector(
+    onSecondaryTapDown: (details) => unawaited(
+      showStackContextMenu(
+        context,
+        widget.session,
+        widget.board,
+        column.stack,
+        details.globalPosition,
+      ),
+    ),
+    child: Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: Row(
+        children: [
+          if (column.stack.isDoneColumn)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Icon(
+                Icons.check_circle_outline,
+                semanticLabel: AppLocalizations.of(context)!.doneColumn,
+              ),
+            ),
+          Expanded(
+            child: Text(
+              column.heading,
+              style: Theme.of(context).textTheme.titleMedium,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-        Expanded(
-          child: Text(
-            column.heading,
-            style: Theme.of(context).textTheme.titleMedium,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        if (widget.mode == BoardViewMode.list && _editable(column))
-          IconButton(
-            tooltip: AppLocalizations.of(context)!.addCard,
-            icon: const Icon(Icons.add),
-            onPressed: () => showQuickAddCard(
-              context,
-              widget.session,
+          if (widget.mode == BoardViewMode.list && _editable(column))
+            IconButton(
+              tooltip: AppLocalizations.of(context)!.addCard,
+              icon: const Icon(Icons.add),
+              onPressed: () => showQuickAddCard(
+                context,
+                widget.session,
+                board: widget.board,
+                stackId: column.stack.id,
+              ),
+            ),
+          if (widget.mode == BoardViewMode.list &&
+              widget.board.permissions.manage &&
+              !widget.board.archived)
+            StackActions(
+              session: widget.session,
               board: widget.board,
-              stackId: column.stack.id,
+              stack: column.stack,
             ),
-          ),
-        if (widget.mode == BoardViewMode.list &&
-            widget.board.permissions.manage &&
-            !widget.board.archived)
-          StackActions(
-            session: widget.session,
-            board: widget.board,
-            stack: column.stack,
-          ),
-      ],
+        ],
+      ),
     ),
   );
 

@@ -7,7 +7,7 @@ import '../data/session.dart';
 import '../data/card_reads.dart';
 import '../l10n/app_localizations.dart';
 import 'card_completion.dart';
-import 'card_detail.dart';
+import 'card_pane.dart';
 import 'card_summary.dart';
 import 'state_message.dart';
 
@@ -106,20 +106,11 @@ class _CalendarViewState extends State<CalendarView> {
     super.dispose();
   }
 
-  void _shift(int months) => setState(
-    () => _month = DateTime(_month.year, _month.month + months),
-  );
+  void _shift(int months) =>
+      setState(() => _month = DateTime(_month.year, _month.month + months));
 
-  void _open(CardSearchHit hit) => Navigator.of(context).push(
-    MaterialPageRoute<void>(
-      settings: const RouteSettings(name: '/card'),
-      builder: (_) => CardScreen(
-        session: widget.session,
-        board: hit.board,
-        card: hit.card,
-      ),
-    ),
-  );
+  void _open(CardSearchHit hit) =>
+      openCard(context, widget.session, hit.board, hit.card);
 
   static IconData _icon(CalendarKind kind) => switch (kind) {
     CalendarKind.start => Icons.event_outlined,
@@ -153,7 +144,9 @@ class _CalendarViewState extends State<CalendarView> {
     }
     if (result == null) return const LinearProgressIndicator();
     if (!result.accountAvailable) {
-      return Center(child: StateMessage(message: text.accountSearchUnavailable));
+      return Center(
+        child: StateMessage(message: text.accountSearchUnavailable),
+      );
     }
     if (!result.identityKnown) {
       return Center(
