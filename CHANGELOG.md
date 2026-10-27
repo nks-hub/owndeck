@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.3 (6) - 2026-10-27
+
+Google Play closed testing (alpha).
+
+- Keep a due date reminder that is late because Android delivers inexact alarms with a delay.
+- Fix a crash at start on iOS when background sync is scheduled for the first time.
+
 ## 0.1.2 (5) - 2026-10-27
 
 Google Play closed testing (alpha).
