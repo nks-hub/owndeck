@@ -6,6 +6,7 @@ Google Play closed testing (alpha) and TestFlight.
 
 - Error reports carry the readable error text and the full stack trace; sign-in credentials are removed before sending.
 - Flutter errors without app frames keep the framework frames.
+- The share extension requires iOS 15; the app itself still runs on iOS 14.
 
 ## 0.1.3 (6) - 2026-10-27
 
