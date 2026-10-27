@@ -2,7 +2,7 @@
 
 ## 0.1.4 (7) - 2026-10-27
 
-Google Play closed testing (alpha) and TestFlight.
+Google Play closed testing (alpha), TestFlight and App Store review.
 
 - Error reports carry the readable error text and the full stack trace; sign-in credentials are removed before sending.
 - Flutter errors without app frames keep the framework frames.
