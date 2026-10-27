@@ -84,17 +84,29 @@ SentryEvent scrubSentryEvent(SentryEvent event, TelemetryConfig config) =>
       ],
     );
 
-SentryStackTrace? _safeStack(SentryStackTrace? trace) {
+final _appFrame = RegExp(
+  r'^package:(nextclouddeck|deck_protocol|deck_store)/[a-zA-Z0-9_./-]+\.dart$',
+);
+final _flutterFrame = RegExp(r'^package:flutter/[a-zA-Z0-9_./-]+\.dart$');
+
+/// App frames only. A FlutterError raised inside the framework has none, so its
+/// framework frames are kept instead: public code locations, no user data.
+SentryStackTrace? _safeStack(SentryStackTrace? trace) =>
+    _framesMatching(trace, _appFrame, inApp: true) ??
+    _framesMatching(trace, _flutterFrame, inApp: false);
+
+SentryStackTrace? _framesMatching(
+  SentryStackTrace? trace,
+  RegExp allowed, {
+  required bool inApp,
+}) {
   if (trace == null) return null;
   final frames = <SentryStackFrame>[];
   for (final frame in trace.frames.take(100)) {
     final path = frame.absPath?.startsWith('package:') == true
         ? frame.absPath!
         : frame.fileName ?? '';
-    if (!RegExp(
-          r'^package:(nextclouddeck|deck_protocol|deck_store)/[a-zA-Z0-9_./-]+\.dart$',
-        ).hasMatch(path) ||
-        path.contains('/../')) {
+    if (!allowed.hasMatch(path) || path.contains('/../')) {
       continue;
     }
     final function = frame.function;
@@ -110,7 +122,7 @@ SentryStackTrace? _safeStack(SentryStackTrace? trace) {
             : null,
         lineNo: frame.lineNo,
         colNo: frame.colNo,
-        inApp: true,
+        inApp: inApp,
       ),
     );
   }

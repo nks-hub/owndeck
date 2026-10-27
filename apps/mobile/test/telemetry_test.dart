@@ -146,6 +146,66 @@ void main() {
     },
   );
 
+  test('framework error without app frames keeps Flutter frames only', () {
+    SentryStackFrame frame(String path) => SentryStackFrame(
+      absPath: path,
+      fileName: path,
+      function: 'f',
+      lineNo: 7,
+    );
+    final clean = scrubSentryEvent(
+      SentryEvent(
+        exceptions: [
+          SentryException(
+            type: 'FlutterError',
+            value: 'private card contents',
+            stackTrace: SentryStackTrace(
+              frames: [
+                frame('package:flutter/src/rendering/flex.dart'),
+                frame('package:private_plugin/secret.dart'),
+                frame('dart:core/errors.dart'),
+              ],
+            ),
+          ),
+        ],
+      ),
+      config,
+    );
+    final frames = clean.exceptions!.single.stackTrace!.frames;
+    expect(frames.map((f) => f.fileName), [
+      'package:flutter/src/rendering/flex.dart',
+    ]);
+    expect(frames.single.inApp, isFalse);
+    expect(jsonEncode(clean.toJson()), isNot(contains('private')));
+  });
+
+  test('app frames win over Flutter frames', () {
+    final clean = scrubSentryEvent(
+      SentryEvent(
+        exceptions: [
+          SentryException(
+            type: 'FlutterError',
+            value: 'x',
+            stackTrace: SentryStackTrace(
+              frames: [
+                SentryStackFrame(
+                  absPath: 'package:flutter/src/widgets/framework.dart',
+                ),
+                SentryStackFrame(
+                  absPath: 'package:nextclouddeck/ui/board.dart',
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      config,
+    );
+    expect(clean.exceptions!.single.stackTrace!.frames.map((f) => f.fileName), [
+      'package:nextclouddeck/ui/board.dart',
+    ]);
+  });
+
   test('only known protocol error codes survive repeated scrubbing', () {
     final clean = scrubSentryEvent(
       SentryEvent(throwable: const DeckException('timeout')),
