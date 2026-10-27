@@ -196,6 +196,7 @@ Z rozboru zdrojů a issues oficiální aplikace (GPL-3.0, jen nápady bez převz
 - [x] R10 `0.1.2+5` nahráno přes API do Google Play alpha ze zdroje `bf54047`: podepsaný AAB ověřený bundletoolem bez širokých oprávnění k médiím (nově oznámení, start po restartu a WorkManager), tři skupiny testerů zachované. CI: testy, Android, iOS, Linux a Windows prošly; sestavení pro macOS selhalo na starém Xcode a je opravené v `85dc725`. Stav IN_REVIEW, předchozí `0.1.1+4` PUBLISHED.
 - [x] R11 Verzi `0.1.2+5` nahradila `0.1.3+6` (R12) dřív, než ji Google schválil.
 - [x] R12 `0.1.3+6` s opravami B69 a B70 nahráno přes API do alpha ze zdroje `c1361dd`: podepsaný AAB ověřený, CI ve všech osmi úlohách včetně macOS prošlo, brány na `83214c0` prošly (mobil 514 testů). Google schválil, API 27. 10. 2026 vrací pro alpha `0.1.3 (6)` RELEASE_LIFECYCLE_STATE_PUBLISHED.
+- [ ] R13 `0.1.4+7` (Sentry s čitelným textem chyby) do Google Play alpha a první build do TestFlightu; identifikátory aplikace a rozšíření pro sdílení se skupinou aplikací jsou založené.
 
 - [x] P03 Repozitář `nks-hub/owndeck` je veřejný; anonymní přístup ověřen, README, licence a štítky zkontrolované, aplikace doplněna do profilu organizace.
 
