@@ -10,31 +10,6 @@ import 'telemetry.dart';
 import 'telemetry_preferences.dart';
 import 'telemetry_transport.dart';
 
-const _exceptionTypes = {
-  'StateError',
-  'ArgumentError',
-  'RangeError',
-  'TypeError',
-  'FormatException',
-  'FileSystemException',
-  'SocketException',
-  'HttpException',
-  'ClientException',
-  'TimeoutException',
-  'TlsException',
-  'HandshakeException',
-  'FlutterError',
-  'AssertionError',
-  '_AssertionError',
-  'UnsupportedError',
-  'NoSuchMethodError',
-  'OutOfMemoryError',
-  'DeckException',
-  'LoginException',
-  'SqliteException',
-  'TelemetryReleaseProbe',
-};
-
 const _errorCodes = {
   'timeout',
   'transport_failed',
@@ -75,57 +50,79 @@ SentryEvent scrubSentryEvent(SentryEvent event, TelemetryConfig config) =>
           10,
         ))
           SentryException(
-            type: _exceptionTypes.contains(exception.type)
-                ? exception.type
-                : 'Error',
-            value: '<redacted>',
-            stackTrace: _safeStack(exception.stackTrace),
+            type: _truncate(exception.type ?? 'Error', 200),
+            value: exception.value == null
+                ? null
+                : _truncate(scrubSecrets(exception.value!), 8000),
+            stackTrace: _readableStack(exception.stackTrace),
           ),
       ],
     );
 
-final _appFrame = RegExp(
-  r'^package:(nextclouddeck|deck_protocol|deck_store)/[a-zA-Z0-9_./-]+\.dart$',
-);
-final _flutterFrame = RegExp(r'^package:flutter/[a-zA-Z0-9_./-]+\.dart$');
+String _truncate(String text, int max) =>
+    text.length <= max ? text : text.substring(0, max);
 
-/// App frames only. A FlutterError raised inside the framework has none, so its
-/// framework frames are kept instead: public code locations, no user data.
-SentryStackTrace? _safeStack(SentryStackTrace? trace) =>
-    _framesMatching(trace, _appFrame, inApp: true) ??
-    _framesMatching(trace, _flutterFrame, inApp: false);
+final _secretPatterns = <(RegExp, String)>[
+  // https://user:password@host
+  (RegExp(r'(\w+://)[^/\s:@]+:[^/\s@]+@'), r'$1[credentials]@'),
+  // Authorization / OCS headers and bearer tokens
+  (
+    RegExp(
+      r'(authorization|ocs-apirequest|cookie)\s*[:=]\s*\S+(\s+\S+)?',
+      caseSensitive: false,
+    ),
+    r'$1: [filtered]',
+  ),
+  (
+    RegExp(r'\b(bearer|basic)\s+[A-Za-z0-9._~+/=-]{8,}', caseSensitive: false),
+    r'$1 [filtered]',
+  ),
+  // app password / token / password query or json values
+  (
+    RegExp(
+      r'("?(?:password|passwd|apppassword|app_password|token|secret)"?\s*[:=]\s*)("[^"]*"|\S+)',
+      caseSensitive: false,
+    ),
+    r'$1[filtered]',
+  ),
+  // Nextcloud app passwords: five dash-separated groups of five characters
+  (RegExp(r'\b[A-Za-z0-9]{5}(-[A-Za-z0-9]{5}){4}\b'), '[filtered]'),
+];
 
-SentryStackTrace? _framesMatching(
-  SentryStackTrace? trace,
-  RegExp allowed, {
-  required bool inApp,
-}) {
+/// Error text stays readable; only credentials are cut out.
+String scrubSecrets(String text) {
+  var out = text;
+  for (final (pattern, replacement) in _secretPatterns) {
+    out = out.replaceAllMapped(pattern, (m) {
+      var r = replacement;
+      for (var i = m.groupCount; i >= 1; i--) {
+        r = r.replaceAll('\$$i', m.group(i) ?? '');
+      }
+      return r;
+    });
+  }
+  return out;
+}
+
+final _appFrame = RegExp(r'^package:(nextclouddeck|deck_protocol|deck_store)/');
+
+/// Full stack: code locations only (no local variables or source lines).
+SentryStackTrace? _readableStack(SentryStackTrace? trace) {
   if (trace == null) return null;
-  final frames = <SentryStackFrame>[];
-  for (final frame in trace.frames.take(100)) {
-    final path = frame.absPath?.startsWith('package:') == true
-        ? frame.absPath!
-        : frame.fileName ?? '';
-    if (!allowed.hasMatch(path) || path.contains('/../')) {
-      continue;
-    }
-    final function = frame.function;
-    frames.add(
+  final frames = [
+    for (final frame in trace.frames.take(200))
       SentryStackFrame(
-        fileName: path,
-        function:
-            function != null &&
-                RegExp(
-                  r'^[a-zA-Z_$][a-zA-Z0-9_.$<> ]{0,159}$',
-                ).hasMatch(function)
-            ? function
-            : null,
+        fileName: frame.fileName,
+        absPath: frame.absPath,
+        module: frame.module,
+        package: frame.package,
+        function: frame.function,
         lineNo: frame.lineNo,
         colNo: frame.colNo,
-        inApp: inApp,
+        inApp: _appFrame.hasMatch(frame.absPath ?? frame.fileName ?? ''),
+        platform: frame.platform,
       ),
-    );
-  }
+  ];
   return frames.isEmpty ? null : SentryStackTrace(frames: frames);
 }
 

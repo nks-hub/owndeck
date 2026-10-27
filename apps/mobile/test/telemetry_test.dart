@@ -92,23 +92,21 @@ void main() {
   });
 
   test(
-    'Sentry retains code locations but no values, context, paths or credentials',
+    'Sentry keeps readable error text and the full stack, drops credentials and context',
     () {
       final event = SentryEvent(
         request: SentryRequest(url: 'https://cloud.example.com/card/8'),
-        message: SentryMessage('private card contents'),
-        user: SentryUser(id: 'private-user', email: 'person@example.com'),
-        tags: {'private': 'private card contents'},
+        user: SentryUser(id: 'user-42', email: 'person@example.com'),
         contexts: Contexts.fromJson({
-          'private': {'text': 'private card contents'},
+          'device': {'name': 'device-name-42'},
         }),
-        transaction: '/card/8',
-        serverName: 'private-server',
-        unknown: {'private': 'private card contents'},
+        serverName: 'server-name-42',
         exceptions: [
           SentryException(
             type: 'FormatException',
-            value: 'private card contents',
+            value:
+                'Card 8 has no due date: https://anna:s3cret@cloud.example.com/x '
+                'Authorization: Basic YWJjZGVmZ2hpams=',
             stackTrace: SentryStackTrace(
               frames: [
                 SentryStackFrame(
@@ -116,94 +114,73 @@ void main() {
                   absPath: 'package:nextclouddeck/data/file.dart',
                   function: 'readFile',
                   lineNo: 12,
-                  vars: {'text': 'private card contents'},
-                  contextLine: 'private card contents',
-                  preContext: ['private card contents'],
+                  vars: {'text': 'local-variable-42'},
+                  contextLine: 'source-line-42',
                 ),
                 SentryStackFrame(
-                  fileName: 'private.txt',
-                  absPath: 'C:/Users/private/private.txt',
-                  function: 'private function',
+                  absPath: 'package:flutter/src/widgets/framework.dart',
+                  function: 'build',
+                  lineNo: 7,
                 ),
               ],
             ),
           ),
         ],
-        breadcrumbs: [
-          Breadcrumb(message: 'Authorization: Basic private', category: 'http'),
-        ],
+        breadcrumbs: [Breadcrumb(message: 'breadcrumb-42', category: 'http')],
       );
       final clean = scrubSentryEvent(event, config);
+      final exception = clean.exceptions!.single;
+      expect(exception.type, 'FormatException');
+      expect(exception.value, contains('Card 8 has no due date'));
+      expect(exception.value, contains('[credentials]@cloud.example.com'));
       final wire = jsonEncode(clean.toJson());
-      expect(wire, isNot(contains('private')));
-      expect(wire, isNot(contains('cloud.example.com')));
-      expect(
-        clean.exceptions!.single.stackTrace!.frames.single.fileName,
+      for (final gone in [
+        's3cret',
+        'YWJjZGVmZ2hpams=',
+        'person@example.com',
+        'user-42',
+        'device-name-42',
+        'server-name-42',
+        'local-variable-42',
+        'source-line-42',
+        'breadcrumb-42',
+      ]) {
+        expect(wire, isNot(contains(gone)), reason: gone);
+      }
+      final frames = exception.stackTrace!.frames;
+      expect(frames.map((f) => f.absPath), [
         'package:nextclouddeck/data/file.dart',
-      );
-      expect(clean.exceptions!.single.stackTrace!.frames.single.lineNo, 12);
+        'package:flutter/src/widgets/framework.dart',
+      ]);
+      expect(frames.map((f) => f.inApp), [true, false]);
+      expect(frames.first.lineNo, 12);
       expect(clean.release, config.release);
     },
   );
 
-  test('framework error without app frames keeps Flutter frames only', () {
-    SentryStackFrame frame(String path) => SentryStackFrame(
-      absPath: path,
-      fileName: path,
-      function: 'f',
-      lineNo: 7,
-    );
-    final clean = scrubSentryEvent(
-      SentryEvent(
-        exceptions: [
-          SentryException(
-            type: 'FlutterError',
-            value: 'private card contents',
-            stackTrace: SentryStackTrace(
-              frames: [
-                frame('package:flutter/src/rendering/flex.dart'),
-                frame('package:private_plugin/secret.dart'),
-                frame('dart:core/errors.dart'),
-              ],
+  test('credentials are cut out of error text', () {
+    expect(
+      scrubSentryEvent(
+        SentryEvent(
+          exceptions: [
+            SentryException(
+              type: 'LoginException',
+              value:
+                  'login failed {"password":"hunter2"} token=abc123 '
+                  'app password aB3dE-fG4hI-jK5lM-nO6pQ-rS7tU Bearer eyJhbGciOiJIUzI1',
             ),
-          ),
-        ],
+          ],
+        ),
+        config,
+      ).exceptions!.single.value,
+      allOf(
+        contains('login failed'),
+        isNot(contains('hunter2')),
+        isNot(contains('abc123')),
+        isNot(contains('aB3dE-fG4hI')),
+        isNot(contains('eyJhbGciOiJIUzI1')),
       ),
-      config,
     );
-    final frames = clean.exceptions!.single.stackTrace!.frames;
-    expect(frames.map((f) => f.fileName), [
-      'package:flutter/src/rendering/flex.dart',
-    ]);
-    expect(frames.single.inApp, isFalse);
-    expect(jsonEncode(clean.toJson()), isNot(contains('private')));
-  });
-
-  test('app frames win over Flutter frames', () {
-    final clean = scrubSentryEvent(
-      SentryEvent(
-        exceptions: [
-          SentryException(
-            type: 'FlutterError',
-            value: 'x',
-            stackTrace: SentryStackTrace(
-              frames: [
-                SentryStackFrame(
-                  absPath: 'package:flutter/src/widgets/framework.dart',
-                ),
-                SentryStackFrame(
-                  absPath: 'package:nextclouddeck/ui/board.dart',
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-      config,
-    );
-    expect(clean.exceptions!.single.stackTrace!.frames.map((f) => f.fileName), [
-      'package:nextclouddeck/ui/board.dart',
-    ]);
   });
 
   test('only known protocol error codes survive repeated scrubbing', () {
@@ -337,7 +314,7 @@ void main() {
   );
 
   test(
-    'the real Sentry Dart capture pipeline preserves an allowlisted stack',
+    'the real Sentry Dart capture pipeline sends readable error text and stack',
     () async {
       final preferences = TelemetryPreferences(store: MemoryPreferences());
       await preferences.load();
@@ -369,7 +346,7 @@ void main() {
                 as SentryEvent;
         expect(event.exceptions!.single.type, 'FormatException');
         expect(event.exceptions!.single.stackTrace!.frames.single.lineNo, 12);
-        expect(jsonEncode(event.toJson()), isNot(contains('private card')));
+        expect(event.exceptions!.single.value, contains('private card'));
       } finally {
         await Sentry.close();
       }
