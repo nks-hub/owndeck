@@ -183,6 +183,34 @@ void main() {
     expect(platform.items, isEmpty);
   });
 
+  test(
+    'a passed but undelivered reminder survives until its card changes',
+    () async {
+      var now = _now;
+      service = ReminderService(platform, clock: () => now);
+      await seed([_card(8)]);
+      await reconcile();
+      // Inexact alarms can be minutes late: past 9:00, not yet shown.
+      now = DateTime.utc(2030, 5, 1, 9, 5);
+      await service.reconcile(
+        await database.dueReminders(now: now),
+        _on,
+        _texts(),
+      );
+      expect(platform.items.values.single.at, DateTime.utc(2030, 5, 1, 9));
+      expect(platform.cancelCalls, 0);
+      await database.saveCardDraft(account, 1, 2, {
+        'done': '2030-05-01T09:04:00+00:00',
+      }, original: DeckCard.fromJson(_card(8)));
+      await service.reconcile(
+        await database.dueReminders(now: now),
+        _on,
+        _texts(),
+      );
+      expect(platform.items, isEmpty);
+    },
+  );
+
   test('reconciling again changes nothing', () async {
     await seed([_card(8)]);
     await reconcile();

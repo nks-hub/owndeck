@@ -264,13 +264,27 @@ final class ReminderService {
         );
       }
     }
+    // Inexact alarms may fire minutes late; a reminder whose time has passed
+    // but which the OS has not delivered yet stays while its card is unchanged.
+    final due = <String, int>{
+      if (preferences.enabled)
+        for (final card in cards)
+          keyOf(card.accountId, card.cardId): card.due
+              .subtract(lead)
+              .millisecondsSinceEpoch,
+    };
     final taken = <int>{};
     final kept = <String>{};
     for (final pending in await platform.scheduled()) {
       final key = _keyOfPayload(pending.payload);
       final current = key == null ? null : wanted[key];
-      if (current != null &&
-          current.payload == pending.payload &&
+      final at = _atOfPayload(pending.payload);
+      final overdue =
+          key != null &&
+          at != null &&
+          at <= now.millisecondsSinceEpoch &&
+          due[key] == at;
+      if ((current != null && current.payload == pending.payload || overdue) &&
           kept.add(key!)) {
         taken.add(pending.id);
       } else {
@@ -304,6 +318,17 @@ final class ReminderService {
       }
     } on FormatException {
       // A payload we did not write is cancelled by the caller.
+    }
+    return null;
+  }
+
+  static int? _atOfPayload(String? payload) {
+    if (payload == null) return null;
+    try {
+      final values = jsonDecode(payload);
+      if (values is Map && values['at'] is int) return values['at'] as int;
+    } on FormatException {
+      // Unknown payloads never count as overdue.
     }
     return null;
   }
