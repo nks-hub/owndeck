@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:nextclouddeck/features/login.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'test_support.dart';
 
@@ -19,6 +20,18 @@ http.Response jsonResponse(Object value, [int status = 200]) => http.Response(
 );
 
 void main() {
+  test('login page opens in the in-app browser on iOS only', () {
+    expect(loginLaunchMode(TargetPlatform.iOS), LaunchMode.inAppBrowserView);
+    for (final platform in [
+      TargetPlatform.android,
+      TargetPlatform.macOS,
+      TargetPlatform.windows,
+      TargetPlatform.linux,
+    ]) {
+      expect(loginLaunchMode(platform), LaunchMode.externalApplication);
+    }
+  });
+
   const account = StoredAccount(
     id: 'test-account',
     server: 'https://cloud.example.com/',

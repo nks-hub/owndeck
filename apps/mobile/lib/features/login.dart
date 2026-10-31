@@ -22,6 +22,14 @@ import 'accounts.dart';
 typedef LoginTransportFactory =
     http.Client Function(ServerBase server, String? fingerprint);
 
+/// How the Login Flow v2 page is opened: iOS keeps the user inside the app
+/// (SFSafariViewController), other platforms use the default browser.
+@visibleForTesting
+LaunchMode loginLaunchMode(TargetPlatform platform) =>
+    platform == TargetPlatform.iOS
+    ? LaunchMode.inAppBrowserView
+    : LaunchMode.externalApplication;
+
 class LoginScreen extends StatelessWidget {
   const LoginScreen({
     super.key,
@@ -100,6 +108,8 @@ class _LoginContentState extends ConsumerState<_LoginContent> {
     TargetPlatform.macOS,
     TargetPlatform.linux,
   }.contains(defaultTargetPlatform);
+  bool get _inAppLogin =>
+      loginLaunchMode(defaultTargetPlatform) == LaunchMode.inAppBrowserView;
   bool _valid(int generation) => mounted && generation == _generation;
 
   @override
@@ -176,6 +186,9 @@ class _LoginContentState extends ConsumerState<_LoginContent> {
       }
     } finally {
       if (generation == _generation) {
+        if (_inAppLogin && widget.openBrowser == null) {
+          unawaited(closeInAppWebView().catchError((_) {}));
+        }
         _session?.cancel();
         _session = null;
         _transport?.close();
@@ -247,12 +260,13 @@ class _LoginContentState extends ConsumerState<_LoginContent> {
       },
     );
     try {
-      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (!await launchUrl(uri, mode: loginLaunchMode(defaultTargetPlatform))) {
         return false;
       }
-      // A desktop window stays visible behind the browser, so there is no
-      // hide and resume to wait for; polling starts right away.
-      if (_desktop) return true;
+      // A desktop window and the in-app browser sheet on iOS keep this app
+      // visible, so there is no hide and resume to wait for; polling starts
+      // right away.
+      if (_desktop || _inAppLogin) return true;
       await Future.any([
         returned.future,
         cancelled,
