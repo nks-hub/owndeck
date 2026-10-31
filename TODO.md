@@ -198,6 +198,7 @@ Z rozboru zdrojů a issues oficiální aplikace (GPL-3.0, jen nápady bez převz
 - [x] R12 `0.1.3+6` s opravami B69 a B70 nahráno přes API do alpha ze zdroje `c1361dd`: podepsaný AAB ověřený, CI ve všech osmi úlohách včetně macOS prošlo, brány na `83214c0` prošly (mobil 514 testů). Google schválil, API 27. 10. 2026 vrací pro alpha `0.1.3 (6)` RELEASE_LIFECYCLE_STATE_PUBLISHED.
 - [x] R13 `0.1.4+7` (Sentry s čitelným textem chyby) ze zdroje `aa6a716`: Google Play alpha přijala build 7 ke kontrole (IN_REVIEW), TestFlight build 7 je VALID, interní testování běží, externí čeká na beta review. Rozšíření pro sdílení vyžaduje iOS 15, protože App Store odmítl přibalenou knihovnu Swift Concurrency.
 - [ ] R14 `0.1.4 (7)` odeslána ke kontrole do App Store (stav WAITING_FOR_REVIEW); Google Play produkce čeká na podmínku 12 testerů po 14 dní v uzavřeném testu.
+- [ ] R15 App Review vrátil `0.1.4` s žádostí o doplnění informací (guideline 2.1): potřebují záznam obrazovky z fyzického iPhonu a popis účelu, přihlášení, služeb a regionů. Přihlášení na iOS se nově otevírá v SFSafariViewController místo výchozího prohlížeče (`0.1.4+8`). Zbývá záznam z iPhonu přes TestFlight, odpověď v Resolution Center a nové odeslání.
 
 - [x] P03 Repozitář `nks-hub/owndeck` je veřejný; anonymní přístup ověřen, README, licence a štítky zkontrolované, aplikace doplněna do profilu organizace.
 

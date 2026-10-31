@@ -1,7 +1,7 @@
 name: nextclouddeck
 description: Nextcloud Deck client for Android, iOS and desktop.
 publish_to: none
-version: 0.1.4+7
+version: 0.1.4+8
 environment:
   sdk: '>=3.12.2 <4.0.0'
 dependencies:
